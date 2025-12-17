@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Calendar, TrendingUp, Search } from 'lucide-react';
+import { Plus, Calendar, TrendingUp, Search, Trash2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { FinanceEntry } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -104,6 +104,12 @@ export function Caixa() {
     });
   };
 
+  const handleDelete = (entryId: string) => {
+    if (confirm('Tem certeza que deseja excluir esta entrada?')) {
+      setFinances(finances.filter((f) => f.id !== entryId));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Metrics */}
@@ -171,6 +177,7 @@ export function Caixa() {
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Descrição</th>
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Data</th>
                 <th className="text-right p-4 text-sm font-medium text-muted-foreground">Valor</th>
+                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -192,11 +199,21 @@ export function Caixa() {
                   <td className="p-4 text-right font-semibold text-foreground">
                     {formatCurrency(entry.value)}
                   </td>
+                  <td className="p-4 text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => handleDelete(entry.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </td>
                 </tr>
               ))}
               {filteredFinances.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
                     Nenhuma entrada encontrada
                   </td>
                 </tr>
@@ -297,3 +314,5 @@ export function Caixa() {
     </div>
   );
 }
+
+export default Caixa;

@@ -5,11 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
 import { Layout } from "@/components/Layout";
-import { Dashboard } from "@/pages/Dashboard";
-import { CRM } from "@/pages/CRM";
-import { Clientes } from "@/pages/Clientes";
-import { Caixa } from "@/pages/Caixa";
-import { Relatorios } from "@/pages/Relatorios";
+import Dashboard from "@/pages/Dashboard";
+import CRM from "@/pages/CRM";
+import Clientes from "@/pages/Clientes";
+import Caixa from "@/pages/Caixa";
+import Relatorios from "@/pages/Relatorios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

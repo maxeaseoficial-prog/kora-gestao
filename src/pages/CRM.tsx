@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
-export function CRM() {
+function CRM() {
   const { crmColumns, setCrmColumns, crmCards, setCrmCards } = useApp();
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
@@ -128,6 +128,11 @@ export function CRM() {
     setIsCardDialogOpen(false);
   };
 
+  const openEditDialog = (card: CRMCard) => {
+    setEditingCard(card);
+    setIsCardDialogOpen(true);
+  };
+
   return (
     <div className="h-[calc(100vh-8rem)] overflow-hidden">
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -188,10 +193,7 @@ export function CRM() {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              onClick={() => {
-                                setEditingCard(card);
-                                setIsCardDialogOpen(true);
-                              }}
+                              onClick={() => openEditDialog(card)}
                               className={cn(
                                 "p-3 bg-card rounded-lg border border-border cursor-pointer hover:shadow-md transition-all",
                                 snapshot.isDragging && "shadow-lg rotate-2"
@@ -383,3 +385,5 @@ export function CRM() {
     </div>
   );
 }
+
+export default CRM;
