@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-
+import { PWAInstallButton } from '@/components/PWAInstallButton';
 interface LayoutProps {
   children: ReactNode;
 }
@@ -117,6 +117,9 @@ export function Layout({ children }: LayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* PWA Install Button */}
+      <PWAInstallButton />
     </div>
   );
 }
