@@ -10,6 +10,7 @@ import CRM from "@/pages/CRM";
 import Clientes from "@/pages/Clientes";
 import Caixa from "@/pages/Caixa";
 import Relatorios from "@/pages/Relatorios";
+import Install from "@/pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/clientes" element={<Clientes />} />
               <Route path="/caixa" element={<Caixa />} />
               <Route path="/relatorios" element={<Relatorios />} />
+              <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

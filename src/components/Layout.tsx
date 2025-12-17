@@ -7,7 +7,8 @@ import {
   Wallet, 
   FileText, 
   Menu,
-  X
+  X,
+  Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
   { name: 'Relatórios', href: '/relatorios', icon: FileText },
+  { name: 'Instalar', href: '/install', icon: Download },
 ];
 
 export function Layout({ children }: LayoutProps) {
