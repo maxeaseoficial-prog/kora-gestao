@@ -50,31 +50,48 @@ export function PWAInstallButton() {
   }, [toast]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    if (deferredPrompt) {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === "accepted") {
-      setIsInstalled(true);
-      setIsInstallable(false);
+      if (outcome === "accepted") {
+        setIsInstalled(true);
+        setIsInstallable(false);
+      }
+
+      setDeferredPrompt(null);
+      return;
     }
 
-    setDeferredPrompt(null);
+    toast({
+      title: "Instalação não disponível aqui",
+      description:
+        "Para instalar no PC: abra o LINK PUBLICADO no Chrome/Edge e clique em Instalar na barra de endereços (ou Menu → Instalar app).",
+    });
   };
 
-  // Requisito: botão só aparece se o app for instalável e ainda não estiver instalado
-  if (isInstalled || !isInstallable) {
-    return null;
-  }
+  const isDesktop = window.matchMedia?.("(pointer: fine)")?.matches ?? true;
+
+  // No PC, mantém o botão visível para o usuário ter um ponto fixo de instalação.
+  // Se o navegador não liberar instalação (beforeinstallprompt), o botão fica desabilitado.
+  const shouldShowButton = !isInstalled && (isInstallable || isDesktop);
+  if (!shouldShowButton) return null;
 
   return (
     <Button
       onClick={handleInstallClick}
       variant="outline"
-      className="fixed bottom-4 left-4 z-50 bg-background border-foreground/20 hover:bg-foreground hover:text-background transition-all duration-300 shadow-lg"
+      disabled={!isInstallable}
+      className="fixed bottom-4 left-4 z-50 bg-background border-foreground/20 hover:bg-foreground hover:text-background transition-all duration-300 shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+      title={
+        isInstallable
+          ? "Instalar MAXEASE"
+          : "Abra o link publicado no Chrome/Edge para habilitar a instalação"
+      }
     >
       <Download className="h-4 w-4 mr-2" />
       Instalar MAXEASE
     </Button>
   );
 }
+
