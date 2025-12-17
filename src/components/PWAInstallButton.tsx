@@ -81,12 +81,13 @@ export function PWAInstallButton() {
     <Button
       onClick={handleInstallClick}
       variant="outline"
-      disabled={!isInstallable}
-      className="fixed bottom-4 left-4 z-50 bg-background border-foreground/20 hover:bg-foreground hover:text-background transition-all duration-300 shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+      className={`fixed bottom-4 left-4 z-50 bg-background border-foreground/20 hover:bg-foreground hover:text-background transition-all duration-300 shadow-lg ${
+        !isInstallable ? "opacity-60" : ""
+      }`}
       title={
         isInstallable
           ? "Instalar MAXEASE"
-          : "Abra o link publicado no Chrome/Edge para habilitar a instalação"
+          : "Abra o link publicado no Chrome/Edge para habilitar a instalação (ou veja instruções ao clicar)"
       }
     >
       <Download className="h-4 w-4 mr-2" />
