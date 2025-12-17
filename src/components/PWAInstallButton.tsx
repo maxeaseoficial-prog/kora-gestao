@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -11,6 +12,7 @@ export function PWAInstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if already installed
@@ -29,6 +31,10 @@ export function PWAInstallButton() {
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);
+      toast({
+        title: "MAXEASE instalado!",
+        description: "O aplicativo foi instalado com sucesso.",
+      });
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -38,22 +44,28 @@ export function PWAInstallButton() {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, []);
+  }, [toast]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (deferredPrompt) {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
 
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-
-    if (outcome === "accepted") {
-      setIsInstalled(true);
-      setIsInstallable(false);
+      if (outcome === "accepted") {
+        setIsInstalled(true);
+        setIsInstallable(false);
+      }
+      setDeferredPrompt(null);
+    } else {
+      toast({
+        title: "Instalação disponível após publicar",
+        description: "Publique o app e acesse diretamente no navegador para instalar.",
+      });
     }
-    setDeferredPrompt(null);
   };
 
-  if (isInstalled || !isInstallable) {
+  // Hide only if already installed as standalone app
+  if (isInstalled) {
     return null;
   }
 
