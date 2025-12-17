@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -9,14 +9,17 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PWAInstallButton() {
+  const { toast } = useToast();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
-    // Check if already installed
-    if (window.matchMedia("(display-mode: standalone)").matches) {
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true;
+
+    if (isStandalone) {
       setIsInstalled(true);
       return;
     }
@@ -47,25 +50,20 @@ export function PWAInstallButton() {
   }, [toast]);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
 
-      if (outcome === "accepted") {
-        setIsInstalled(true);
-        setIsInstallable(false);
-      }
-      setDeferredPrompt(null);
-    } else {
-      toast({
-        title: "Instalação disponível após publicar",
-        description: "Publique o app e acesse diretamente no navegador para instalar.",
-      });
+    if (outcome === "accepted") {
+      setIsInstalled(true);
+      setIsInstallable(false);
     }
+
+    setDeferredPrompt(null);
   };
 
-  // Hide only if already installed as standalone app
-  if (isInstalled) {
+  // Requisito: botão só aparece se o app for instalável e ainda não estiver instalado
+  if (isInstalled || !isInstallable) {
     return null;
   }
 
