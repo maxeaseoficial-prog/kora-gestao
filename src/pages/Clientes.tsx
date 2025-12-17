@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { Client } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ const initialClientState: Omit<Client, 'id' | 'createdAt'> = {
   phone: '',
 };
 
-export function Clientes() {
+function Clientes() {
   const { clients, setClients } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
@@ -349,3 +349,5 @@ export function Clientes() {
     </div>
   );
 }
+
+export default Clientes;

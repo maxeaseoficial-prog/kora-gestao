@@ -23,9 +23,9 @@ interface ClientFolder {
   reports: FolderReport[];
 }
 
-export function Relatorios() {
+function Relatorios() {
   const { clients } = useApp();
-  const [folders, setFolders] = useState<ClientFolder[]>(
+  const [folders, setFolders] = useState<ClientFolder[]>(() =>
     clients.map((c) => ({
       id: c.id,
       name: c.company,
@@ -48,12 +48,13 @@ export function Relatorios() {
       date: new Date().toISOString(),
     };
 
-    setFolders(folders.map((f) =>
+    const updatedFolders = folders.map((f) =>
       f.id === selectedFolder.id
         ? { ...f, reports: [...f.reports, newReport] }
         : f
-    ));
-
+    );
+    
+    setFolders(updatedFolders);
     setSelectedFolder({
       ...selectedFolder,
       reports: [...selectedFolder.reports, newReport],
@@ -70,12 +71,13 @@ export function Relatorios() {
       r.id === selectedReport.id ? { ...r, name: newReportName } : r
     );
 
-    setFolders(folders.map((f) =>
+    const updatedFolders = folders.map((f) =>
       f.id === selectedFolder.id
         ? { ...f, reports: updatedReports }
         : f
-    ));
+    );
 
+    setFolders(updatedFolders);
     setSelectedFolder({
       ...selectedFolder,
       reports: updatedReports,
@@ -91,12 +93,13 @@ export function Relatorios() {
 
     const updatedReports = selectedFolder.reports.filter((r) => r.id !== reportId);
 
-    setFolders(folders.map((f) =>
+    const updatedFolders = folders.map((f) =>
       f.id === selectedFolder.id
         ? { ...f, reports: updatedReports }
         : f
-    ));
+    );
 
+    setFolders(updatedFolders);
     setSelectedFolder({
       ...selectedFolder,
       reports: updatedReports,
@@ -122,6 +125,12 @@ export function Relatorios() {
     };
 
     setFolders([...folders, newFolder]);
+  };
+
+  const openRenameDialog = (report: FolderReport) => {
+    setSelectedReport(report);
+    setNewReportName(report.name);
+    setIsRenameDialogOpen(true);
   };
 
   return (
@@ -177,11 +186,7 @@ export function Relatorios() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => {
-                        setSelectedReport(report);
-                        setNewReportName(report.name);
-                        setIsRenameDialogOpen(true);
-                      }}
+                      onClick={() => openRenameDialog(report)}
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -326,3 +331,5 @@ export function Relatorios() {
     </div>
   );
 }
+
+export default Relatorios;

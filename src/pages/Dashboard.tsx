@@ -2,7 +2,7 @@ import { DollarSign, Users, TrendingUp, Kanban } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { MetricCard } from '@/components/MetricCard';
 
-export function Dashboard() {
+function Dashboard() {
   const { clients, finances, crmCards, crmColumns } = useApp();
 
   const activeClients = clients.filter(c => c.status === 'ativo').length;
@@ -151,3 +151,5 @@ export function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;
