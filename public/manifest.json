@@ -1,12 +1,14 @@
 {
-  "name": "MAXEASE - Gestão Empresarial",
+  "name": "MAXEASE – Workflow & Gestão",
   "short_name": "MAXEASE",
-  "description": "Plataforma de workflow e gestão empresarial da agência MAXEASE",
-  "start_url": "/",
+  "description": "Plataforma interna de workflow, CRM, clientes, finanças e relatórios da agência MAXEASE",
+  "start_url": "./",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
+  "orientation": "any",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/pwa-192x192.png",

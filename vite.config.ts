@@ -16,17 +16,18 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
-      includeAssets: ["favicon.ico", "robots.txt"],
+      includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
       manifest: {
-        name: "MAXEASE - Gestão Empresarial",
+        name: "MAXEASE – Workflow & Gestão",
         short_name: "MAXEASE",
-        description: "Plataforma de workflow e gestão empresarial da agência MAXEASE",
+        description: "Plataforma interna de workflow, CRM, clientes, finanças e relatórios da agência MAXEASE",
         theme_color: "#000000",
         background_color: "#ffffff",
         display: "standalone",
-        orientation: "portrait",
+        orientation: "any",
         scope: "/",
-        start_url: "/",
+        start_url: "./",
+        prefer_related_applications: false,
         icons: [
           {
             src: "/pwa-192x192.png",
@@ -58,6 +59,20 @@ export default defineConfig(({ mode }) => ({
             handler: "CacheFirst",
             options: {
               cacheName: "google-fonts-cache",
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "gstatic-fonts-cache",
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365,
