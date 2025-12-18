@@ -3,7 +3,7 @@
   "short_name": "MAXEASE",
   "description": "Plataforma interna de workflow, CRM, clientes, finanças e relatórios da agência MAXEASE",
   "start_url": "./",
-  "scope": "/",
+  "scope": "./"
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",

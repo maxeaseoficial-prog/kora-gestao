@@ -51,22 +51,27 @@ export function PWAInstallButton() {
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+      try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
 
-      if (outcome === "accepted") {
-        setIsInstalled(true);
-        setIsInstallable(false);
+        if (outcome === "accepted") {
+          setIsInstalled(true);
+          setIsInstallable(false);
+        }
+      } catch (error) {
+        console.log("PWA install prompt error:", error);
+      } finally {
+        setDeferredPrompt(null);
       }
-
-      setDeferredPrompt(null);
       return;
     }
 
     toast({
       title: "Instalação não disponível aqui",
       description:
-        "Para instalar no PC: abra o LINK PUBLICADO no Chrome/Edge e clique em Instalar na barra de endereços (ou Menu → Instalar app).",
+        "Para instalar: abra o link publicado (HTTPS) no Chrome ou Edge, depois clique no ícone de instalação na barra de endereços ou vá em Menu → Instalar aplicativo.",
+      duration: 8000,
     });
   };
 
