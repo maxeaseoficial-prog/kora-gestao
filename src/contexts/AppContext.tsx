@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Client, CRMCard, CRMColumn, FinanceEntry, Report } from '@/types';
 
 interface AppContextType {
@@ -15,6 +15,14 @@ interface AppContextType {
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const STORAGE_KEYS = {
+  clients: 'maxease-clients',
+  crmColumns: 'maxease-crm-columns',
+  crmCards: 'maxease-crm-cards',
+  finances: 'maxease-finances',
+  reports: 'maxease-reports',
+};
 
 const initialColumns: CRMColumn[] = [
   { id: 'lead', title: 'Lead', order: 0 },
@@ -129,12 +137,78 @@ const initialFinances: FinanceEntry[] = [
   },
 ];
 
+// Helper functions for localStorage
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Convert date strings back to Date objects for specific types
+      if (key === STORAGE_KEYS.clients) {
+        return parsed.map((item: any) => ({
+          ...item,
+          createdAt: new Date(item.createdAt),
+        })) as T;
+      }
+      if (key === STORAGE_KEYS.finances) {
+        return parsed.map((item: any) => ({
+          ...item,
+          date: new Date(item.date),
+        })) as T;
+      }
+      return parsed;
+    }
+  } catch (error) {
+    console.error(`Error loading ${key} from localStorage:`, error);
+  }
+  return fallback;
+}
+
+function saveToStorage<T>(key: string, data: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error(`Error saving ${key} to localStorage:`, error);
+  }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [clients, setClients] = useState<Client[]>(initialClients);
-  const [crmColumns, setCrmColumns] = useState<CRMColumn[]>(initialColumns);
-  const [crmCards, setCrmCards] = useState<CRMCard[]>(initialCards);
-  const [finances, setFinances] = useState<FinanceEntry[]>(initialFinances);
-  const [reports, setReports] = useState<Report[]>([]);
+  const [clients, setClients] = useState<Client[]>(() => 
+    loadFromStorage(STORAGE_KEYS.clients, initialClients)
+  );
+  const [crmColumns, setCrmColumns] = useState<CRMColumn[]>(() => 
+    loadFromStorage(STORAGE_KEYS.crmColumns, initialColumns)
+  );
+  const [crmCards, setCrmCards] = useState<CRMCard[]>(() => 
+    loadFromStorage(STORAGE_KEYS.crmCards, initialCards)
+  );
+  const [finances, setFinances] = useState<FinanceEntry[]>(() => 
+    loadFromStorage(STORAGE_KEYS.finances, initialFinances)
+  );
+  const [reports, setReports] = useState<Report[]>(() => 
+    loadFromStorage(STORAGE_KEYS.reports, [])
+  );
+
+  // Save to localStorage whenever data changes
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.clients, clients);
+  }, [clients]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.crmColumns, crmColumns);
+  }, [crmColumns]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.crmCards, crmCards);
+  }, [crmCards]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.finances, finances);
+  }, [finances]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.reports, reports);
+  }, [reports]);
 
   return (
     <AppContext.Provider
