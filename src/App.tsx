@@ -13,6 +13,8 @@ import Clientes from "@/pages/Clientes";
 import Caixa from "@/pages/Caixa";
 import Relatorios from "@/pages/Relatorios";
 import Install from "@/pages/Install";
+import MapasMentais from "@/pages/MapasMentais";
+import MindMapEditor from "@/pages/MindMapEditor";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -84,6 +86,26 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Install />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mapas-mentais"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MapasMentais />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mapas-mentais/:id"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MindMapEditor />
                     </Layout>
                   </ProtectedRoute>
                 }

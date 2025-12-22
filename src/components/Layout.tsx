@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   Download,
-  LogOut
+  LogOut,
+  Brain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
   { name: 'Relatórios', href: '/relatorios', icon: FileText },
+  { name: 'Mapas Mentais', href: '/mapas-mentais', icon: Brain },
   { name: 'Instalar', href: '/install', icon: Download },
 ];
 
