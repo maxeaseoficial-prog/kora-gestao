@@ -197,14 +197,24 @@ export default function MindMapEditor() {
   const addNode = async () => {
     if (!id) return;
 
+    // Calculate position based on last node
+    let newX = 200;
+    let newY = 200;
+    
+    if (nodes.length > 0) {
+      const lastNode = nodes[nodes.length - 1];
+      newX = lastNode.position.x + 220; // Place to the right of last node
+      newY = lastNode.position.y;
+    }
+
     try {
       const { data, error } = await supabase
         .from('mind_map_nodes')
         .insert({
           mind_map_id: id,
           content: 'Novo card',
-          position_x: Math.random() * 400 + 100,
-          position_y: Math.random() * 300 + 100,
+          position_x: newX,
+          position_y: newY,
         })
         .select()
         .single();
@@ -235,6 +245,16 @@ export default function MindMapEditor() {
     const file = event.target.files?.[0];
     if (!file || !id || !user) return;
 
+    // Calculate position based on last node
+    let newX = 200;
+    let newY = 200;
+    
+    if (nodes.length > 0) {
+      const lastNode = nodes[nodes.length - 1];
+      newX = lastNode.position.x + 220;
+      newY = lastNode.position.y;
+    }
+
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${id}/${Date.now()}.${fileExt}`;
@@ -255,8 +275,8 @@ export default function MindMapEditor() {
         .insert({
           mind_map_id: id,
           image_url: publicUrl,
-          position_x: Math.random() * 400 + 100,
-          position_y: Math.random() * 300 + 100,
+          position_x: newX,
+          position_y: newY,
         })
         .select()
         .single();
