@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import CRM from "@/pages/CRM";
@@ -11,6 +13,7 @@ import Clientes from "@/pages/Clientes";
 import Caixa from "@/pages/Caixa";
 import Relatorios from "@/pages/Relatorios";
 import Install from "@/pages/Install";
+import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,23 +21,78 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AppProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Layout>
+      <AuthProvider>
+        <AppProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/crm" element={<CRM />} />
-              <Route path="/clientes" element={<Clientes />} />
-              <Route path="/caixa" element={<Caixa />} />
-              <Route path="/relatorios" element={<Relatorios />} />
-              <Route path="/install" element={<Install />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Dashboard />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/crm"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <CRM />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/clientes"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Clientes />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/caixa"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Caixa />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/relatorios"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Relatorios />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/install"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Install />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </Layout>
-        </BrowserRouter>
-      </AppProvider>
+          </BrowserRouter>
+        </AppProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

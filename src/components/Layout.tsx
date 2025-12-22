@@ -8,11 +8,14 @@ import {
   FileText, 
   Menu,
   X,
-  Download
+  Download,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { PWAInstallButton } from '@/components/PWAInstallButton';
+import { useAuth } from '@/contexts/AuthContext';
+
 interface LayoutProps {
   children: ReactNode;
 }
@@ -29,6 +32,7 @@ const navigation = [
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { signOut, user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,7 +91,15 @@ export function Layout({ children }: LayoutProps) {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-border space-y-3">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+              onClick={() => signOut()}
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
             <p className="text-xs text-muted-foreground text-center">
               © 2025 MAXEASE
             </p>

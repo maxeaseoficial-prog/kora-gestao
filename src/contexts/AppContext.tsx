@@ -12,6 +12,8 @@ interface AppContextType {
   setFinances: React.Dispatch<React.SetStateAction<FinanceEntry[]>>;
   reports: Report[];
   setReports: React.Dispatch<React.SetStateAction<Report[]>>;
+  hideNumbers: boolean;
+  setHideNumbers: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ const STORAGE_KEYS = {
   crmCards: 'maxease-crm-cards',
   finances: 'maxease-finances',
   reports: 'maxease-reports',
+  hideNumbers: 'maxease-hide-numbers',
 };
 
 const initialColumns: CRMColumn[] = [
@@ -188,6 +191,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [reports, setReports] = useState<Report[]>(() => 
     loadFromStorage(STORAGE_KEYS.reports, [])
   );
+  const [hideNumbers, setHideNumbers] = useState<boolean>(() => 
+    loadFromStorage(STORAGE_KEYS.hideNumbers, false)
+  );
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -210,6 +216,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveToStorage(STORAGE_KEYS.reports, reports);
   }, [reports]);
 
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.hideNumbers, hideNumbers);
+  }, [hideNumbers]);
+
   return (
     <AppContext.Provider
       value={{
@@ -223,6 +233,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setFinances,
         reports,
         setReports,
+        hideNumbers,
+        setHideNumbers,
       }}
     >
       {children}
