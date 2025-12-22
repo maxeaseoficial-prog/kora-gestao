@@ -1,9 +1,10 @@
-import { DollarSign, Users, TrendingUp, Kanban } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Kanban, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { MetricCard } from '@/components/MetricCard';
+import { Button } from '@/components/ui/button';
 
 function Dashboard() {
-  const { clients, finances, crmCards, crmColumns } = useApp();
+  const { clients, finances, crmCards, crmColumns, hideNumbers, setHideNumbers } = useApp();
 
   const activeClients = clients.filter(c => c.status === 'ativo').length;
   const monthlyRevenue = finances.reduce((acc, f) => acc + f.value, 0);
@@ -14,10 +15,16 @@ function Dashboard() {
     .slice(0, 5);
 
   const formatCurrency = (value: number) => {
+    if (hideNumbers) return '•••••••';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
+  };
+
+  const formatNumber = (value: number) => {
+    if (hideNumbers) return '••';
+    return value.toString();
   };
 
   const formatDate = (date: Date) => {
@@ -29,24 +36,46 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Hide Numbers Toggle */}
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setHideNumbers(!hideNumbers)}
+          className="gap-2"
+        >
+          {hideNumbers ? (
+            <>
+              <Eye className="h-4 w-4" />
+              Mostrar Valores
+            </>
+          ) : (
+            <>
+              <EyeOff className="h-4 w-4" />
+              Ocultar Valores
+            </>
+          )}
+        </Button>
+      </div>
+
       {/* Metrics Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Receita do Mês"
           value={formatCurrency(monthlyRevenue)}
           icon={<DollarSign className="h-5 w-5 text-foreground" />}
-          trend={{ value: 12, isPositive: true }}
+          trend={hideNumbers ? undefined : { value: 12, isPositive: true }}
         />
         <MetricCard
           title="Clientes Ativos"
-          value={activeClients}
+          value={formatNumber(activeClients)}
           subtitle="Total de clientes ativos"
           icon={<Users className="h-5 w-5 text-foreground" />}
         />
         <MetricCard
           title="Leads no CRM"
-          value={totalCards}
-          subtitle={`Em ${crmColumns.length} colunas`}
+          value={formatNumber(totalCards)}
+          subtitle={hideNumbers ? '•••••••' : `Em ${crmColumns.length} colunas`}
           icon={<Kanban className="h-5 w-5 text-foreground" />}
         />
         <MetricCard
@@ -104,7 +133,7 @@ function Dashboard() {
                   <div key={column.id} className="space-y-1">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium">{column.title}</span>
-                      <span className="text-muted-foreground">{cardsInColumn} cards</span>
+                      <span className="text-muted-foreground">{hideNumbers ? '••' : cardsInColumn} cards</span>
                     </div>
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
                       <div
