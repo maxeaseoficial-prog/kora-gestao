@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Calendar, TrendingUp, Search, Trash2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { FinanceEntry } from '@/types';
@@ -18,12 +18,25 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { MetricCard } from '@/components/MetricCard';
+import { MonthYearPicker } from '@/components/MonthYearPicker';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+}
 
 export function Caixa() {
   const { finances, setFinances, clients } = useApp();
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
+  const [services, setServices] = useState<Service[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState({
     clientId: '',
     clientName: '',
@@ -31,7 +44,28 @@ export function Caixa() {
     date: new Date().toISOString().split('T')[0],
     type: 'Mensalidade',
     description: '',
+    serviceId: '',
   });
+
+  useEffect(() => {
+    if (user) {
+      fetchServices();
+    }
+  }, [user]);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, name, price')
+        .order('name');
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -48,19 +82,16 @@ export function Caixa() {
     }).format(new Date(date));
   };
 
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
+  // Filter finances by selected month/year
+  const financesInPeriod = finances.filter((f) => {
+    const date = new Date(f.date);
+    return date.getMonth() === selectedMonth && date.getFullYear() === selectedYear;
+  });
 
-  const monthlyTotal = finances
-    .filter((f) => {
-      const date = new Date(f.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    })
-    .reduce((acc, f) => acc + f.value, 0);
+  const monthlyTotal = financesInPeriod.reduce((acc, f) => acc + f.value, 0);
+  const totalEntriesInPeriod = financesInPeriod.length;
 
-  const totalEntries = finances.length;
-
-  const filteredFinances = finances
+  const filteredFinances = financesInPeriod
     .filter((f) => {
       const matchesSearch = f.clientName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === 'todos' || f.type === typeFilter;
@@ -77,6 +108,19 @@ export function Caixa() {
       clientId,
       clientName: client?.company || '',
     });
+  };
+
+  const handleServiceChange = (serviceId: string) => {
+    const service = services.find((s) => s.id === serviceId);
+    if (service) {
+      setFormData({
+        ...formData,
+        serviceId,
+        type: service.name,
+        value: Number(service.price),
+        description: service.name,
+      });
+    }
   };
 
   const handleSave = () => {
@@ -101,6 +145,7 @@ export function Caixa() {
       date: new Date().toISOString().split('T')[0],
       type: 'Mensalidade',
       description: '',
+      serviceId: '',
     });
   };
 
@@ -112,6 +157,18 @@ export function Caixa() {
 
   return (
     <div className="space-y-6">
+      {/* Month/Year Picker */}
+      <div className="flex justify-start">
+        <MonthYearPicker
+          month={selectedMonth}
+          year={selectedYear}
+          onChange={(month, year) => {
+            setSelectedMonth(month);
+            setSelectedYear(year);
+          }}
+        />
+      </div>
+
       {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <MetricCard
@@ -121,14 +178,14 @@ export function Caixa() {
           icon={<TrendingUp className="h-5 w-5 text-foreground" />}
         />
         <MetricCard
-          title="Total de Entradas"
-          value={totalEntries}
-          subtitle="Registros no sistema"
+          title="Entradas do Mês"
+          value={totalEntriesInPeriod}
+          subtitle="Registros no período"
           icon={<Calendar className="h-5 w-5 text-foreground" />}
         />
         <MetricCard
           title="Média por Entrada"
-          value={formatCurrency(finances.length > 0 ? finances.reduce((a, b) => a + b.value, 0) / finances.length : 0)}
+          value={formatCurrency(totalEntriesInPeriod > 0 ? monthlyTotal / totalEntriesInPeriod : 0)}
           subtitle="Valor médio recebido"
           icon={<TrendingUp className="h-5 w-5 text-foreground" />}
         />
@@ -214,7 +271,7 @@ export function Caixa() {
               {filteredFinances.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                    Nenhuma entrada encontrada
+                    Nenhuma entrada encontrada neste período
                   </td>
                 </tr>
               )}
@@ -254,6 +311,26 @@ export function Caixa() {
                 className="mt-1"
               />
             </div>
+
+            {/* Service Selection */}
+            {services.length > 0 && (
+              <div>
+                <label className="text-sm font-medium">Serviço (preenche valor automaticamente)</label>
+                <Select value={formData.serviceId} onValueChange={handleServiceChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione um serviço" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {services.map((service) => (
+                      <SelectItem key={service.id} value={service.id}>
+                        {service.name} - {formatCurrency(Number(service.price))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Valor</label>

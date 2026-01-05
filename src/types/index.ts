@@ -48,3 +48,10 @@ export interface Report {
   month: string;
   year: number;
 }
+
+export interface Service {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+}
