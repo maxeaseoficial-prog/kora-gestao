@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Calendar, TrendingUp, Search, Trash2 } from 'lucide-react';
+import { Plus, Calendar, TrendingUp, Search, Trash2, Pencil } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { FinanceEntry } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ export function Caixa() {
   const { finances, setFinances, clients } = useApp();
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<FinanceEntry | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
   const [services, setServices] = useState<Service[]>([]);
@@ -82,6 +83,11 @@ export function Caixa() {
     }).format(new Date(date));
   };
 
+  const formatDateForInput = (date: Date) => {
+    const d = new Date(date);
+    return d.toISOString().split('T')[0];
+  };
+
   // Filter finances by selected month/year
   const financesInPeriod = finances.filter((f) => {
     const date = new Date(f.date);
@@ -123,21 +129,7 @@ export function Caixa() {
     }
   };
 
-  const handleSave = () => {
-    if (!formData.clientName.trim() || formData.value <= 0) return;
-
-    const newEntry: FinanceEntry = {
-      id: `fin-${Date.now()}`,
-      clientId: formData.clientId,
-      clientName: formData.clientName,
-      value: formData.value,
-      date: new Date(formData.date),
-      type: formData.type,
-      description: formData.description,
-    };
-
-    setFinances([...finances, newEntry]);
-    setIsDialogOpen(false);
+  const resetForm = () => {
     setFormData({
       clientId: '',
       clientName: '',
@@ -147,12 +139,74 @@ export function Caixa() {
       description: '',
       serviceId: '',
     });
+    setEditingEntry(null);
+  };
+
+  const openNewDialog = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const handleEdit = (entry: FinanceEntry) => {
+    setEditingEntry(entry);
+    setFormData({
+      clientId: entry.clientId,
+      clientName: entry.clientName,
+      value: entry.value,
+      date: formatDateForInput(entry.date),
+      type: entry.type,
+      description: entry.description || '',
+      serviceId: '',
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!formData.clientName.trim() || formData.value <= 0) return;
+
+    if (editingEntry) {
+      // Update existing entry
+      const updatedEntry: FinanceEntry = {
+        ...editingEntry,
+        clientId: formData.clientId,
+        clientName: formData.clientName,
+        value: formData.value,
+        date: new Date(formData.date),
+        type: formData.type,
+        description: formData.description,
+      };
+
+      setFinances(finances.map((f) => (f.id === editingEntry.id ? updatedEntry : f)));
+    } else {
+      // Create new entry
+      const newEntry: FinanceEntry = {
+        id: `fin-${Date.now()}`,
+        clientId: formData.clientId,
+        clientName: formData.clientName,
+        value: formData.value,
+        date: new Date(formData.date),
+        type: formData.type,
+        description: formData.description,
+      };
+
+      setFinances([...finances, newEntry]);
+    }
+
+    setIsDialogOpen(false);
+    resetForm();
   };
 
   const handleDelete = (entryId: string) => {
     if (confirm('Tem certeza que deseja excluir esta entrada?')) {
       setFinances(finances.filter((f) => f.id !== entryId));
     }
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      resetForm();
+    }
+    setIsDialogOpen(open);
   };
 
   return (
@@ -217,7 +271,7 @@ export function Caixa() {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
+        <Button onClick={openNewDialog}>
           <Plus className="h-4 w-4 mr-2" />
           Nova Entrada
         </Button>
@@ -257,14 +311,24 @@ export function Caixa() {
                     {formatCurrency(entry.value)}
                   </td>
                   <td className="p-4 text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(entry.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEdit(entry)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(entry.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -280,11 +344,13 @@ export function Caixa() {
         </div>
       </div>
 
-      {/* New Entry Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* New/Edit Entry Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nova Entrada</DialogTitle>
+            <DialogTitle>
+              {editingEntry ? 'Editar Lançamento' : 'Nova Entrada'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
@@ -379,9 +445,9 @@ export function Caixa() {
             </div>
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSave} className="flex-1">
-                Registrar
+                {editingEntry ? 'Salvar Alterações' : 'Registrar'}
               </Button>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button variant="outline" onClick={() => handleDialogClose(false)}>
                 Cancelar
               </Button>
             </div>
