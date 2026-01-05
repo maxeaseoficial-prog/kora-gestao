@@ -1,16 +1,28 @@
+import { useState } from 'react';
 import { DollarSign, Users, TrendingUp, Kanban, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { MetricCard } from '@/components/MetricCard';
 import { Button } from '@/components/ui/button';
+import { MonthYearPicker } from '@/components/MonthYearPicker';
 
 function Dashboard() {
   const { clients, finances, crmCards, crmColumns, hideNumbers, setHideNumbers } = useApp();
+  
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const activeClients = clients.filter(c => c.status === 'ativo').length;
-  const monthlyRevenue = finances.reduce((acc, f) => acc + f.value, 0);
   const totalCards = crmCards.length;
 
-  const recentEntries = finances
+  // Filter finances by selected month/year
+  const filteredFinances = finances.filter((f) => {
+    const date = new Date(f.date);
+    return date.getMonth() === selectedMonth && date.getFullYear() === selectedYear;
+  });
+
+  const monthlyRevenue = filteredFinances.reduce((acc, f) => acc + f.value, 0);
+
+  const recentEntries = filteredFinances
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
@@ -36,8 +48,16 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Hide Numbers Toggle */}
-      <div className="flex justify-end">
+      {/* Header with filters */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <MonthYearPicker
+          month={selectedMonth}
+          year={selectedYear}
+          onChange={(month, year) => {
+            setSelectedMonth(month);
+            setSelectedYear(year);
+          }}
+        />
         <Button
           variant="outline"
           size="sm"
@@ -89,7 +109,7 @@ function Dashboard() {
         {/* Recent Entries */}
         <div className="bg-card rounded-xl border border-border animate-slide-up">
           <div className="p-4 border-b border-border">
-            <h2 className="text-lg font-semibold">Entradas Recentes</h2>
+            <h2 className="text-lg font-semibold">Entradas do Mês</h2>
           </div>
           <div className="p-4">
             {recentEntries.length > 0 ? (
@@ -112,7 +132,7 @@ function Dashboard() {
               </div>
             ) : (
               <p className="text-muted-foreground text-center py-8">
-                Nenhuma entrada registrada
+                Nenhuma entrada neste mês
               </p>
             )}
           </div>

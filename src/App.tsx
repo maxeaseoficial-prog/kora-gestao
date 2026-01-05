@@ -15,6 +15,7 @@ import Relatorios from "@/pages/Relatorios";
 import Install from "@/pages/Install";
 import MapasMentais from "@/pages/MapasMentais";
 import MindMapEditor from "@/pages/MindMapEditor";
+import Servicos from "@/pages/Servicos";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -86,6 +87,16 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Install />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/servicos"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Servicos />
                     </Layout>
                   </ProtectedRoute>
                 }
