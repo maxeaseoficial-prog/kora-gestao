@@ -16,6 +16,7 @@ import Install from "@/pages/Install";
 import MapasMentais from "@/pages/MapasMentais";
 import MindMapEditor from "@/pages/MindMapEditor";
 import Servicos from "@/pages/Servicos";
+import Roteiros from "@/pages/Roteiros";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -117,6 +118,16 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <MindMapEditor />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/roteiros"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Roteiros />
                     </Layout>
                   </ProtectedRoute>
                 }
