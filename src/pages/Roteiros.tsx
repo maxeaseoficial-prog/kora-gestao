@@ -22,10 +22,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, FolderPlus, FileText, Pencil, Trash2, Folder, FolderOpen, ChevronRight, ChevronDown } from 'lucide-react';
+import { Plus, FolderPlus, FileText, Pencil, Trash2, Folder, FolderOpen, ChevronRight, ChevronDown, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
 
 interface ScriptFolder {
   id: string;
@@ -280,19 +281,54 @@ const Roteiros = () => {
     );
   }
 
+  const downloadPDF = (script: Script) => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - margin * 2;
+    
+    // Title
+    pdf.setFontSize(18);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(script.title, margin, 25);
+    
+    // Content
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "normal");
+    
+    const content = script.content || "";
+    const lines = pdf.splitTextToSize(content, maxWidth);
+    
+    let y = 40;
+    const lineHeight = 7;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    for (const line of lines) {
+      if (y + lineHeight > pageHeight - margin) {
+        pdf.addPage();
+        y = margin;
+      }
+      pdf.text(line, margin, y);
+      y += lineHeight;
+    }
+    
+    pdf.save(`${script.title}.pdf`);
+    toast.success("PDF baixado!");
+  };
+
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-foreground">Roteiros</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={openNewFolder}>
-              <FolderPlus className="h-4 w-4 mr-2" />
-              Nova Pasta
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Roteiros</h1>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={openNewFolder} className="flex-1 sm:flex-none" size="sm">
+              <FolderPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nova Pasta</span>
             </Button>
-            <Button onClick={openNewScript}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Roteiro
+            <Button onClick={openNewScript} className="flex-1 sm:flex-none" size="sm">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Novo Roteiro</span>
             </Button>
           </div>
         </div>
@@ -369,16 +405,26 @@ const Roteiros = () => {
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
-                                      className="flex items-center justify-between p-3 bg-background border rounded-lg hover:bg-accent/30 transition-colors"
+                                      className="flex items-center justify-between p-2 sm:p-3 bg-background border rounded-lg hover:bg-accent/30 transition-colors"
                                     >
-                                      <div className="flex items-center gap-2">
-                                        <FileText className="h-4 w-4 text-muted-foreground" />
-                                        <span>{script.title}</span>
+                                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <span className="truncate">{script.title}</span>
                                       </div>
-                                      <div className="flex gap-1">
+                                      <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
                                         <Button
                                           variant="ghost"
                                           size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() => downloadPDF(script)}
+                                          title="Baixar PDF"
+                                        >
+                                          <Download className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
                                           onClick={() => openEditScript(script)}
                                         >
                                           <Pencil className="h-4 w-4" />
@@ -386,6 +432,7 @@ const Roteiros = () => {
                                         <Button
                                           variant="ghost"
                                           size="icon"
+                                          className="h-8 w-8"
                                           onClick={() => confirmDeleteScript(script)}
                                         >
                                           <Trash2 className="h-4 w-4 text-destructive" />
@@ -437,16 +484,26 @@ const Roteiros = () => {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className="flex items-center justify-between p-3 bg-background border rounded-lg hover:bg-accent/30 transition-colors"
+                              className="flex items-center justify-between p-2 sm:p-3 bg-background border rounded-lg hover:bg-accent/30 transition-colors"
                             >
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-muted-foreground" />
-                                <span>{script.title}</span>
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="truncate">{script.title}</span>
                               </div>
-                              <div className="flex gap-1">
+                              <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => downloadPDF(script)}
+                                  title="Baixar PDF"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
                                   onClick={() => openEditScript(script)}
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -454,6 +511,7 @@ const Roteiros = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  className="h-8 w-8"
                                   onClick={() => confirmDeleteScript(script)}
                                 >
                                   <Trash2 className="h-4 w-4 text-destructive" />
