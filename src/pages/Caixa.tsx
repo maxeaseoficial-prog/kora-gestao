@@ -75,17 +75,37 @@ export function Caixa() {
     }).format(value);
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateInput: Date | string) => {
+    // Parse date string as local time to avoid timezone issues
+    let date: Date;
+    if (typeof dateInput === 'string') {
+      const [year, month, day] = dateInput.split('T')[0].split('-').map(Number);
+      date = new Date(year, month - 1, day);
+    } else {
+      date = dateInput;
+    }
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
-    }).format(new Date(date));
+    }).format(date);
   };
 
-  const formatDateForInput = (date: Date) => {
-    const d = new Date(date);
-    return d.toISOString().split('T')[0];
+  const formatDateForInput = (dateInput: Date | string) => {
+    if (typeof dateInput === 'string') {
+      return dateInput.split('T')[0];
+    }
+    const d = dateInput;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Parse date string as local time to avoid timezone offset
+  const parseLocalDate = (dateString: string): Date => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day, 12, 0, 0); // noon to avoid DST issues
   };
 
   // Filter finances by selected month/year
@@ -171,7 +191,7 @@ export function Caixa() {
         clientId: formData.clientId,
         clientName: formData.clientName,
         value: formData.value,
-        date: new Date(formData.date),
+        date: parseLocalDate(formData.date),
         type: formData.type,
         description: formData.description,
       };
@@ -184,7 +204,7 @@ export function Caixa() {
         clientId: formData.clientId,
         clientName: formData.clientName,
         value: formData.value,
-        date: new Date(formData.date),
+        date: parseLocalDate(formData.date),
         type: formData.type,
         description: formData.description,
       };

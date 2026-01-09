@@ -154,10 +154,15 @@ function loadFromStorage<T>(key: string, fallback: T): T {
         })) as T;
       }
       if (key === STORAGE_KEYS.finances) {
-        return parsed.map((item: any) => ({
-          ...item,
-          date: new Date(item.date),
-        })) as T;
+        return parsed.map((item: any) => {
+          // Parse date as local time to avoid timezone offset issues
+          const dateStr = item.date.split('T')[0];
+          const [year, month, day] = dateStr.split('-').map(Number);
+          return {
+            ...item,
+            date: new Date(year, month - 1, day, 12, 0, 0), // noon to avoid DST issues
+          };
+        }) as T;
       }
       return parsed;
     }
