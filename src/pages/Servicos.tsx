@@ -8,16 +8,39 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { MetricCard } from '@/components/MetricCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+
+// Exchange rates (BRL base)
+export const EXCHANGE_RATES = {
+  BRL: 1,
+  USD: 5.38,
+  EUR: 6.27,
+};
+
+export type Currency = 'BRL' | 'USD' | 'EUR';
+
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  BRL: 'R$',
+  USD: '$',
+  EUR: '€',
+};
 
 interface Service {
   id: string;
   name: string;
   price: number;
   description: string | null;
+  currency: Currency;
 }
 
 export function Servicos() {
@@ -30,13 +53,24 @@ export function Servicos() {
     name: '',
     price: 0,
     description: '',
+    currency: 'BRL' as Currency,
   });
 
-  const formatCurrency = (value: number) => {
+  const formatCurrencyValue = (value: number, currency: Currency = 'BRL') => {
+    const symbol = CURRENCY_SYMBOLS[currency];
+    return `${symbol} ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatCurrencyBRL = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
+  };
+
+  // Convert price to BRL
+  const convertToBRL = (price: number, currency: Currency): number => {
+    return price * EXCHANGE_RATES[currency];
   };
 
   useEffect(() => {
@@ -53,7 +87,12 @@ export function Servicos() {
         .order('name');
 
       if (error) throw error;
-      setServices(data || []);
+      // Cast currency to Currency type
+      const typedServices: Service[] = (data || []).map(s => ({
+        ...s,
+        currency: s.currency as Currency,
+      }));
+      setServices(typedServices);
     } catch (error) {
       console.error('Error fetching services:', error);
       toast.error('Erro ao carregar serviços');
@@ -76,6 +115,7 @@ export function Servicos() {
             name: formData.name.trim(),
             price: formData.price,
             description: formData.description.trim() || null,
+            currency: formData.currency,
           })
           .eq('id', editingService.id);
 
@@ -88,6 +128,7 @@ export function Servicos() {
             name: formData.name.trim(),
             price: formData.price,
             description: formData.description.trim() || null,
+            currency: formData.currency,
             user_id: user.id,
           });
 
@@ -97,7 +138,7 @@ export function Servicos() {
 
       setIsDialogOpen(false);
       setEditingService(null);
-      setFormData({ name: '', price: 0, description: '' });
+      setFormData({ name: '', price: 0, description: '', currency: 'BRL' });
       fetchServices();
     } catch (error) {
       console.error('Error saving service:', error);
@@ -111,6 +152,7 @@ export function Servicos() {
       name: service.name,
       price: service.price,
       description: service.description || '',
+      currency: service.currency,
     });
     setIsDialogOpen(true);
   };
@@ -135,13 +177,14 @@ export function Servicos() {
 
   const openNewDialog = () => {
     setEditingService(null);
-    setFormData({ name: '', price: 0, description: '' });
+    setFormData({ name: '', price: 0, description: '', currency: 'BRL' });
     setIsDialogOpen(true);
   };
 
   const totalServices = services.length;
-  const averagePrice = services.length > 0 
-    ? services.reduce((a, b) => a + Number(b.price), 0) / services.length 
+  // Calculate average price in BRL for consistency
+  const averagePriceInBRL = services.length > 0 
+    ? services.reduce((a, b) => a + convertToBRL(Number(b.price), b.currency), 0) / services.length 
     : 0;
 
   if (loading) {
@@ -163,9 +206,9 @@ export function Servicos() {
           icon={<Package className="h-5 w-5 text-foreground" />}
         />
         <MetricCard
-          title="Preço Médio"
-          value={formatCurrency(averagePrice)}
-          subtitle="Média dos serviços"
+          title="Preço Médio (em R$)"
+          value={formatCurrencyBRL(averagePriceInBRL)}
+          subtitle="Média convertida para Real"
           icon={<Package className="h-5 w-5 text-foreground" />}
         />
       </div>
@@ -186,48 +229,60 @@ export function Servicos() {
               <tr className="border-b border-border bg-secondary/50">
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Nome</th>
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Descrição</th>
-                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Preço</th>
+                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Preço Original</th>
+                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Valor em R$</th>
                 <th className="text-right p-4 text-sm font-medium text-muted-foreground">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {services.map((service) => (
-                <tr
-                  key={service.id}
-                  className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors animate-fade-in"
-                >
-                  <td className="p-4 font-medium">{service.name}</td>
-                  <td className="p-4 text-muted-foreground">
-                    {service.description || '-'}
-                  </td>
-                  <td className="p-4 text-right font-semibold text-foreground">
-                    {formatCurrency(Number(service.price))}
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleEdit(service)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(service.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {services.map((service) => {
+                const priceInBRL = convertToBRL(Number(service.price), service.currency);
+                return (
+                  <tr
+                    key={service.id}
+                    className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors animate-fade-in"
+                  >
+                    <td className="p-4 font-medium">{service.name}</td>
+                    <td className="p-4 text-muted-foreground">
+                      {service.description || '-'}
+                    </td>
+                    <td className="p-4 text-right">
+                      <span className="font-semibold text-foreground">
+                        {formatCurrencyValue(Number(service.price), service.currency)}
+                      </span>
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        ({service.currency})
+                      </span>
+                    </td>
+                    <td className="p-4 text-right font-semibold text-foreground">
+                      {formatCurrencyBRL(priceInBRL)}
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEdit(service)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDelete(service.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {services.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
                     Nenhum serviço cadastrado
                   </td>
                 </tr>
@@ -255,16 +310,42 @@ export function Servicos() {
                 className="mt-1"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Preço</label>
-              <Input
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                placeholder="0,00"
-                className="mt-1"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Preço</label>
+                <Input
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                  placeholder="0,00"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Moeda</label>
+                <Select
+                  value={formData.currency}
+                  onValueChange={(value: Currency) => setFormData({ ...formData, currency: value })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BRL">Real (R$)</SelectItem>
+                    <SelectItem value="USD">Dólar ($) - 1 USD = R$ {EXCHANGE_RATES.USD.toFixed(2)}</SelectItem>
+                    <SelectItem value="EUR">Euro (€) - 1 EUR = R$ {EXCHANGE_RATES.EUR.toFixed(2)}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+            {formData.currency !== 'BRL' && formData.price > 0 && (
+              <div className="p-3 bg-secondary/50 rounded-lg text-sm">
+                <span className="text-muted-foreground">Valor convertido: </span>
+                <span className="font-semibold text-foreground">
+                  {formatCurrencyBRL(convertToBRL(formData.price, formData.currency))}
+                </span>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium">Descrição (opcional)</label>
               <Input
