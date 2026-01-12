@@ -21,11 +21,13 @@ import { MetricCard } from '@/components/MetricCard';
 import { MonthYearPicker } from '@/components/MonthYearPicker';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { EXCHANGE_RATES, Currency, CURRENCY_SYMBOLS } from '@/pages/Servicos';
 
 interface Service {
   id: string;
   name: string;
   price: number;
+  currency: Currency;
 }
 
 export function Caixa() {
@@ -58,14 +60,29 @@ export function Caixa() {
     try {
       const { data, error } = await supabase
         .from('services')
-        .select('id, name, price')
+        .select('id, name, price, currency')
         .order('name');
 
       if (error) throw error;
-      setServices(data || []);
+      // Cast currency to Currency type
+      const typedServices: Service[] = (data || []).map(s => ({
+        ...s,
+        currency: s.currency as Currency,
+      }));
+      setServices(typedServices);
     } catch (error) {
       console.error('Error fetching services:', error);
     }
+  };
+
+  // Convert price to BRL
+  const convertToBRL = (price: number, currency: Currency): number => {
+    return price * EXCHANGE_RATES[currency];
+  };
+
+  const formatCurrencyValue = (value: number, currency: Currency = 'BRL') => {
+    const symbol = CURRENCY_SYMBOLS[currency];
+    return `${symbol} ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const formatCurrency = (value: number) => {
@@ -139,12 +156,14 @@ export function Caixa() {
   const handleServiceChange = (serviceId: string) => {
     const service = services.find((s) => s.id === serviceId);
     if (service) {
+      // Convert the service price to BRL before setting the value
+      const priceInBRL = convertToBRL(Number(service.price), service.currency);
       setFormData({
         ...formData,
         serviceId,
         type: service.name,
-        value: Number(service.price),
-        description: service.name,
+        value: priceInBRL,
+        description: `${service.name} (${formatCurrencyValue(Number(service.price), service.currency)})`,
       });
     }
   };
@@ -401,17 +420,22 @@ export function Caixa() {
             {/* Service Selection */}
             {services.length > 0 && (
               <div>
-                <label className="text-sm font-medium">Serviço (preenche valor automaticamente)</label>
+                <label className="text-sm font-medium">Serviço (converte automaticamente para R$)</label>
                 <Select value={formData.serviceId} onValueChange={handleServiceChange}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Selecione um serviço" />
                   </SelectTrigger>
                   <SelectContent>
-                    {services.map((service) => (
-                      <SelectItem key={service.id} value={service.id}>
-                        {service.name} - {formatCurrency(Number(service.price))}
-                      </SelectItem>
-                    ))}
+                    {services.map((service) => {
+                      const priceInBRL = convertToBRL(Number(service.price), service.currency);
+                      const showConversion = service.currency !== 'BRL';
+                      return (
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.name} - {formatCurrencyValue(Number(service.price), service.currency)}
+                          {showConversion && ` → ${formatCurrency(priceInBRL)}`}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
