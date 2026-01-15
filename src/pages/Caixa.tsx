@@ -219,7 +219,7 @@ export function Caixa() {
     } else {
       // Create new entry
       const newEntry: FinanceEntry = {
-        id: `fin-${Date.now()}`,
+        id: crypto.randomUUID(),
         clientId: formData.clientId,
         clientName: formData.clientName,
         value: formData.value,

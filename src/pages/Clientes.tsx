@@ -87,7 +87,7 @@ function Clientes() {
       ));
     } else {
       const newClient: Client = {
-        id: `client-${Date.now()}`,
+        id: crypto.randomUUID(),
         ...formData,
         createdAt: new Date(),
       };
