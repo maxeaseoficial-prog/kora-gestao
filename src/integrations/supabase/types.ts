@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          company: string | null
+          contract_day: number
+          created_at: string
+          email: string | null
+          id: string
+          monthly_value: number
+          name: string
+          phone: string | null
+          recurrence: string
+          service_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          company?: string | null
+          contract_day?: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          monthly_value?: number
+          name: string
+          phone?: string | null
+          recurrence?: string
+          service_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          company?: string | null
+          contract_day?: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          monthly_value?: number
+          name?: string
+          phone?: string | null
+          recurrence?: string
+          service_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crm_cards: {
+        Row: {
+          card_order: number
+          client_name: string
+          column_id: string
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          phone: string | null
+          service_type: string | null
+          user_id: string
+        }
+        Insert: {
+          card_order?: number
+          client_name: string
+          column_id: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          service_type?: string | null
+          user_id: string
+        }
+        Update: {
+          card_order?: number
+          client_name?: string
+          column_id?: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          service_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crm_columns: {
+        Row: {
+          column_order: number
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          column_order?: number
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          column_order?: number
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      finance_entries: {
+        Row: {
+          client_id: string | null
+          client_name: string
+          created_at: string
+          description: string | null
+          entry_date: string
+          entry_type: string
+          id: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          client_id?: string | null
+          client_name: string
+          created_at?: string
+          description?: string | null
+          entry_date?: string
+          entry_type?: string
+          id?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string
+          created_at?: string
+          description?: string | null
+          entry_date?: string
+          entry_type?: string
+          id?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       mind_map_connections: {
         Row: {
           created_at: string
@@ -123,6 +267,36 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          report_type: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          report_type?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          report_type?: string | null
+          title?: string
           updated_at?: string
           user_id?: string
         }
