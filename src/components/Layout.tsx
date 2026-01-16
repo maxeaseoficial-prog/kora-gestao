@@ -12,7 +12,8 @@ import {
   LogOut,
   Brain,
   Package,
-  ScrollText
+  ScrollText,
+  ShoppingCart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Serviços', href: '/servicos', icon: Package },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
+  { name: 'Orçamentos', href: '/orcamentos', icon: ShoppingCart },
   { name: 'Relatórios', href: '/relatorios', icon: FileText },
   { name: 'Roteiros', href: '/roteiros', icon: ScrollText },
   { name: 'Mapas Mentais', href: '/mapas-mentais', icon: Brain },

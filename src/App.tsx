@@ -17,6 +17,7 @@ import MapasMentais from "@/pages/MapasMentais";
 import MindMapEditor from "@/pages/MindMapEditor";
 import Servicos from "@/pages/Servicos";
 import Roteiros from "@/pages/Roteiros";
+import Orcamentos from "@/pages/Orcamentos";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -128,6 +129,16 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Roteiros />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orcamentos"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Orcamentos />
                     </Layout>
                   </ProtectedRoute>
                 }
