@@ -40,6 +40,9 @@ function Relatorios() {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [isDeleteFolderDialogOpen, setIsDeleteFolderDialogOpen] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState<ClientFolder | null>(null);
+  const [hiddenFolderIds, setHiddenFolderIds] = useState<string[]>([]);
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
   const [newReportName, setNewReportName] = useState('');
   const [uploadName, setUploadName] = useState('');
@@ -53,8 +56,8 @@ function Relatorios() {
       id: c.id,
       name: c.company || c.name,
     }));
-    setFolders([...clientFolders, ...customFolders]);
-  }, [clients, customFolders]);
+    setFolders([...clientFolders, ...customFolders].filter((f) => !hiddenFolderIds.includes(f.id)));
+  }, [clients, customFolders, hiddenFolderIds]);
 
   // Fetch reports for selected folder
   const fetchReports = useCallback(async () => {
@@ -227,9 +230,13 @@ function Relatorios() {
     setIsNewFolderDialogOpen(false);
   };
 
-  const deleteFolder = (folderId: string) => {
-    setCustomFolders((prev) => prev.filter((f) => f.id !== folderId));
-    setFolders((prev) => prev.filter((f) => f.id !== folderId));
+  const deleteFolder = () => {
+    if (!folderToDelete) return;
+    setCustomFolders((prev) => prev.filter((f) => f.id !== folderToDelete.id));
+    setHiddenFolderIds((prev) => [...prev, folderToDelete.id]);
+    setIsDeleteFolderDialogOpen(false);
+    setFolderToDelete(null);
+    toast.success('Pasta excluída');
   };
 
   const openRenameDialog = (report: ReportItem) => {
@@ -373,7 +380,8 @@ function Relatorios() {
                     className="h-7 w-7 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteFolder(folder.id);
+                      setFolderToDelete(folder);
+                      setIsDeleteFolderDialogOpen(true);
                     }}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -518,6 +526,31 @@ function Relatorios() {
               <Button variant="outline" onClick={() => {
                 setIsNewFolderDialogOpen(false);
                 setNewFolderName('');
+              }}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Folder Confirmation Dialog */}
+      <Dialog open={isDeleteFolderDialogOpen} onOpenChange={setIsDeleteFolderDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir Pasta</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir a pasta <strong>"{folderToDelete?.name}"</strong>? Os relatórios dentro dela também serão removidos.
+            </p>
+            <div className="flex gap-2">
+              <Button variant="destructive" onClick={deleteFolder} className="flex-1">
+                Excluir
+              </Button>
+              <Button variant="outline" onClick={() => {
+                setIsDeleteFolderDialogOpen(false);
+                setFolderToDelete(null);
               }}>
                 Cancelar
               </Button>
