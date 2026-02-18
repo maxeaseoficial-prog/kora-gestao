@@ -104,7 +104,7 @@ export default function MindMapEditor() {
         id: conn.id,
         source: conn.source_node_id,
         target: conn.target_node_id,
-        type: 'smoothstep',
+        type: 'straight',
         animated: true,
         style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
       }));
@@ -170,7 +170,7 @@ export default function MindMapEditor() {
           target: params.target,
           sourceHandle: params.sourceHandle,
           targetHandle: params.targetHandle,
-          type: 'smoothstep',
+          type: 'straight',
           animated: true,
           style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
         };
@@ -400,7 +400,7 @@ export default function MindMapEditor() {
           snapToGrid
           snapGrid={[15, 15]}
           defaultEdgeOptions={{
-            type: 'smoothstep',
+            type: 'straight',
             animated: true,
             style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
           }}
