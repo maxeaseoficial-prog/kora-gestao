@@ -5,14 +5,12 @@ import {
   Users, 
   Kanban, 
   Wallet, 
-  FileText, 
   Menu,
   X,
   Download,
   LogOut,
   Brain,
   Package,
-  ScrollText,
   ShoppingCart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -31,9 +29,7 @@ const navigation = [
   { name: 'Serviços', href: '/servicos', icon: Package },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
   { name: 'Orçamentos', href: '/orcamentos', icon: ShoppingCart },
-  { name: 'Relatórios', href: '/relatorios', icon: FileText },
-  { name: 'Roteiros', href: '/roteiros', icon: ScrollText },
-  { name: 'Mapas Mentais', href: '/mapas-mentais', icon: Brain },
+  { name: 'Projetos', href: '/projetos', icon: Brain },
   { name: 'Instalar', href: '/install', icon: Download },
 ];
 
@@ -129,7 +125,8 @@ export function Layout({ children }: LayoutProps) {
           </Button>
           <div className="flex-1 flex items-center justify-between">
             <h1 className="text-lg font-semibold ml-2 lg:ml-0">
-              {navigation.find(n => n.href === location.pathname)?.name || 'Dashboard'}
+              {navigation.find(n => n.href === location.pathname)?.name || 
+               (location.pathname.startsWith('/projetos') ? 'Projetos' : 'Dashboard')}
             </h1>
           </div>
         </header>

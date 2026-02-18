@@ -28,7 +28,7 @@ interface ClientFolder {
   name: string;
 }
 
-function Relatorios() {
+function Relatorios({ projectId }: { projectId?: string }) {
   const { clients } = useApp();
   const { user } = useAuth();
   const [folders, setFolders] = useState<ClientFolder[]>([]);
@@ -110,16 +110,18 @@ function Relatorios() {
 
       if (uploadError) throw uploadError;
 
-      // Save report record
+      const insertData: any = {
+        user_id: user.id,
+        title: uploadName,
+        file_name: selectedFile.name,
+        file_url: filePath,
+        report_type: selectedFolder.id,
+      };
+      if (projectId) insertData.project_id = projectId;
+
       const { error: insertError } = await supabase
         .from('reports')
-        .insert({
-          user_id: user.id,
-          title: uploadName,
-          file_name: selectedFile.name,
-          file_url: filePath,
-          report_type: selectedFolder.id,
-        });
+        .insert(insertData);
 
       if (insertError) throw insertError;
 

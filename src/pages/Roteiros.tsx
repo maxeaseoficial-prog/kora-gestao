@@ -44,7 +44,7 @@ interface Script {
   updated_at: string;
 }
 
-const Roteiros = () => {
+const Roteiros = ({ projectId }: { projectId?: string }) => {
   const { user } = useAuth();
   const [folders, setFolders] = useState<ScriptFolder[]>([]);
   const [scripts, setScripts] = useState<Script[]>([]);
@@ -75,9 +75,17 @@ const Roteiros = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      let foldersQuery = supabase.from('script_folders').select('*').order('name');
+      let scriptsQuery = supabase.from('scripts').select('*').order('title');
+
+      if (projectId) {
+        foldersQuery = foldersQuery.eq('project_id', projectId);
+        scriptsQuery = scriptsQuery.eq('project_id', projectId);
+      }
+
       const [foldersRes, scriptsRes] = await Promise.all([
-        supabase.from('script_folders').select('*').order('name'),
-        supabase.from('scripts').select('*').order('title'),
+        foldersQuery,
+        scriptsQuery,
       ]);
 
       if (foldersRes.error) throw foldersRes.error;
@@ -135,11 +143,13 @@ const Roteiros = () => {
         if (error) throw error;
         toast.success('Roteiro atualizado!');
       } else {
-        const { error } = await supabase.from('scripts').insert({
+        const insertData: any = {
           user_id: user?.id,
           title: scriptTitle,
           content: scriptContent,
-        });
+        };
+        if (projectId) insertData.project_id = projectId;
+        const { error } = await supabase.from('scripts').insert(insertData);
         if (error) throw error;
         toast.success('Roteiro criado!');
       }
@@ -199,10 +209,12 @@ const Roteiros = () => {
         if (error) throw error;
         toast.success('Pasta atualizada!');
       } else {
-        const { error } = await supabase.from('script_folders').insert({
+        const insertData: any = {
           user_id: user?.id,
           name: folderName,
-        });
+        };
+        if (projectId) insertData.project_id = projectId;
+        const { error } = await supabase.from('script_folders').insert(insertData);
         if (error) throw error;
         toast.success('Pasta criada!');
       }

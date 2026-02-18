@@ -286,6 +286,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          project_id: string | null
           updated_at: string
           user_id: string
         }
@@ -293,6 +294,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          project_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -300,10 +302,57 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          project_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mind_maps_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          client_id: string | null
+          client_name: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reports: {
         Row: {
@@ -312,6 +361,7 @@ export type Database = {
           file_name: string | null
           file_url: string | null
           id: string
+          project_id: string | null
           report_type: string | null
           title: string
           updated_at: string
@@ -323,6 +373,7 @@ export type Database = {
           file_name?: string | null
           file_url?: string | null
           id?: string
+          project_id?: string | null
           report_type?: string | null
           title: string
           updated_at?: string
@@ -334,18 +385,28 @@ export type Database = {
           file_name?: string | null
           file_url?: string | null
           id?: string
+          project_id?: string | null
           report_type?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       script_folders: {
         Row: {
           created_at: string
           id: string
           name: string
+          project_id: string | null
           updated_at: string
           user_id: string
         }
@@ -353,6 +414,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          project_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -360,10 +422,19 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          project_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "script_folders_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scripts: {
         Row: {
@@ -371,6 +442,7 @@ export type Database = {
           created_at: string
           folder_id: string | null
           id: string
+          project_id: string | null
           title: string
           updated_at: string
           user_id: string
@@ -380,6 +452,7 @@ export type Database = {
           created_at?: string
           folder_id?: string | null
           id?: string
+          project_id?: string | null
           title?: string
           updated_at?: string
           user_id: string
@@ -389,6 +462,7 @@ export type Database = {
           created_at?: string
           folder_id?: string | null
           id?: string
+          project_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -399,6 +473,13 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "script_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scripts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

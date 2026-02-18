@@ -32,7 +32,7 @@ interface MindMap {
   updated_at: string;
 }
 
-export default function MapasMentais() {
+export default function MapasMentais({ projectId }: { projectId?: string }) {
   const [mindMaps, setMindMaps] = useState<MindMap[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -51,10 +51,16 @@ export default function MapasMentais() {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('mind_maps')
         .select('*')
         .order('updated_at', { ascending: false });
+
+      if (projectId) {
+        query = query.eq('project_id', projectId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setMindMaps(data || []);
@@ -70,9 +76,12 @@ export default function MapasMentais() {
     if (!user || !mapName.trim()) return;
 
     try {
+      const insertData: any = { name: mapName.trim(), user_id: user.id };
+      if (projectId) insertData.project_id = projectId;
+      
       const { data, error } = await supabase
         .from('mind_maps')
-        .insert({ name: mapName.trim(), user_id: user.id })
+        .insert(insertData)
         .select()
         .single();
 
@@ -81,7 +90,7 @@ export default function MapasMentais() {
       toast.success('Mapa mental criado!');
       setIsCreateDialogOpen(false);
       setMapName('');
-      navigate(`/mapas-mentais/${data.id}`);
+      navigate(projectId ? `/projetos/${projectId}/mapas-mentais/${data.id}` : `/projetos/mapas-mentais/${data.id}`);
     } catch (error: any) {
       toast.error('Erro ao criar mapa mental');
       console.error(error);
@@ -219,7 +228,7 @@ export default function MapasMentais() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigate(`/mapas-mentais/${map.id}`)}
+                  onClick={() => navigate(projectId ? `/projetos/${projectId}/mapas-mentais/${map.id}` : `/projetos/mapas-mentais/${map.id}`)}
                 >
                   Abrir
                   <ArrowRight className="h-4 w-4 ml-2" />

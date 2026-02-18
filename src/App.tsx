@@ -11,13 +11,12 @@ import Dashboard from "@/pages/Dashboard";
 import CRM from "@/pages/CRM";
 import Clientes from "@/pages/Clientes";
 import Caixa from "@/pages/Caixa";
-import Relatorios from "@/pages/Relatorios";
 import Install from "@/pages/Install";
-import MapasMentais from "@/pages/MapasMentais";
 import MindMapEditor from "@/pages/MindMapEditor";
 import Servicos from "@/pages/Servicos";
-import Roteiros from "@/pages/Roteiros";
 import Orcamentos from "@/pages/Orcamentos";
+import Projetos from "@/pages/Projetos";
+import ProjetoDetalhe from "@/pages/ProjetoDetalhe";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -74,16 +73,6 @@ const App = () => (
                 }
               />
               <Route
-                path="/relatorios"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Relatorios />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
                 path="/install"
                 element={
                   <ProtectedRoute>
@@ -104,31 +93,31 @@ const App = () => (
                 }
               />
               <Route
-                path="/mapas-mentais"
+                path="/projetos"
                 element={
                   <ProtectedRoute>
                     <Layout>
-                      <MapasMentais />
+                      <Projetos />
                     </Layout>
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/mapas-mentais/:id"
+                path="/projetos/:id"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ProjetoDetalhe />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/projetos/:projectId/mapas-mentais/:id"
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <MindMapEditor />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/roteiros"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Roteiros />
                     </Layout>
                   </ProtectedRoute>
                 }
