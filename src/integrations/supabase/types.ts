@@ -236,6 +236,7 @@ export type Database = {
       }
       mind_map_nodes: {
         Row: {
+          color: string | null
           content: string | null
           created_at: string
           height: number | null
@@ -247,6 +248,7 @@ export type Database = {
           width: number | null
         }
         Insert: {
+          color?: string | null
           content?: string | null
           created_at?: string
           height?: number | null
@@ -258,6 +260,7 @@ export type Database = {
           width?: number | null
         }
         Update: {
+          color?: string | null
           content?: string | null
           created_at?: string
           height?: number | null

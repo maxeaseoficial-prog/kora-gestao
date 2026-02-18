@@ -7,15 +7,31 @@ import { Textarea } from '@/components/ui/textarea';
 interface MindMapNodeData {
   content: string;
   imageUrl?: string;
+  color?: string;
   onContentChange: (content: string) => void;
   onDelete: () => void;
+  onColorChange: (color: string | null) => void;
 }
+
+const COLOR_OPTIONS = [
+  { label: 'Padrão', value: null, class: 'bg-card border-2 border-border' },
+  { label: 'Azul', value: '#3b82f6', class: 'bg-blue-500' },
+  { label: 'Verde', value: '#22c55e', class: 'bg-green-500' },
+  { label: 'Amarelo', value: '#eab308', class: 'bg-yellow-500' },
+  { label: 'Vermelho', value: '#ef4444', class: 'bg-red-500' },
+  { label: 'Roxo', value: '#a855f7', class: 'bg-purple-500' },
+  { label: 'Rosa', value: '#ec4899', class: 'bg-pink-500' },
+  { label: 'Laranja', value: '#f97316', class: 'bg-orange-500' },
+];
 
 function MindMapNodeComponent({ data, selected }: NodeProps) {
   const nodeData = data as unknown as MindMapNodeData;
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(nodeData.content || '');
+  const [showColorMenu, setShowColorMenu] = useState(false);
+  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
@@ -23,6 +39,17 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
       textareaRef.current.select();
     }
   }, [isEditing]);
+
+  useEffect(() => {
+    if (!showColorMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowColorMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showColorMenu]);
 
   const handleDoubleClick = () => {
     if (!nodeData.imageUrl) {
@@ -46,15 +73,26 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
     }
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuPos({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY });
+    setShowColorMenu(true);
+  };
+
+  const cardColor = nodeData.color;
+
   return (
     <div
       className={`
-        relative bg-card border-2 rounded-lg shadow-lg min-w-[150px] max-w-[300px]
+        relative border-2 rounded-lg shadow-lg min-w-[150px] max-w-[300px]
         transition-all duration-200 group
         ${selected ? 'border-primary shadow-xl' : 'border-border hover:border-primary/50'}
         [&_.react-flow\_\_handle]:hover:!opacity-100
       `}
+      style={{ backgroundColor: cardColor || undefined }}
       onDoubleClick={handleDoubleClick}
+      onContextMenu={handleContextMenu}
     >
       <Handle type="source" position={Position.Top} id="top" className="!w-4 !h-4 !bg-primary !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity" />
       <Handle type="source" position={Position.Bottom} id="bottom" className="!w-4 !h-4 !bg-primary !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity" />
@@ -78,8 +116,35 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
         <Trash2 className="h-3 w-3" />
       </Button>
 
+      {/* Color context menu */}
+      {showColorMenu && (
+        <div
+          ref={menuRef}
+          className="absolute z-50 bg-popover border border-border rounded-lg shadow-xl p-2"
+          style={{ left: menuPos.x, top: menuPos.y }}
+        >
+          <p className="text-xs text-muted-foreground mb-2 px-1">Cor do card</p>
+          <div className="flex gap-1.5 flex-wrap max-w-[160px]">
+            {COLOR_OPTIONS.map((opt) => (
+              <button
+                key={opt.label}
+                title={opt.label}
+                className={`w-6 h-6 rounded-full ${opt.class} hover:scale-110 transition-transform ring-offset-1 ${
+                  (cardColor === opt.value || (!cardColor && !opt.value)) ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nodeData.onColorChange(opt.value);
+                  setShowColorMenu(false);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Content */}
-      <div className="p-3">
+      <div className={`p-3 ${cardColor ? 'text-white' : ''}`}>
         {nodeData.imageUrl ? (
           <div className="space-y-2">
             <img
@@ -89,7 +154,7 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
               style={{ maxHeight: '200px', objectFit: 'contain' }}
             />
             {content && (
-              <p className="text-sm text-center text-foreground">{content}</p>
+              <p className="text-sm text-center">{content}</p>
             )}
           </div>
         ) : isEditing ? (
@@ -103,7 +168,7 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
             placeholder="Digite aqui..."
           />
         ) : (
-          <p className="text-sm text-foreground whitespace-pre-wrap min-h-[24px]">
+          <p className={`text-sm whitespace-pre-wrap min-h-[24px] ${!cardColor ? 'text-foreground' : ''}`}>
             {content || 'Clique duplo para editar'}
           </p>
         )}

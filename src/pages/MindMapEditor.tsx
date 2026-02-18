@@ -95,8 +95,10 @@ export default function MindMapEditor() {
         data: {
           content: node.content || '',
           imageUrl: node.image_url,
+          color: node.color,
           onContentChange: (content: string) => handleNodeContentChange(node.id, content),
           onDelete: () => handleDeleteNode(node.id),
+          onColorChange: (color: string | null) => handleNodeColorChange(node.id, color),
         },
       }));
 
@@ -127,6 +129,25 @@ export default function MindMapEditor() {
           : node
       )
     );
+  }, [setNodes]);
+
+  const handleNodeColorChange = useCallback(async (nodeId: string, color: string | null) => {
+    try {
+      await supabase
+        .from('mind_map_nodes')
+        .update({ color })
+        .eq('id', nodeId);
+
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === nodeId
+            ? { ...node, data: { ...node.data, color } }
+            : node
+        )
+      );
+    } catch (error) {
+      console.error('Error updating color:', error);
+    }
   }, [setNodes]);
 
   const handleDeleteNode = useCallback(async (nodeId: string) => {
@@ -231,8 +252,10 @@ export default function MindMapEditor() {
         data: {
           content: data.content,
           imageUrl: data.image_url,
+          color: data.color,
           onContentChange: (content: string) => handleNodeContentChange(data.id, content),
           onDelete: () => handleDeleteNode(data.id),
+          onColorChange: (color: string | null) => handleNodeColorChange(data.id, color),
         },
       };
 
@@ -293,8 +316,10 @@ export default function MindMapEditor() {
         data: {
           content: data.content,
           imageUrl: publicUrl,
+          color: data.color,
           onContentChange: (content: string) => handleNodeContentChange(data.id, content),
           onDelete: () => handleDeleteNode(data.id),
+          onColorChange: (color: string | null) => handleNodeColorChange(data.id, color),
         },
       };
 
