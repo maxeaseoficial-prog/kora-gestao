@@ -102,10 +102,6 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
       <Handle type="source" position={Position.Bottom} id="bottom" className="!w-2 !h-2 !bg-primary/60 !border-0 !opacity-0 hover:!opacity-100 hover:!w-3 hover:!h-3 !transition-all" />
       <Handle type="source" position={Position.Left} id="left" className="!w-2 !h-2 !bg-primary/60 !border-0 !opacity-0 hover:!opacity-100 hover:!w-3 hover:!h-3 !transition-all" />
       <Handle type="source" position={Position.Right} id="right" className="!w-2 !h-2 !bg-primary/60 !border-0 !opacity-0 hover:!opacity-100 hover:!w-3 hover:!h-3 !transition-all" />
-      <Handle type="target" position={Position.Top} id="top-target" className="!w-2 !h-2 !bg-primary/40 !border-0 !opacity-0 hover:!opacity-100 hover:!w-3 hover:!h-3 !transition-all !top-0 !-translate-y-1/2" />
-      <Handle type="target" position={Position.Bottom} id="bottom-target" className="!w-2 !h-2 !bg-primary/40 !border-0 !opacity-0 hover:!opacity-100 hover:!w-3 hover:!h-3 !transition-all !bottom-0 !translate-y-1/2 !top-auto" />
-      <Handle type="target" position={Position.Left} id="left-target" className="!w-2 !h-2 !bg-primary/40 !border-0 !opacity-0 hover:!opacity-100 hover:!w-3 hover:!h-3 !transition-all !left-0 !-translate-x-1/2" />
-      <Handle type="target" position={Position.Right} id="right-target" className="!w-2 !h-2 !bg-primary/40 !border-0 !opacity-0 hover:!opacity-100 hover:!w-3 hover:!h-3 !transition-all !right-0 !translate-x-1/2 !left-auto" />
 
       {/* Delete button */}
       <Button
