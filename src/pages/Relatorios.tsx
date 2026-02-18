@@ -50,6 +50,40 @@ function Relatorios({ projectId }: { projectId?: string }) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Fetch custom folders and hidden folder IDs from database
+  const fetchCustomFolders = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('report_folders')
+        .select('*')
+        .eq('user_id', user.id);
+      if (error) throw error;
+      setCustomFolders((data || []).map((f: any) => ({ id: f.id, name: f.name })));
+    } catch (e) {
+      console.error('Error fetching custom folders:', e);
+    }
+  }, [user]);
+
+  const fetchHiddenFolders = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('hidden_report_folders')
+        .select('folder_id')
+        .eq('user_id', user.id);
+      if (error) throw error;
+      setHiddenFolderIds((data || []).map((h: any) => h.folder_id));
+    } catch (e) {
+      console.error('Error fetching hidden folders:', e);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchCustomFolders();
+    fetchHiddenFolders();
+  }, [fetchCustomFolders, fetchHiddenFolders]);
+
   // Build folders from clients + custom folders
   useEffect(() => {
     const clientFolders: ClientFolder[] = clients.map((c) => ({
@@ -219,26 +253,59 @@ function Relatorios({ projectId }: { projectId?: string }) {
     }).format(new Date(dateString));
   };
 
-  const addNewFolder = () => {
-    if (!newFolderName.trim()) return;
+  const addNewFolder = async () => {
+    if (!newFolderName.trim() || !user) return;
 
-    const newFolder: ClientFolder = {
-      id: crypto.randomUUID(),
-      name: newFolderName,
-    };
+    try {
+      const { data, error } = await supabase
+        .from('report_folders')
+        .insert({ user_id: user.id, name: newFolderName })
+        .select()
+        .single();
 
-    setCustomFolders((prev) => [...prev, newFolder]);
-    setNewFolderName('');
-    setIsNewFolderDialogOpen(false);
+      if (error) throw error;
+
+      setCustomFolders((prev) => [...prev, { id: data.id, name: data.name }]);
+      setNewFolderName('');
+      setIsNewFolderDialogOpen(false);
+      toast.success('Pasta criada com sucesso!');
+    } catch (e) {
+      console.error('Error creating folder:', e);
+      toast.error('Erro ao criar pasta');
+    }
   };
 
-  const deleteFolder = () => {
-    if (!folderToDelete) return;
-    setCustomFolders((prev) => prev.filter((f) => f.id !== folderToDelete.id));
-    setHiddenFolderIds((prev) => [...prev, folderToDelete.id]);
-    setIsDeleteFolderDialogOpen(false);
-    setFolderToDelete(null);
-    toast.success('Pasta excluída');
+  const deleteFolder = async () => {
+    if (!folderToDelete || !user) return;
+
+    try {
+      // Check if it's a custom folder (exists in customFolders)
+      const isCustom = customFolders.some((f) => f.id === folderToDelete.id);
+
+      if (isCustom) {
+        const { error } = await supabase
+          .from('report_folders')
+          .delete()
+          .eq('id', folderToDelete.id)
+          .eq('user_id', user.id);
+        if (error) throw error;
+        setCustomFolders((prev) => prev.filter((f) => f.id !== folderToDelete.id));
+      } else {
+        // It's a client folder — hide it
+        const { error } = await supabase
+          .from('hidden_report_folders')
+          .insert({ user_id: user.id, folder_id: folderToDelete.id });
+        if (error) throw error;
+        setHiddenFolderIds((prev) => [...prev, folderToDelete.id]);
+      }
+
+      setIsDeleteFolderDialogOpen(false);
+      setFolderToDelete(null);
+      toast.success('Pasta excluída');
+    } catch (e) {
+      console.error('Error deleting folder:', e);
+      toast.error('Erro ao excluir pasta');
+    }
   };
 
   const openRenameDialog = (report: ReportItem) => {
