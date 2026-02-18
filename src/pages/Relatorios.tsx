@@ -227,6 +227,11 @@ function Relatorios() {
     setIsNewFolderDialogOpen(false);
   };
 
+  const deleteFolder = (folderId: string) => {
+    setCustomFolders((prev) => prev.filter((f) => f.id !== folderId));
+    setFolders((prev) => prev.filter((f) => f.id !== folderId));
+  };
+
   const openRenameDialog = (report: ReportItem) => {
     setSelectedReport(report);
     setNewReportName(report.title);
@@ -345,20 +350,35 @@ function Relatorios() {
           {folders.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {folders.map((folder) => (
-                <button
+                <div
                   key={folder.id}
-                  onClick={() => setSelectedFolder(folder)}
-                  className="p-4 bg-card rounded-xl border border-border hover:border-foreground/20 hover:shadow-sm transition-all text-left animate-fade-in group"
+                  className="p-4 bg-card rounded-xl border border-border hover:border-foreground/20 hover:shadow-sm transition-all text-left animate-fade-in group relative"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-secondary rounded-lg group-hover:bg-foreground group-hover:text-background transition-colors">
-                      <Folder className="h-5 w-5" />
+                  <button
+                    onClick={() => setSelectedFolder(folder)}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-secondary rounded-lg group-hover:bg-foreground group-hover:text-background transition-colors">
+                        <Folder className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{folder.name}</h3>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{folder.name}</h3>
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteFolder(folder.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               ))}
             </div>
           ) : (
