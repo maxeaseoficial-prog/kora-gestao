@@ -104,7 +104,7 @@ export default function MindMapEditor() {
         id: conn.id,
         source: conn.source_node_id,
         target: conn.target_node_id,
-        type: 'straight',
+        type: 'smoothstep',
         animated: true,
         style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
       }));
@@ -170,7 +170,7 @@ export default function MindMapEditor() {
           target: params.target,
           sourceHandle: params.sourceHandle,
           targetHandle: params.targetHandle,
-          type: 'straight',
+          type: 'smoothstep',
           animated: true,
           style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
         };
@@ -345,6 +345,35 @@ export default function MindMapEditor() {
     setSelectedNodeId(node.id);
   }, []);
 
+  const SNAP_THRESHOLD = 12;
+
+  const onNodeDrag = useCallback((_: React.MouseEvent, draggedNode: Node) => {
+    const otherNodes = nodes.filter((n) => n.id !== draggedNode.id);
+    let { x, y } = draggedNode.position;
+    let snapped = false;
+
+    for (const other of otherNodes) {
+      // Snap X (vertical alignment)
+      if (Math.abs(x - other.position.x) < SNAP_THRESHOLD) {
+        x = other.position.x;
+        snapped = true;
+      }
+      // Snap Y (horizontal alignment)
+      if (Math.abs(y - other.position.y) < SNAP_THRESHOLD) {
+        y = other.position.y;
+        snapped = true;
+      }
+    }
+
+    if (snapped) {
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === draggedNode.id ? { ...n, position: { x, y } } : n
+        )
+      );
+    }
+  }, [nodes, setNodes]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
@@ -394,13 +423,14 @@ export default function MindMapEditor() {
           onConnect={onConnect}
           onEdgesDelete={onEdgesDelete}
           onNodeClick={onNodeClick}
+          onNodeDrag={onNodeDrag}
            nodeTypes={nodeTypes}
            connectionMode={ConnectionMode.Loose}
           fitView
           snapToGrid
-          snapGrid={[15, 15]}
+          snapGrid={[10, 10]}
           defaultEdgeOptions={{
-            type: 'straight',
+            type: 'smoothstep',
             animated: true,
             style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
           }}
