@@ -8,6 +8,7 @@ import {
   useEdgesState,
   addEdge,
   Connection,
+  ConnectionMode,
   Edge,
   Node,
   BackgroundVariant,
@@ -167,6 +168,8 @@ export default function MindMapEditor() {
           id: data.id,
           source: params.source,
           target: params.target,
+          sourceHandle: params.sourceHandle,
+          targetHandle: params.targetHandle,
           type: 'smoothstep',
           animated: true,
           style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
@@ -391,7 +394,8 @@ export default function MindMapEditor() {
           onConnect={onConnect}
           onEdgesDelete={onEdgesDelete}
           onNodeClick={onNodeClick}
-          nodeTypes={nodeTypes}
+           nodeTypes={nodeTypes}
+           connectionMode={ConnectionMode.Loose}
           fitView
           snapToGrid
           snapGrid={[15, 15]}
