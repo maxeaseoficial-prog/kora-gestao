@@ -71,7 +71,7 @@ function CRM() {
     if (!newColumnTitle.trim()) return;
     
     const newColumn: CRMColumn = {
-      id: `column-${Date.now()}`,
+      id: crypto.randomUUID(),
       title: newColumnTitle,
       order: crmColumns.length,
     };
@@ -96,7 +96,7 @@ function CRM() {
     if (!newCard.clientName.trim()) return;
 
     const card: CRMCard = {
-      id: `card-${Date.now()}`,
+      id: crypto.randomUUID(),
       ...newCard,
       columnId,
       order: crmCards.filter(c => c.columnId === columnId).length,
