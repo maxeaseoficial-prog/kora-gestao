@@ -38,6 +38,8 @@ function Relatorios() {
   const [loadingReports, setLoadingReports] = useState(false);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
   const [newReportName, setNewReportName] = useState('');
   const [uploadName, setUploadName] = useState('');
@@ -213,15 +215,16 @@ function Relatorios() {
   };
 
   const addNewFolder = () => {
-    const folderName = prompt('Nome da nova pasta:');
-    if (!folderName?.trim()) return;
+    if (!newFolderName.trim()) return;
 
     const newFolder: ClientFolder = {
       id: crypto.randomUUID(),
-      name: folderName,
+      name: newFolderName,
     };
 
     setCustomFolders((prev) => [...prev, newFolder]);
+    setNewFolderName('');
+    setIsNewFolderDialogOpen(false);
   };
 
   const openRenameDialog = (report: ReportItem) => {
@@ -333,7 +336,7 @@ function Relatorios() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold">Pastas de Clientes</h2>
-            <Button variant="outline" onClick={addNewFolder}>
+            <Button variant="outline" onClick={() => setIsNewFolderDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Nova Pasta
             </Button>
@@ -365,7 +368,7 @@ function Relatorios() {
               <p className="text-sm text-muted-foreground mt-1">
                 Crie uma pasta para organizar os relatórios
               </p>
-              <Button className="mt-4" onClick={addNewFolder}>
+              <Button className="mt-4" onClick={() => setIsNewFolderDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Pasta
               </Button>
@@ -463,6 +466,39 @@ function Relatorios() {
                 Salvar
               </Button>
               <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Folder Dialog */}
+      <Dialog open={isNewFolderDialogOpen} onOpenChange={setIsNewFolderDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Pasta</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <label className="text-sm font-medium">Nome da Pasta</label>
+              <Input
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Ex: Nome do cliente"
+                className="mt-1"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && addNewFolder()}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={addNewFolder} className="flex-1" disabled={!newFolderName.trim()}>
+                Criar Pasta
+              </Button>
+              <Button variant="outline" onClick={() => {
+                setIsNewFolderDialogOpen(false);
+                setNewFolderName('');
+              }}>
                 Cancelar
               </Button>
             </div>
