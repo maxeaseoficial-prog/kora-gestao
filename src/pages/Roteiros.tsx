@@ -316,18 +316,15 @@ const Roteiros = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Roteiros</h1>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={openNewFolder} className="flex-1 sm:flex-none" size="sm">
+        <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={openNewFolder} size="sm">
               <FolderPlus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Nova Pasta</span>
             </Button>
-            <Button onClick={openNewScript} className="flex-1 sm:flex-none" size="sm">
+            <Button onClick={openNewScript} size="sm">
               <Plus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Novo Roteiro</span>
             </Button>
-          </div>
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
