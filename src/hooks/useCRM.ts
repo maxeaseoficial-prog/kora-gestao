@@ -167,6 +167,9 @@ export function useCRM() {
       ? newCards(crmCards)
       : newCards;
 
+    // Optimistic update - set state immediately
+    setCrmCardsState(updatedCards);
+
     const addedCards = updatedCards.filter(
       (nc) => !crmCards.find((c) => c.id === nc.id)
     );
@@ -223,8 +226,6 @@ export function useCRM() {
           if (error) throw error;
         }
       }
-
-      setCrmCardsState(updatedCards);
     } catch (error) {
       console.error('Error updating cards:', error);
       toast.error('Erro ao atualizar cartões');
