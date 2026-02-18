@@ -4,12 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { CRMColumn, CRMCard } from '@/types';
 import { toast } from 'sonner';
 
-const DEFAULT_COLUMNS: CRMColumn[] = [
-  { id: 'lead', title: 'Lead', order: 0 },
-  { id: 'contact', title: 'Em Contato', order: 1 },
-  { id: 'proposal', title: 'Proposta Enviada', order: 2 },
-  { id: 'negotiation', title: 'Em Negociação', order: 3 },
-  { id: 'closed', title: 'Fechado', order: 4 },
+const DEFAULT_COLUMNS: { title: string; order: number }[] = [
+  { title: 'Prospectar', order: 0 },
+  { title: 'Em Contato', order: 1 },
+  { title: 'Reunião Marcada', order: 2 },
+  { title: 'Fechou', order: 3 },
 ];
 
 export function useCRM() {
@@ -39,19 +38,24 @@ export function useCRM() {
       // If no columns exist, create default columns
       if (!columnsData || columnsData.length === 0) {
         const columnsToInsert = DEFAULT_COLUMNS.map((col) => ({
-          id: col.id,
           user_id: user.id,
           title: col.title,
           column_order: col.order,
         }));
 
-        const { error: insertError } = await supabase
+        const { data: insertedCols, error: insertError } = await supabase
           .from('crm_columns')
-          .insert(columnsToInsert);
+          .insert(columnsToInsert)
+          .select();
 
         if (insertError) throw insertError;
 
-        setCrmColumnsState(DEFAULT_COLUMNS);
+        const mappedInserted: CRMColumn[] = (insertedCols || []).map((c) => ({
+          id: c.id,
+          title: c.title,
+          order: c.column_order,
+        }));
+        setCrmColumnsState(mappedInserted);
       } else {
         const mappedColumns: CRMColumn[] = columnsData.map((c) => ({
           id: c.id,
