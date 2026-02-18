@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Layout } from '@/components/Layout';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -272,13 +272,11 @@ const Roteiros = () => {
   const rootScripts = scripts.filter((s) => !s.folder_id);
 
   if (loading) {
-    return (
-      <Layout>
+      return (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </Layout>
-    );
+      );
   }
 
   const downloadPDF = (script: Script) => {
@@ -317,8 +315,7 @@ const Roteiros = () => {
   };
 
   return (
-    <Layout>
-      <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Roteiros</h1>
           <div className="flex gap-2 w-full sm:w-auto">
@@ -534,7 +531,6 @@ const Roteiros = () => {
             </Droppable>
           </div>
         </DragDropContext>
-      </div>
 
       {/* Script Dialog */}
       <Dialog open={scriptDialogOpen} onOpenChange={setScriptDialogOpen}>
@@ -630,7 +626,7 @@ const Roteiros = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Layout>
+    </div>
   );
 };
 
