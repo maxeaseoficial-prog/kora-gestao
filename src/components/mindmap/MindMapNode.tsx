@@ -85,13 +85,16 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
 
   return (
     <div
-      className={`
+      className="
         relative border-2 rounded-lg shadow-lg min-w-[150px] max-w-[300px]
-        transition-all duration-200 group
-        ${selected ? 'border-primary shadow-xl' : 'border-border hover:border-primary/50'}
+        transition-all duration-200
+        [&:hover_.node-action]:opacity-100
         [&_.react-flow\_\_handle]:hover:!opacity-100
-      `}
-      style={{ backgroundColor: cardColor || undefined }}
+      "
+      style={{
+        backgroundColor: cardColor || undefined,
+        borderColor: selected ? 'hsl(var(--primary))' : undefined,
+      }}
       onDoubleClick={handleDoubleClick}
       onContextMenu={handleContextMenu}
     >
@@ -108,7 +111,7 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
       <Button
         variant="destructive"
         size="icon"
-        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        className="node-action absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 transition-opacity z-10"
         onClick={(e) => {
           e.stopPropagation();
           nodeData.onDelete();
@@ -122,7 +125,7 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
         <Button
           variant="default"
           size="icon"
-          className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          className="node-action absolute -bottom-2 -right-2 h-6 w-6 rounded-full opacity-0 transition-opacity z-10"
           onClick={(e) => {
             e.stopPropagation();
             nodeData.onAddChild?.();
