@@ -34,7 +34,7 @@ interface MindMapData {
 }
 
 export default function MindMapEditor() {
-  const { id } = useParams<{ id: string }>();
+  const { id, projectId } = useParams<{ id: string; projectId?: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [mindMap, setMindMap] = useState<MindMapData | null>(null);
@@ -65,7 +65,7 @@ export default function MindMapEditor() {
       if (mapError) throw mapError;
       if (!mapData) {
         toast.error('Mapa mental não encontrado');
-        navigate('/mapas-mentais');
+        navigate(projectId ? `/projetos/${projectId}` : '/projetos');
         return;
       }
 
@@ -411,7 +411,7 @@ export default function MindMapEditor() {
     <div className="h-[calc(100vh-8rem)] flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/mapas-mentais')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(projectId ? `/projetos/${projectId}` : '/projetos')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h2 className="text-xl font-bold">{mindMap?.name}</h2>
