@@ -11,7 +11,9 @@ function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const activeClients = clients.filter(c => c.status === 'ativo').length;
+  const activeClientsList = clients.filter(c => c.status === 'ativo');
+  const activeClients = activeClientsList.length;
+  const currentRecurrence = activeClientsList.reduce((acc, c) => acc + c.monthlyValue, 0);
   const totalCards = crmCards.length;
 
   // Filter finances by selected month/year
@@ -85,6 +87,12 @@ function Dashboard() {
           value={formatCurrency(monthlyRevenue)}
           icon={<DollarSign className="h-5 w-5 text-foreground" />}
           trend={hideNumbers ? undefined : { value: 12, isPositive: true }}
+        />
+        <MetricCard
+          title="Recorrência Atual"
+          value={formatCurrency(currentRecurrence)}
+          subtitle={hideNumbers ? '•••••••' : `${activeClients} contratos ativos`}
+          icon={<TrendingUp className="h-5 w-5 text-foreground" />}
         />
         <MetricCard
           title="Clientes Ativos"
