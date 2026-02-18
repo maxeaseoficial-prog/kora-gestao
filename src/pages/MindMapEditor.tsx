@@ -44,6 +44,7 @@ export default function MindMapEditor() {
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const addChildNodeRef = useRef<(parentId: string) => void>(() => {});
 
   useEffect(() => {
     if (id && user) {
@@ -99,6 +100,7 @@ export default function MindMapEditor() {
           onContentChange: (content: string) => handleNodeContentChange(node.id, content),
           onDelete: () => handleDeleteNode(node.id),
           onColorChange: (color: string | null) => handleNodeColorChange(node.id, color),
+          onAddChild: () => addChildNodeRef.current(node.id),
         },
       }));
 
@@ -218,16 +220,92 @@ export default function MindMapEditor() {
     []
   );
 
+  const addChildNode = useCallback(async (parentNodeId: string) => {
+    if (!id) return;
+
+    const parentNode = nodes.find((n) => n.id === parentNodeId);
+    if (!parentNode) return;
+
+    const newX = parentNode.position.x + 250;
+    const newY = parentNode.position.y;
+
+    try {
+      // Create new node
+      const { data, error } = await supabase
+        .from('mind_map_nodes')
+        .insert({
+          mind_map_id: id,
+          content: 'Novo card',
+          position_x: newX,
+          position_y: newY,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Create connection
+      const { data: connData, error: connError } = await supabase
+        .from('mind_map_connections')
+        .insert({
+          mind_map_id: id,
+          source_node_id: parentNodeId,
+          target_node_id: data.id,
+        })
+        .select()
+        .single();
+
+      if (connError) throw connError;
+
+      const newNode: Node = {
+        id: data.id,
+        type: 'mindMapNode',
+        position: { x: data.position_x, y: data.position_y },
+        data: {
+          content: data.content,
+          imageUrl: data.image_url,
+          color: data.color,
+          onContentChange: (content: string) => handleNodeContentChange(data.id, content),
+          onDelete: () => handleDeleteNode(data.id),
+          onColorChange: (color: string | null) => handleNodeColorChange(data.id, color),
+          onAddChild: () => addChildNode(data.id),
+        },
+      };
+
+      const newEdge: Edge = {
+        id: connData.id,
+        source: parentNodeId,
+        target: data.id,
+        sourceHandle: 'right',
+        targetHandle: 'left-target',
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
+      };
+
+      setNodes((nds) => [...nds, newNode]);
+      setEdges((eds) => [...eds, newEdge]);
+      toast.success('Card conectado adicionado');
+    } catch (error: any) {
+      toast.error('Erro ao adicionar card');
+      console.error(error);
+    }
+  }, [id, nodes, setNodes, setEdges, handleNodeContentChange, handleDeleteNode, handleNodeColorChange]);
+
+  // Keep ref in sync
+  useEffect(() => {
+    addChildNodeRef.current = addChildNode;
+  }, [addChildNode]);
+
   const addNode = async () => {
     if (!id) return;
 
-    // Calculate position based on last node
     let newX = 200;
     let newY = 200;
     
     if (nodes.length > 0) {
       const lastNode = nodes[nodes.length - 1];
-      newX = lastNode.position.x + 220; // Place to the right of last node
+      newX = lastNode.position.x + 220;
       newY = lastNode.position.y;
     }
 
@@ -256,6 +334,7 @@ export default function MindMapEditor() {
           onContentChange: (content: string) => handleNodeContentChange(data.id, content),
           onDelete: () => handleDeleteNode(data.id),
           onColorChange: (color: string | null) => handleNodeColorChange(data.id, color),
+          onAddChild: () => addChildNode(data.id),
         },
       };
 
@@ -320,6 +399,7 @@ export default function MindMapEditor() {
           onContentChange: (content: string) => handleNodeContentChange(data.id, content),
           onDelete: () => handleDeleteNode(data.id),
           onColorChange: (color: string | null) => handleNodeColorChange(data.id, color),
+          onAddChild: () => addChildNode(data.id),
         },
       };
 
