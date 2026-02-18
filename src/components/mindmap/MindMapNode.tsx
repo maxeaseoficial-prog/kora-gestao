@@ -52,19 +52,18 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
         relative bg-card border-2 rounded-lg shadow-lg min-w-[150px] max-w-[300px]
         transition-all duration-200 group
         ${selected ? 'border-primary shadow-xl' : 'border-border hover:border-primary/50'}
+        [&_.react-flow\_\_handle]:hover:!opacity-100
       `}
       onDoubleClick={handleDoubleClick}
     >
-      {/* Source handles */}
-      <Handle type="source" position={Position.Top} id="top" className="!w-3 !h-3 !bg-primary !border-2 !border-background" />
-      <Handle type="source" position={Position.Bottom} id="bottom" className="!w-3 !h-3 !bg-primary !border-2 !border-background" />
-      <Handle type="source" position={Position.Left} id="left" className="!w-3 !h-3 !bg-primary !border-2 !border-background" />
-      <Handle type="source" position={Position.Right} id="right" className="!w-3 !h-3 !bg-primary !border-2 !border-background" />
-      {/* Target handles overlapping source handles */}
-      <Handle type="target" position={Position.Top} id="top-target" className="!w-3 !h-3 !bg-primary !border-2 !border-background" />
-      <Handle type="target" position={Position.Bottom} id="bottom-target" className="!w-3 !h-3 !bg-primary !border-2 !border-background" />
-      <Handle type="target" position={Position.Left} id="left-target" className="!w-3 !h-3 !bg-primary !border-2 !border-background" />
-      <Handle type="target" position={Position.Right} id="right-target" className="!w-3 !h-3 !bg-primary !border-2 !border-background" />
+      <Handle type="source" position={Position.Top} id="top" className="!w-4 !h-4 !bg-primary !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity" />
+      <Handle type="source" position={Position.Bottom} id="bottom" className="!w-4 !h-4 !bg-primary !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity" />
+      <Handle type="source" position={Position.Left} id="left" className="!w-4 !h-4 !bg-primary !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity" />
+      <Handle type="source" position={Position.Right} id="right" className="!w-4 !h-4 !bg-primary !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity" />
+      <Handle type="target" position={Position.Top} id="top-target" className="!w-4 !h-4 !bg-primary/50 !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity !top-0 !-translate-y-1/2" />
+      <Handle type="target" position={Position.Bottom} id="bottom-target" className="!w-4 !h-4 !bg-primary/50 !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity !bottom-0 !translate-y-1/2 !top-auto" />
+      <Handle type="target" position={Position.Left} id="left-target" className="!w-4 !h-4 !bg-primary/50 !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity !left-0 !-translate-x-1/2" />
+      <Handle type="target" position={Position.Right} id="right-target" className="!w-4 !h-4 !bg-primary/50 !border-2 !border-background !opacity-0 hover:!opacity-100 !transition-opacity !right-0 !translate-x-1/2 !left-auto" />
 
       {/* Delete button */}
       <Button
