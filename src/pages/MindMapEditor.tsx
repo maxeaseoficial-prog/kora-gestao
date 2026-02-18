@@ -268,7 +268,7 @@ export default function MindMapEditor() {
           onContentChange: (content: string) => handleNodeContentChange(data.id, content),
           onDelete: () => handleDeleteNode(data.id),
           onColorChange: (color: string | null) => handleNodeColorChange(data.id, color),
-          onAddChild: () => addChildNode(data.id),
+          onAddChild: () => addChildNodeRef.current(data.id),
         },
       };
 
@@ -334,7 +334,7 @@ export default function MindMapEditor() {
           onContentChange: (content: string) => handleNodeContentChange(data.id, content),
           onDelete: () => handleDeleteNode(data.id),
           onColorChange: (color: string | null) => handleNodeColorChange(data.id, color),
-          onAddChild: () => addChildNode(data.id),
+          onAddChild: () => addChildNodeRef.current(data.id),
         },
       };
 
@@ -346,11 +346,26 @@ export default function MindMapEditor() {
     }
   };
 
+  const compressImage = async (file: File, maxWidth = 800): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ratio = Math.min(maxWidth / img.width, 1);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => resolve(blob!), 'image/webp', 0.8);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !id || !user) return;
 
-    // Calculate position based on last node
     let newX = 200;
     let newY = 200;
     
@@ -361,12 +376,12 @@ export default function MindMapEditor() {
     }
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${id}/${Date.now()}.${fileExt}`;
+      const compressed = await compressImage(file);
+      const fileName = `${user.id}/${id}/${Date.now()}.webp`;
 
       const { error: uploadError } = await supabase.storage
         .from('mind-map-images')
-        .upload(fileName, file);
+        .upload(fileName, compressed, { contentType: 'image/webp' });
 
       if (uploadError) throw uploadError;
 
@@ -374,7 +389,6 @@ export default function MindMapEditor() {
         .from('mind-map-images')
         .getPublicUrl(fileName);
 
-      // Create a new node with the image
       const { data, error } = await supabase
         .from('mind_map_nodes')
         .insert({
@@ -399,7 +413,7 @@ export default function MindMapEditor() {
           onContentChange: (content: string) => handleNodeContentChange(data.id, content),
           onDelete: () => handleDeleteNode(data.id),
           onColorChange: (color: string | null) => handleNodeColorChange(data.id, color),
-          onAddChild: () => addChildNode(data.id),
+          onAddChild: () => addChildNodeRef.current(data.id),
         },
       };
 
@@ -410,7 +424,6 @@ export default function MindMapEditor() {
       console.error(error);
     }
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
