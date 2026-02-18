@@ -277,7 +277,7 @@ export default function MindMapEditor() {
         source: parentNodeId,
         target: data.id,
         sourceHandle: 'right',
-        targetHandle: 'left-target',
+        targetHandle: 'left',
         type: 'smoothstep',
         animated: true,
         style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
