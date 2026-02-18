@@ -32,6 +32,7 @@ function Relatorios({ projectId }: { projectId?: string }) {
   const { clients } = useApp();
   const { user } = useAuth();
   const [folders, setFolders] = useState<ClientFolder[]>([]);
+  const [loadingFolders, setLoadingFolders] = useState(true);
   const [customFolders, setCustomFolders] = useState<ClientFolder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<ClientFolder | null>(null);
   const [reports, setReports] = useState<ReportItem[]>([]);
@@ -80,8 +81,8 @@ function Relatorios({ projectId }: { projectId?: string }) {
   }, [user]);
 
   useEffect(() => {
-    fetchCustomFolders();
-    fetchHiddenFolders();
+    setLoadingFolders(true);
+    Promise.all([fetchCustomFolders(), fetchHiddenFolders()]).finally(() => setLoadingFolders(false));
   }, [fetchCustomFolders, fetchHiddenFolders]);
 
   // Build folders from clients + custom folders
@@ -423,7 +424,11 @@ function Relatorios({ projectId }: { projectId?: string }) {
             </Button>
           </div>
 
-          {folders.length > 0 ? (
+          {loadingFolders ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : folders.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {folders.map((folder) => (
                 <div
