@@ -1,6 +1,6 @@
 import { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -11,6 +11,7 @@ interface MindMapNodeData {
   onContentChange: (content: string) => void;
   onDelete: () => void;
   onColorChange: (color: string | null) => void;
+  onAddChild?: () => void;
 }
 
 const COLOR_OPTIONS = [
@@ -115,6 +116,21 @@ function MindMapNodeComponent({ data, selected }: NodeProps) {
       >
         <Trash2 className="h-3 w-3" />
       </Button>
+
+      {/* Add child button */}
+      {nodeData.onAddChild && (
+        <Button
+          variant="default"
+          size="icon"
+          className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            nodeData.onAddChild?.();
+          }}
+        >
+          <Plus className="h-3 w-3" />
+        </Button>
+      )}
 
       {/* Color context menu */}
       {showColorMenu && (
