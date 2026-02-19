@@ -14,6 +14,7 @@ import {
   BackgroundVariant,
   MiniMap,
   Panel,
+  SelectionMode,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { ArrowLeft, Plus, Image, Save, Trash2 } from 'lucide-react';
@@ -542,11 +543,17 @@ export default function MindMapEditor() {
           onEdgesDelete={onEdgesDelete}
           onNodeClick={onNodeClick}
           onNodeDrag={onNodeDrag}
-           nodeTypes={nodeTypes}
-           connectionMode={ConnectionMode.Loose}
+          nodeTypes={nodeTypes}
+          connectionMode={ConnectionMode.Loose}
           fitView
           snapToGrid
           snapGrid={[10, 10]}
+          minZoom={0.05}
+          maxZoom={4}
+          selectionOnDrag
+          selectionMode={SelectionMode.Partial}
+          panOnDrag={[1]}
+          selectNodesOnDrag
           defaultEdgeOptions={{
             type: 'smoothstep',
             animated: true,
