@@ -550,10 +550,7 @@ export default function MindMapEditor() {
           snapGrid={[10, 10]}
           minZoom={0.05}
           maxZoom={4}
-          selectionOnDrag
-          selectionMode={SelectionMode.Partial}
-          panOnDrag={[1]}
-          selectNodesOnDrag
+          multiSelectionKeyCode="Control"
           defaultEdgeOptions={{
             type: 'smoothstep',
             animated: true,
