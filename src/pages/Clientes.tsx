@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useApp } from '@/contexts/AppContext';
 import { Client } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -29,6 +33,8 @@ const initialClientState: Omit<Client, 'id' | 'createdAt'> = {
   status: 'ativo',
   email: '',
   phone: '',
+  entryDate: new Date(),
+  deactivatedAt: null,
 };
 
 function Clientes() {
@@ -72,6 +78,8 @@ function Clientes() {
       status: client.status,
       email: client.email || '',
       phone: client.phone || '',
+      entryDate: client.entryDate || new Date(),
+      deactivatedAt: client.deactivatedAt || null,
     });
     setIsDialogOpen(true);
   };
@@ -101,6 +109,23 @@ function Clientes() {
   const handleDelete = (clientId: string) => {
     if (confirm('Tem certeza que deseja excluir este cliente?')) {
       setClients(clients.filter(c => c.id !== clientId));
+    }
+  };
+
+  const handleToggleActive = (client: Client) => {
+    if (client.status === 'ativo') {
+      if (!confirm(`Desativar cliente "${client.name}"? Ele não contará no próximo mês.`)) return;
+      setClients(clients.map(c =>
+        c.id === client.id
+          ? { ...c, status: 'inativo', deactivatedAt: new Date() }
+          : c
+      ));
+    } else {
+      setClients(clients.map(c =>
+        c.id === client.id
+          ? { ...c, status: 'ativo', deactivatedAt: null }
+          : c
+      ));
     }
   };
 
@@ -175,23 +200,43 @@ function Clientes() {
               {filteredClients.map((client) => (
                 <tr
                   key={client.id}
-                  className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors animate-fade-in"
+                  className={cn(
+                    "border-b border-border last:border-0 transition-colors animate-fade-in",
+                    client.status === 'inativo'
+                      ? "bg-destructive/10 hover:bg-destructive/20 text-destructive"
+                      : "hover:bg-secondary/30"
+                  )}
                 >
                   <td className="p-4">
                     <div>
                       <p className="font-medium">{client.name}</p>
                       {client.email && (
-                        <p className="text-sm text-muted-foreground">{client.email}</p>
+                        <p className={cn("text-sm", client.status === 'inativo' ? "text-destructive/80" : "text-muted-foreground")}>{client.email}</p>
                       )}
+                      <p className={cn("text-xs mt-0.5", client.status === 'inativo' ? "text-destructive/80" : "text-muted-foreground")}>
+                        Entrada: {format(new Date(client.entryDate), "dd/MM/yyyy", { locale: ptBR })}
+                        {client.status === 'inativo' && client.deactivatedAt && (
+                          <> · Desativado: {format(new Date(client.deactivatedAt), "dd/MM/yyyy", { locale: ptBR })}</>
+                        )}
+                      </p>
                     </div>
                   </td>
-                  <td className="p-4 text-muted-foreground">{client.company}</td>
-                  <td className="p-4 text-muted-foreground">{client.serviceType}</td>
-                  <td className="p-4 capitalize text-muted-foreground">{client.recurrence}</td>
+                  <td className={cn("p-4", client.status === 'inativo' ? "" : "text-muted-foreground")}>{client.company}</td>
+                  <td className={cn("p-4", client.status === 'inativo' ? "" : "text-muted-foreground")}>{client.serviceType}</td>
+                  <td className={cn("p-4 capitalize", client.status === 'inativo' ? "" : "text-muted-foreground")}>{client.recurrence}</td>
                   <td className="p-4 text-right font-semibold">{formatCurrency(client.monthlyValue)}</td>
                   <td className="p-4 text-center">{getStatusBadge(client.status)}</td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title={client.status === 'ativo' ? 'Desativar cliente' : 'Reativar cliente'}
+                        onClick={() => handleToggleActive(client)}
+                      >
+                        {client.status === 'ativo' ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -322,7 +367,11 @@ function Clientes() {
               <Select
                 value={formData.status}
                 onValueChange={(value: 'ativo' | 'inativo' | 'pendente') =>
-                  setFormData({ ...formData, status: value })
+                  setFormData({
+                    ...formData,
+                    status: value,
+                    deactivatedAt: value === 'inativo' ? (formData.deactivatedAt || new Date()) : null,
+                  })
                 }
               >
                 <SelectTrigger className="mt-1">
@@ -334,6 +383,66 @@ function Clientes() {
                   <SelectItem value="pendente">Pendente</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Data de Entrada</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "mt-1 w-full justify-start text-left font-normal",
+                        !formData.entryDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.entryDate
+                        ? format(formData.entryDate, "dd/MM/yyyy", { locale: ptBR })
+                        : "Selecionar"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.entryDate}
+                      onSelect={(date) => date && setFormData({ ...formData, entryDate: date })}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              {formData.status === 'inativo' && (
+                <div>
+                  <label className="text-sm font-medium">Data de Desativação</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "mt-1 w-full justify-start text-left font-normal",
+                          !formData.deactivatedAt && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.deactivatedAt
+                          ? format(formData.deactivatedAt, "dd/MM/yyyy", { locale: ptBR })
+                          : "Selecionar"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.deactivatedAt || undefined}
+                        onSelect={(date) => setFormData({ ...formData, deactivatedAt: date || null })}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSave} className="flex-1">

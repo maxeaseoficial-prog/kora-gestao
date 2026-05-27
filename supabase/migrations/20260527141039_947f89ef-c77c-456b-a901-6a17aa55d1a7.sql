@@ -1,0 +1,3 @@
+ALTER TABLE public.clients 
+ADD COLUMN IF NOT EXISTS entry_date date NOT NULL DEFAULT CURRENT_DATE,
+ADD COLUMN IF NOT EXISTS deactivated_at date;
