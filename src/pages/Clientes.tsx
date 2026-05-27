@@ -200,23 +200,43 @@ function Clientes() {
               {filteredClients.map((client) => (
                 <tr
                   key={client.id}
-                  className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors animate-fade-in"
+                  className={cn(
+                    "border-b border-border last:border-0 transition-colors animate-fade-in",
+                    client.status === 'inativo'
+                      ? "bg-destructive/10 hover:bg-destructive/20 text-destructive"
+                      : "hover:bg-secondary/30"
+                  )}
                 >
                   <td className="p-4">
                     <div>
                       <p className="font-medium">{client.name}</p>
                       {client.email && (
-                        <p className="text-sm text-muted-foreground">{client.email}</p>
+                        <p className={cn("text-sm", client.status === 'inativo' ? "text-destructive/80" : "text-muted-foreground")}>{client.email}</p>
                       )}
+                      <p className={cn("text-xs mt-0.5", client.status === 'inativo' ? "text-destructive/80" : "text-muted-foreground")}>
+                        Entrada: {format(new Date(client.entryDate), "dd/MM/yyyy", { locale: ptBR })}
+                        {client.status === 'inativo' && client.deactivatedAt && (
+                          <> · Desativado: {format(new Date(client.deactivatedAt), "dd/MM/yyyy", { locale: ptBR })}</>
+                        )}
+                      </p>
                     </div>
                   </td>
-                  <td className="p-4 text-muted-foreground">{client.company}</td>
-                  <td className="p-4 text-muted-foreground">{client.serviceType}</td>
-                  <td className="p-4 capitalize text-muted-foreground">{client.recurrence}</td>
+                  <td className={cn("p-4", client.status === 'inativo' ? "" : "text-muted-foreground")}>{client.company}</td>
+                  <td className={cn("p-4", client.status === 'inativo' ? "" : "text-muted-foreground")}>{client.serviceType}</td>
+                  <td className={cn("p-4 capitalize", client.status === 'inativo' ? "" : "text-muted-foreground")}>{client.recurrence}</td>
                   <td className="p-4 text-right font-semibold">{formatCurrency(client.monthlyValue)}</td>
                   <td className="p-4 text-center">{getStatusBadge(client.status)}</td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title={client.status === 'ativo' ? 'Desativar cliente' : 'Reativar cliente'}
+                        onClick={() => handleToggleActive(client)}
+                      >
+                        {client.status === 'ativo' ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
