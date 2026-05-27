@@ -10,6 +10,8 @@ export interface Client {
   email?: string;
   phone?: string;
   createdAt: Date;
+  entryDate: Date;
+  deactivatedAt?: Date | null;
 }
 
 export interface CRMCard {
