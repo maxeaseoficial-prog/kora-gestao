@@ -49,7 +49,9 @@ export type Database = {
           company: string | null
           contract_day: number
           created_at: string
+          deactivated_at: string | null
           email: string | null
+          entry_date: string
           id: string
           monthly_value: number
           name: string
@@ -63,7 +65,9 @@ export type Database = {
           company?: string | null
           contract_day?: number
           created_at?: string
+          deactivated_at?: string | null
           email?: string | null
+          entry_date?: string
           id?: string
           monthly_value?: number
           name: string
@@ -77,7 +81,9 @@ export type Database = {
           company?: string | null
           contract_day?: number
           created_at?: string
+          deactivated_at?: string | null
           email?: string | null
+          entry_date?: string
           id?: string
           monthly_value?: number
           name?: string
