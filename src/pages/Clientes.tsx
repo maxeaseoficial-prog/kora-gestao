@@ -367,7 +367,11 @@ function Clientes() {
               <Select
                 value={formData.status}
                 onValueChange={(value: 'ativo' | 'inativo' | 'pendente') =>
-                  setFormData({ ...formData, status: value })
+                  setFormData({
+                    ...formData,
+                    status: value,
+                    deactivatedAt: value === 'inativo' ? (formData.deactivatedAt || new Date()) : null,
+                  })
                 }
               >
                 <SelectTrigger className="mt-1">
@@ -379,6 +383,66 @@ function Clientes() {
                   <SelectItem value="pendente">Pendente</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Data de Entrada</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "mt-1 w-full justify-start text-left font-normal",
+                        !formData.entryDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.entryDate
+                        ? format(formData.entryDate, "dd/MM/yyyy", { locale: ptBR })
+                        : "Selecionar"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.entryDate}
+                      onSelect={(date) => date && setFormData({ ...formData, entryDate: date })}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              {formData.status === 'inativo' && (
+                <div>
+                  <label className="text-sm font-medium">Data de Desativação</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "mt-1 w-full justify-start text-left font-normal",
+                          !formData.deactivatedAt && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.deactivatedAt
+                          ? format(formData.deactivatedAt, "dd/MM/yyyy", { locale: ptBR })
+                          : "Selecionar"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.deactivatedAt || undefined}
+                        onSelect={(date) => setFormData({ ...formData, deactivatedAt: date || null })}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSave} className="flex-1">
