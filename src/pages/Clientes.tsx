@@ -78,6 +78,8 @@ function Clientes() {
       status: client.status,
       email: client.email || '',
       phone: client.phone || '',
+      entryDate: client.entryDate || new Date(),
+      deactivatedAt: client.deactivatedAt || null,
     });
     setIsDialogOpen(true);
   };
@@ -107,6 +109,23 @@ function Clientes() {
   const handleDelete = (clientId: string) => {
     if (confirm('Tem certeza que deseja excluir este cliente?')) {
       setClients(clients.filter(c => c.id !== clientId));
+    }
+  };
+
+  const handleToggleActive = (client: Client) => {
+    if (client.status === 'ativo') {
+      if (!confirm(`Desativar cliente "${client.name}"? Ele não contará no próximo mês.`)) return;
+      setClients(clients.map(c =>
+        c.id === client.id
+          ? { ...c, status: 'inativo', deactivatedAt: new Date() }
+          : c
+      ));
+    } else {
+      setClients(clients.map(c =>
+        c.id === client.id
+          ? { ...c, status: 'ativo', deactivatedAt: null }
+          : c
+      ));
     }
   };
 
