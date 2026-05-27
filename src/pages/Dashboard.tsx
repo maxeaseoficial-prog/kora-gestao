@@ -83,6 +83,12 @@ function Dashboard() {
       {/* Metrics Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
+          title="Faturamento Total do Mês"
+          value={formatCurrency(monthlyRevenue + currentRecurrence)}
+          subtitle="Receita + Recorrência"
+          icon={<DollarSign className="h-5 w-5 text-foreground" />}
+        />
+        <MetricCard
           title="Receita do Mês"
           value={formatCurrency(monthlyRevenue)}
           icon={<DollarSign className="h-5 w-5 text-foreground" />}
