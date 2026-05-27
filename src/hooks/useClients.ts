@@ -37,6 +37,8 @@ export function useClients() {
         email: c.email || '',
         phone: c.phone || '',
         createdAt: new Date(c.created_at),
+        entryDate: c.entry_date ? new Date(c.entry_date + 'T12:00:00Z') : new Date(c.created_at),
+        deactivatedAt: c.deactivated_at ? new Date(c.deactivated_at + 'T12:00:00Z') : null,
       }));
 
       setClientsState(mappedClients);
@@ -89,6 +91,8 @@ export function useClients() {
           status: client.status,
           email: client.email,
           phone: client.phone,
+          entry_date: client.entryDate.toISOString().split('T')[0],
+          deactivated_at: client.deactivatedAt ? client.deactivatedAt.toISOString().split('T')[0] : null,
         });
         if (error) throw error;
       }
@@ -119,6 +123,8 @@ export function useClients() {
               status: client.status,
               email: client.email,
               phone: client.phone,
+              entry_date: client.entryDate.toISOString().split('T')[0],
+              deactivated_at: client.deactivatedAt ? client.deactivatedAt.toISOString().split('T')[0] : null,
             })
             .eq('id', client.id)
             .eq('user_id', user.id);
