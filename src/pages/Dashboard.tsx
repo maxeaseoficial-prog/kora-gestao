@@ -11,7 +11,18 @@ function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const activeClientsList = clients.filter(c => c.status === 'ativo');
+  // Active in selected month = entered on/before end of month AND (not deactivated OR deactivated after start of month)
+  const monthStart = new Date(selectedYear, selectedMonth, 1);
+  const monthEnd = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
+  const activeClientsList = clients.filter((c) => {
+    const entry = c.entryDate ? new Date(c.entryDate) : new Date(c.createdAt);
+    if (entry > monthEnd) return false;
+    if (c.deactivatedAt) {
+      const deact = new Date(c.deactivatedAt);
+      if (deact < monthStart) return false;
+    }
+    return true;
+  });
   const activeClients = activeClientsList.length;
   const currentRecurrence = activeClientsList.reduce((acc, c) => acc + c.monthlyValue, 0);
   const totalCards = crmCards.length;
@@ -186,7 +197,7 @@ function Dashboard() {
       {/* Active Clients Summary */}
       <div className="bg-card rounded-xl border border-border animate-slide-up" style={{ animationDelay: '0.2s' }}>
         <div className="p-4 border-b border-border">
-          <h2 className="text-lg font-semibold">Clientes Ativos</h2>
+          <h2 className="text-lg font-semibold">Clientes Ativos no Mês</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -199,7 +210,7 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {clients.filter(c => c.status === 'ativo').map((client) => (
+              {activeClientsList.map((client) => (
                 <tr key={client.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
                   <td className="p-4 font-medium">{client.name}</td>
                   <td className="p-4 text-muted-foreground">{client.company}</td>
