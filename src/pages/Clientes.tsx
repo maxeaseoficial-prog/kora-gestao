@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useApp } from '@/contexts/AppContext';
 import { Client } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -29,6 +33,8 @@ const initialClientState: Omit<Client, 'id' | 'createdAt'> = {
   status: 'ativo',
   email: '',
   phone: '',
+  entryDate: new Date(),
+  deactivatedAt: null,
 };
 
 function Clientes() {
