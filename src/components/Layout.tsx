@@ -11,7 +11,8 @@ import {
   LogOut,
   Brain,
   Package,
-  ShoppingCart
+  ShoppingCart,
+  Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Serviços', href: '/servicos', icon: Package },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
+  { name: 'Faturamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Orçamentos', href: '/orcamentos', icon: ShoppingCart },
   { name: 'Projetos', href: '/projetos', icon: Brain },
   { name: 'Instalar', href: '/install', icon: Download },
