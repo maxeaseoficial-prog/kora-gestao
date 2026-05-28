@@ -16,6 +16,8 @@ const getMonthKey = (date?: Date | string | null) => {
 
 export const isClientActiveInMonth = (client: Client, year: number, month: number) => {
   if (client.status === 'pendente') return false;
+  // Inactive client without a deactivation date: not counted anywhere.
+  if (client.status === 'inativo' && !client.deactivatedAt) return false;
 
   const selectedMonthKey = year * 12 + month;
   const entryMonthKey = getMonthKey(client.entryDate || client.createdAt);
