@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { Target, TrendingUp, TrendingDown, Calendar, Pencil } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 import { getRecurringRevenueForMonth } from '@/lib/revenue';
 
 const MONTHS = [
@@ -45,7 +45,6 @@ export default function Faturamento() {
   // the auto-computed total (cash + recorrência) for that month.
   const [manualRevenue, setManualRevenue] = useState<Record<number, number>>({});
   const [manualDrafts, setManualDrafts] = useState<Record<number, string>>({});
-  const [yearlyBulk, setYearlyBulk] = useState<string>('');
 
   const loadManualRevenue = async () => {
     if (!user) return;
@@ -191,33 +190,6 @@ export default function Faturamento() {
     setManualRevenue((prev) => { const n = { ...prev }; delete n[month]; return n; });
     setManualDrafts((prev) => { const n = { ...prev }; delete n[month]; return n; });
     toast.success('Lançamento manual removido');
-  };
-
-  const applyYearlyBulk = async () => {
-    if (!user) return;
-    const num = parseFloat(yearlyBulk.replace(',', '.'));
-    if (Number.isNaN(num) || num <= 0) {
-      toast.error('Informe um valor total válido');
-      return;
-    }
-    const per = num / 12;
-    const rows = MONTHS.map((_, idx) => ({
-      user_id: user.id, year: selectedYear, month: idx, value: per,
-    }));
-    const { error } = await supabase
-      .from('manual_monthly_revenue')
-      .upsert(rows, { onConflict: 'user_id,year,month' });
-    if (error) {
-      console.error(error);
-      toast.error('Erro ao distribuir total');
-      return;
-    }
-    const map: Record<number, number> = {};
-    rows.forEach((r) => { map[r.month] = r.value; });
-    setManualRevenue(map);
-    setManualDrafts({});
-    setYearlyBulk('');
-    toast.success('Total anual distribuído nos 12 meses');
   };
 
   const goalNum = parseFloat(goalValue) || 0;
@@ -367,36 +339,6 @@ export default function Faturamento() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Manual yearly entry */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Pencil className="h-5 w-5" /> Lançar faturamento de {selectedYear}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Informe o faturamento total do ano para distribuir igualmente nos 12 meses,
-            ou edite mês a mês abaixo. Valores manuais substituem o cálculo automático
-            (caixa + recorrência).
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
-            <div className="flex-1">
-              <Label htmlFor="yearly-bulk">Faturamento total do ano (R$)</Label>
-              <Input
-                id="yearly-bulk"
-                type="number"
-                step="0.01"
-                value={yearlyBulk}
-                onChange={(e) => setYearlyBulk(e.target.value)}
-                placeholder="0,00"
-              />
-            </div>
-            <Button onClick={applyYearlyBulk}>Distribuir nos 12 meses</Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Monthly breakdown */}
       <Card>
