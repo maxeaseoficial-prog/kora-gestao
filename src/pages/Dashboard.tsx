@@ -121,10 +121,14 @@ function Dashboard() {
     });
   }, [finances, clients, selectedYear, manualRevenue]);
 
-  const yearTotal = monthlyTotals.reduce((a, b) => a + b, 0);
-  const goalProgress = annualGoal > 0 ? Math.min(100, (yearTotal / annualGoal) * 100) : 0;
+  // Only count months up to (and including) the selected/current month — never project future months into the annual total.
+  const realizedYearToDate = monthlyTotals
+    .slice(0, selectedMonth + 1)
+    .reduce((a, b) => a + b, 0);
+  const yearTotal = realizedYearToDate;
+  const goalProgress = annualGoal > 0 ? Math.min(100, (realizedYearToDate / annualGoal) * 100) : 0;
   const monthsElapsed = Math.max(1, selectedMonth + 1);
-  const projection = (yearTotal / monthsElapsed) * 12;
+  const projection = (realizedYearToDate / monthsElapsed) * 12;
 
   // ---- Smart goal redistribution ----
   // For each month m, dynamically compute its (recalculated) monthly target
@@ -173,9 +177,6 @@ function Dashboard() {
   };
 
   // ---- Annual planning summary ----
-  const realizedYearToDate = monthlyTotals
-    .slice(0, selectedMonth + 1)
-    .reduce((a, b) => a + b, 0);
   const annualRemaining = Math.max(0, annualGoal - realizedYearToDate);
   const monthsRemaining = Math.max(0, 11 - selectedMonth);
   const requiredPerRemainingMonth =
