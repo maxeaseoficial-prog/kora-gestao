@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Target, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, Calendar, Plus } from 'lucide-react';
 import { getRecurringRevenueForMonth } from '@/lib/revenue';
 
 const MONTHS = [
