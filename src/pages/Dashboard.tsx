@@ -4,6 +4,7 @@ import { useApp } from '@/contexts/AppContext';
 import { MetricCard } from '@/components/MetricCard';
 import { Button } from '@/components/ui/button';
 import { MonthYearPicker } from '@/components/MonthYearPicker';
+import { isClientActiveInMonth, getRecurringRevenueForMonth } from '@/lib/revenue';
 
 function Dashboard() {
   const { clients, finances, crmCards, crmColumns, hideNumbers, setHideNumbers } = useApp();
@@ -11,20 +12,9 @@ function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Active in selected month = entered on/before end of month AND (not deactivated OR deactivated after start of month)
-  const monthStart = new Date(selectedYear, selectedMonth, 1);
-  const monthEnd = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
-  const activeClientsList = clients.filter((c) => {
-    const entry = c.entryDate ? new Date(c.entryDate) : new Date(c.createdAt);
-    if (entry > monthEnd) return false;
-    if (c.deactivatedAt) {
-      const deact = new Date(c.deactivatedAt);
-      if (deact < monthStart) return false;
-    }
-    return true;
-  });
+  const activeClientsList = clients.filter((c) => isClientActiveInMonth(c, selectedYear, selectedMonth));
   const activeClients = activeClientsList.length;
-  const currentRecurrence = activeClientsList.reduce((acc, c) => acc + c.monthlyValue, 0);
+  const currentRecurrence = getRecurringRevenueForMonth(clients, selectedYear, selectedMonth);
   const totalCards = crmCards.length;
 
   // Filter finances by selected month/year
