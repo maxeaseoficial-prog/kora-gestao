@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -7,12 +7,13 @@ import {
   Wallet, 
   Menu,
   X,
-  Download,
   LogOut,
   Brain,
   Package,
   ShoppingCart,
-  Target
+  Target,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -32,13 +33,27 @@ const navigation = [
   { name: 'Faturamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Orçamentos', href: '/orcamentos', icon: ShoppingCart },
   { name: 'Projetos', href: '/projetos', icon: Brain },
-  { name: 'Instalar', href: '/install', icon: Download },
 ];
+
+const STORAGE_KEY_COLLAPSED = 'maxease-sidebar-collapsed';
 
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY_COLLAPSED) === '1';
+    } catch {
+      return false;
+    }
+  });
   const location = useLocation();
   const { signOut, user } = useAuth();
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_COLLAPSED, collapsed ? '1' : '0');
+    } catch {}
+  }, [collapsed]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,16 +68,31 @@ export function Layout({ children }: LayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-64 bg-card border-r border-border transform transition-transform duration-200 ease-in-out lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed top-0 left-0 z-50 h-full bg-card border-r border-border transform transition-all duration-200 ease-in-out lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          collapsed ? "w-16" : "w-64"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-6 border-b border-border">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight">MAXEASE</span>
-            </div>
+          <div className={cn(
+            "flex items-center justify-between h-16 border-b border-border",
+            collapsed ? "px-2" : "px-6"
+          )}>
+            {!collapsed && (
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-bold tracking-tight">MAXEASE</span>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden lg:inline-flex"
+              onClick={() => setCollapsed((v) => !v)}
+              title={collapsed ? 'Expandir menu' : 'Recolher menu'}
+            >
+              {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -82,15 +112,17 @@ export function Layout({ children }: LayoutProps) {
                   key={item.name}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
+                  title={collapsed ? item.name : undefined}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    collapsed && "justify-center",
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   )}
                 >
                   <item.icon className="h-5 w-5" />
-                  {item.name}
+                  {!collapsed && item.name}
                 </NavLink>
               );
             })}
@@ -100,21 +132,27 @@ export function Layout({ children }: LayoutProps) {
           <div className="p-4 border-t border-border space-y-3">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+              className={cn(
+                "w-full gap-2 text-muted-foreground hover:text-foreground",
+                collapsed ? "justify-center px-0" : "justify-start"
+              )}
               onClick={() => signOut()}
+              title={collapsed ? 'Sair' : undefined}
             >
               <LogOut className="h-4 w-4" />
-              Sair
+              {!collapsed && 'Sair'}
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              © 2025 MAXEASE
-            </p>
+            {!collapsed && (
+              <p className="text-xs text-muted-foreground text-center">
+                © 2025 MAXEASE
+              </p>
+            )}
           </div>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className={cn("transition-all duration-200", collapsed ? "lg:pl-16" : "lg:pl-64")}>
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-background/80 backdrop-blur-sm border-b border-border lg:px-6">
           <Button
