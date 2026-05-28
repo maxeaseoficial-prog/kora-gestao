@@ -151,7 +151,12 @@ export default function Faturamento() {
     return goals;
   }, [baseMonthly, goalNum, monthlyData, selectedYear, currentYear, currentMonth]);
 
-  const totalRevenue = monthlyData.reduce((s, m) => s + m.total, 0);
+  const lastMonthToCount = selectedYear === currentYear
+    ? currentMonth
+    : selectedYear < currentYear ? 11 : -1;
+  const totalRevenue = monthlyData
+    .filter((m) => m.idx <= lastMonthToCount)
+    .reduce((s, m) => s + m.total, 0);
   const progress = goalNum > 0 ? Math.min(100, (totalRevenue / goalNum) * 100) : 0;
   const remaining = Math.max(0, goalNum - totalRevenue);
 
@@ -235,7 +240,7 @@ export default function Faturamento() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Faturamento total
+              Faturamento atual
             </CardTitle>
           </CardHeader>
           <CardContent>
