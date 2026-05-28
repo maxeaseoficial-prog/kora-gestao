@@ -242,6 +242,36 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_monthly_revenue: {
+        Row: {
+          created_at: string
+          id: string
+          month: number
+          updated_at: string
+          user_id: string
+          value: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: number
+          updated_at?: string
+          user_id: string
+          value?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: number
+          updated_at?: string
+          user_id?: string
+          value?: number
+          year?: number
+        }
+        Relationships: []
+      }
       mind_map_connections: {
         Row: {
           created_at: string
