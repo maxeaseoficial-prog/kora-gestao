@@ -291,6 +291,14 @@ export default function Faturamento() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openPastYearDialog(currentYear - 1)}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Lançar ano anterior
+          </Button>
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <Select
             value={String(selectedYear)}
@@ -310,6 +318,55 @@ export default function Faturamento() {
           </Select>
         </div>
       </div>
+
+      {/* Past-year revenue dialog */}
+      <Dialog open={pastYearDialogOpen} onOpenChange={setPastYearDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Lançar faturamento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="past-year">Ano</Label>
+              <Input
+                id="past-year"
+                type="number"
+                value={pastDialogYear}
+                onChange={(e) => setPastDialogYear(Number(e.target.value) || currentYear - 1)}
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {MONTHS.map((name, idx) => (
+                <div key={idx}>
+                  <Label htmlFor={`past-m-${idx}`} className="text-xs">{name}</Label>
+                  <Input
+                    id={`past-m-${idx}`}
+                    type="number"
+                    step="0.01"
+                    placeholder="0,00"
+                    value={pastDialogValues[idx] ?? ''}
+                    onChange={(e) =>
+                      setPastDialogValues((p) => ({ ...p, [idx]: e.target.value }))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              O total do ano será a soma dos meses preenchidos. Deixe em branco para
+              remover o lançamento daquele mês.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPastYearDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={savePastYearRevenue} disabled={savingPast}>
+              {savingPast ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Goal card */}
       <Card>
