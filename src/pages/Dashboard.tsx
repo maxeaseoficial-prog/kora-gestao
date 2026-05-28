@@ -544,9 +544,6 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Entradas do Mês */}
-          <div className="md:col-span-4 lg:col-span-6 dash-card overflow-hidden" style={{ animationDelay: '600ms' }}>
-          </div>
           {/* Planejamento Anual */}
           <div className="md:col-span-4 lg:col-span-6 dash-card p-6" style={{ animationDelay: '570ms' }}>
             <div className="flex items-center justify-between mb-6">
