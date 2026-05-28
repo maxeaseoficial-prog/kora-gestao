@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Target, TrendingUp, TrendingDown, Calendar, Plus } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, Calendar, Plus, Pencil } from 'lucide-react';
 import { getRecurringRevenueForMonth } from '@/lib/revenue';
 
 const MONTHS = [
@@ -291,6 +291,16 @@ export default function Faturamento() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {selectedYear < currentYear && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openPastYearDialog(selectedYear)}
+            >
+              <Pencil className="h-4 w-4 mr-1" />
+              Editar {selectedYear}
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
