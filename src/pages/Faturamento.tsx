@@ -21,6 +21,26 @@ const MONTHS = [
 const formatBRL = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+const parseBRNumber = (value: string) => {
+  const cleaned = value.trim().replace(/\s/g, '').replace(/[^\d.,-]/g, '');
+  if (!cleaned) return Number.NaN;
+
+  if (cleaned.includes(',')) {
+    return Number(cleaned.replace(/\./g, '').replace(',', '.'));
+  }
+
+  return Number(cleaned.replace(/\./g, ''));
+};
+
+const formatBRNumberInput = (value: string) => {
+  const parsed = parseBRNumber(value);
+  if (Number.isNaN(parsed)) return value;
+  return parsed.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
 export default function Faturamento() {
   const { user } = useAuth();
   const { finances, clients, hideNumbers } = useApp();
@@ -63,7 +83,7 @@ export default function Faturamento() {
       .eq('user_id', user.id)
       .eq('year', year);
     const draft: Record<number, string> = {};
-    (data || []).forEach((r: any) => { draft[r.month] = String(r.value); });
+    (data || []).forEach((r: any) => { draft[r.month] = formatBRNumberInput(String(r.value)); });
     setPastDialogValues(draft);
     setPastYearDialogOpen(true);
   };
@@ -80,9 +100,7 @@ export default function Faturamento() {
           monthsToDelete.push(i);
           continue;
         }
-        // BR format: dot = thousand separator, comma = decimal.
-        const normalized = raw.replace(/\./g, '').replace(',', '.');
-        const num = parseFloat(normalized);
+        const num = parseBRNumber(raw);
         if (Number.isNaN(num)) continue;
         rows.push({ user_id: user.id, year: pastDialogYear, month: i, value: num });
       }
