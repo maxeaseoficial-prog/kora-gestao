@@ -377,8 +377,13 @@ export default function Faturamento() {
                     value={pastDialogValues[idx] ?? ''}
                     onChange={(e) => {
                       // Allow only digits, comma, dot
-                      const v = e.target.value.replace(/[^\d.,]/g, '');
+                      const v = e.target.value.replace(/[^\d.,-]/g, '');
                       setPastDialogValues((p) => ({ ...p, [idx]: v }));
+                    }}
+                    onBlur={(e) => {
+                      const v = e.target.value.trim();
+                      if (!v) return;
+                      setPastDialogValues((p) => ({ ...p, [idx]: formatBRNumberInput(v) }));
                     }}
                   />
                 </div>
