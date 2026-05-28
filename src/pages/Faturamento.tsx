@@ -30,6 +30,8 @@ export default function Faturamento() {
 
   const availableYears = useMemo(() => {
     const years = new Set<number>([currentYear]);
+    // Always allow selecting the previous 5 years for historical entries
+    for (let i = 1; i <= 5; i++) years.add(currentYear - i);
     finances.forEach((f) => years.add(new Date(f.date).getFullYear()));
     clients.forEach((c) => {
       if (c.entryDate) years.add(new Date(c.entryDate).getFullYear());
@@ -45,7 +47,72 @@ export default function Faturamento() {
   // Manual monthly revenue overrides (per year/month). When set, replaces
   // the auto-computed total (cash + recorrência) for that month.
   const [manualRevenue, setManualRevenue] = useState<Record<number, number>>({});
-  const [manualDrafts, setManualDrafts] = useState<Record<number, string>>({});
+
+  // Dialog state for launching past-year revenue
+  const [pastYearDialogOpen, setPastYearDialogOpen] = useState(false);
+  const [pastDialogYear, setPastDialogYear] = useState<number>(currentYear - 1);
+  const [pastDialogValues, setPastDialogValues] = useState<Record<number, string>>({});
+  const [savingPast, setSavingPast] = useState(false);
+
+  const openPastYearDialog = async (year: number) => {
+    if (!user) return;
+    setPastDialogYear(year);
+    const { data } = await supabase
+      .from('manual_monthly_revenue')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('year', year);
+    const draft: Record<number, string> = {};
+    (data || []).forEach((r: any) => { draft[r.month] = String(r.value); });
+    setPastDialogValues(draft);
+    setPastYearDialogOpen(true);
+  };
+
+  const savePastYearRevenue = async () => {
+    if (!user) return;
+    setSavingPast(true);
+    try {
+      const rows: any[] = [];
+      const monthsToDelete: number[] = [];
+      for (let i = 0; i < 12; i++) {
+        const raw = (pastDialogValues[i] ?? '').trim();
+        if (raw === '') {
+          monthsToDelete.push(i);
+          continue;
+        }
+        const num = parseFloat(raw.replace(',', '.'));
+        if (Number.isNaN(num)) continue;
+        rows.push({ user_id: user.id, year: pastDialogYear, month: i, value: num });
+      }
+      if (rows.length > 0) {
+        const { error } = await supabase
+          .from('manual_monthly_revenue')
+          .upsert(rows, { onConflict: 'user_id,year,month' });
+        if (error) throw error;
+      }
+      if (monthsToDelete.length > 0) {
+        const { error } = await supabase
+          .from('manual_monthly_revenue')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('year', pastDialogYear)
+          .in('month', monthsToDelete);
+        if (error) throw error;
+      }
+      toast.success(`Faturamento de ${pastDialogYear} salvo`);
+      setPastYearDialogOpen(false);
+      setSelectedYear(pastDialogYear);
+      // Force reload if same year is now selected
+      if (selectedYear === pastDialogYear) {
+        await loadManualRevenue();
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao salvar faturamento');
+    } finally {
+      setSavingPast(false);
+    }
+  };
 
   const loadManualRevenue = async () => {
     if (!user) return;
