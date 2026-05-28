@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      annual_goals: {
+        Row: {
+          created_at: string
+          goal_value: number
+          id: string
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          goal_value?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          goal_value?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       budget_items: {
         Row: {
           created_at: string

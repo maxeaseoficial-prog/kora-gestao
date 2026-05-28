@@ -15,6 +15,7 @@ import Install from "@/pages/Install";
 import MindMapEditor from "@/pages/MindMapEditor";
 import Servicos from "@/pages/Servicos";
 import Orcamentos from "@/pages/Orcamentos";
+import Faturamento from "@/pages/Faturamento";
 import Projetos from "@/pages/Projetos";
 import ProjetoDetalhe from "@/pages/ProjetoDetalhe";
 import Auth from "@/pages/Auth";
@@ -128,6 +129,16 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Orcamentos />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/faturamento"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Faturamento />
                     </Layout>
                   </ProtectedRoute>
                 }
