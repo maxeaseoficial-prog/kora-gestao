@@ -341,6 +341,44 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Meta Mensal Inteligente */}
+          <div className="md:col-span-4 lg:col-span-2 dash-card p-6" style={{ animationDelay: '90ms' }}>
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <span className="text-sm text-[#a1a1a1] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" /> Meta Mensal
+                </span>
+                <p className="text-[10px] text-[#666] mt-0.5">Recalculada automaticamente</p>
+              </div>
+              {annualGoal > 0 && (
+                <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${goalToneClasses[goalTone].chip}`}>
+                  {monthGoalProgress >= 100 ? 'Meta batida' : `Faltam ${monthGoalMissingPct.toFixed(0)}%`}
+                </span>
+              )}
+            </div>
+            <div className="dash-heading text-2xl font-bold mb-1">
+              {annualGoal > 0 ? formatCurrency(currentMonthGoal) : '—'}
+            </div>
+            <div className="text-xs text-[#a1a1a1] mb-4">
+              {annualGoal > 0
+                ? (hideNumbers
+                    ? '••••• realizado'
+                    : `${formatShortCurrency(currentMonthRealized)} realizado · faltam ${formatShortCurrency(monthGoalRemaining)}`)
+                : 'Defina a meta anual em Faturamento'}
+            </div>
+            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${goalToneClasses[goalTone].bar} ${goalToneClasses[goalTone].glow}`}
+                style={{ width: `${monthGoalProgress}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[10px] text-[#666] mt-2 tabular-nums">
+              <span>0%</span>
+              <span className={goalToneClasses[goalTone].text}>{monthGoalProgress.toFixed(0)}%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
           {/* Receita do Mês */}
           <div className="lg:col-span-1 dash-card dash-card-soft p-5" style={{ animationDelay: '120ms' }}>
             <span className="text-xs text-[#a1a1a1] block mb-2">Receita Mês</span>
@@ -415,29 +453,59 @@ function Dashboard() {
                 <div className="text-[10px] text-[#666]">total no ano</div>
               </div>
             </div>
-            <div className="h-48 flex items-end justify-between gap-1.5">
-              {monthlyTotals.map((v, i) => {
-                const h = chartMax > 0 ? Math.max(2, (v / chartMax) * 100) : 2;
-                const isCurrent = i === selectedMonth;
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2 group/bar">
-                    <div className="w-full relative flex-1 flex items-end">
-                      <div
-                        className={`w-full rounded-t-sm transition-all duration-500 ${
-                          isCurrent
-                            ? 'bg-white group-hover/bar:opacity-80'
-                            : 'bg-white/10 group-hover/bar:bg-white/30'
-                        }`}
-                        style={{ height: `${h}%` }}
-                        title={hideNumbers ? '•••' : formatCurrency(v)}
+            <div className="w-full">
+              <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full h-48 overflow-visible">
+                {/* baseline grid */}
+                {[0.25, 0.5, 0.75, 1].map((g) => (
+                  <line
+                    key={g}
+                    x1="0"
+                    x2="600"
+                    y1={200 - g * 180}
+                    y2={200 - g * 180}
+                    stroke="rgba(255,255,255,0.04)"
+                    strokeDasharray="2 4"
+                  />
+                ))}
+                {monthlyTotals.map((v, i) => {
+                  const barW = 600 / 12;
+                  const innerW = barW * 0.55;
+                  const x = i * barW + (barW - innerW) / 2;
+                  const h = chartMax > 0 ? Math.max(2, (v / chartMax) * 180) : 2;
+                  const y = 200 - h;
+                  const isCurrent = i === selectedMonth;
+                  return (
+                    <g key={i}>
+                      <title>{`${monthFull[i]}: ${hideNumbers ? '•••' : formatCurrency(v)}`}</title>
+                      <rect
+                        x={x}
+                        y={y}
+                        width={innerW}
+                        height={h}
+                        rx={3}
+                        className={`transition-all duration-500 ${isCurrent ? 'fill-white' : 'fill-white/10 hover:fill-white/30'}`}
+                        style={{
+                          transformOrigin: `${x + innerW / 2}px 200px`,
+                          animation: `barGrow 0.6s ease-out ${i * 40}ms both`,
+                        }}
                       />
-                    </div>
-                    <span className={`text-[10px] uppercase tracking-wider ${isCurrent ? 'text-white' : 'text-[#666]'}`}>
-                      {monthAbbr[i]}
-                    </span>
-                  </div>
-                );
-              })}
+                    </g>
+                  );
+                })}
+                <style>{`@keyframes barGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }`}</style>
+              </svg>
+              <div className="flex justify-between mt-2 px-1">
+                {monthAbbr.map((m, i) => (
+                  <span
+                    key={m}
+                    className={`text-[10px] uppercase tracking-wider flex-1 text-center ${
+                      i === selectedMonth ? 'text-white font-bold' : 'text-[#666]'
+                    }`}
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
