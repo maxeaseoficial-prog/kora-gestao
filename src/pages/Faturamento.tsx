@@ -80,7 +80,9 @@ export default function Faturamento() {
           monthsToDelete.push(i);
           continue;
         }
-        const num = parseFloat(raw.replace(',', '.'));
+        // BR format: dot = thousand separator, comma = decimal.
+        const normalized = raw.replace(/\./g, '').replace(',', '.');
+        const num = parseFloat(normalized);
         if (Number.isNaN(num)) continue;
         rows.push({ user_id: user.id, year: pastDialogYear, month: i, value: num });
       }
