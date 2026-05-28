@@ -10,6 +10,8 @@ import {
   Kanban,
   Wallet,
   Receipt,
+  CalendarRange,
+  Sparkles,
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
@@ -123,6 +125,61 @@ function Dashboard() {
   const goalProgress = annualGoal > 0 ? Math.min(100, (yearTotal / annualGoal) * 100) : 0;
   const monthsElapsed = Math.max(1, selectedMonth + 1);
   const projection = (yearTotal / monthsElapsed) * 12;
+
+  // ---- Smart goal redistribution ----
+  // For each month m, dynamically compute its (recalculated) monthly target
+  // based on the remaining annual goal divided by remaining months.
+  const goalPlan = useMemo(() => {
+    const initialMonthly = annualGoal > 0 ? annualGoal / 12 : 0;
+    const plan: { meta: number; realized: number; diff: number; status: 'ok' | 'warn' | 'bad' | 'future' }[] = [];
+    let remaining = annualGoal;
+    for (let m = 0; m < 12; m++) {
+      const monthsLeft = 12 - m;
+      const meta = remaining > 0 && monthsLeft > 0 ? remaining / monthsLeft : 0;
+      const isPast = m < selectedMonth;
+      const isCurrent = m === selectedMonth;
+      const realized = isPast || isCurrent ? monthlyTotals[m] : 0;
+      const diff = realized - meta;
+      let status: 'ok' | 'warn' | 'bad' | 'future' = 'future';
+      if (isPast || isCurrent) {
+        if (meta <= 0) status = 'ok';
+        else if (realized >= meta) status = 'ok';
+        else if (realized >= meta * 0.7) status = 'warn';
+        else status = 'bad';
+      }
+      plan.push({ meta, realized, diff, status });
+      if (isPast || isCurrent) remaining = Math.max(0, remaining - realized);
+      else remaining = Math.max(0, remaining - meta);
+    }
+    return { plan, initialMonthly };
+  }, [annualGoal, monthlyTotals, selectedMonth]);
+
+  const currentMonthGoal = goalPlan.plan[selectedMonth]?.meta || 0;
+  const currentMonthRealized = monthlyTotals[selectedMonth] || 0;
+  const monthGoalProgress = currentMonthGoal > 0
+    ? Math.min(100, (currentMonthRealized / currentMonthGoal) * 100)
+    : 0;
+  const monthGoalRemaining = Math.max(0, currentMonthGoal - currentMonthRealized);
+  const monthGoalMissingPct = currentMonthGoal > 0
+    ? Math.max(0, 100 - monthGoalProgress)
+    : 0;
+
+  const goalTone =
+    monthGoalProgress >= 80 ? 'ok' : monthGoalProgress >= 50 ? 'warn' : 'bad';
+  const goalToneClasses: Record<string, { bar: string; text: string; chip: string; glow: string }> = {
+    ok:   { bar: 'bg-emerald-400', text: 'text-emerald-400', chip: 'bg-emerald-400/10 text-emerald-300', glow: 'shadow-[0_0_24px_-6px_rgba(52,211,153,0.6)]' },
+    warn: { bar: 'bg-amber-400',   text: 'text-amber-400',   chip: 'bg-amber-400/10 text-amber-300',   glow: 'shadow-[0_0_24px_-6px_rgba(251,191,36,0.55)]' },
+    bad:  { bar: 'bg-rose-400',    text: 'text-rose-400',    chip: 'bg-rose-400/10 text-rose-300',    glow: 'shadow-[0_0_24px_-6px_rgba(251,113,133,0.55)]' },
+  };
+
+  // ---- Annual planning summary ----
+  const realizedYearToDate = monthlyTotals
+    .slice(0, selectedMonth + 1)
+    .reduce((a, b) => a + b, 0);
+  const annualRemaining = Math.max(0, annualGoal - realizedYearToDate);
+  const monthsRemaining = Math.max(0, 11 - selectedMonth);
+  const requiredPerRemainingMonth =
+    monthsRemaining > 0 ? annualRemaining / monthsRemaining : annualRemaining;
 
   // Previous month for trend
   const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
@@ -284,6 +341,44 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Meta Mensal Inteligente */}
+          <div className="md:col-span-4 lg:col-span-2 dash-card p-6" style={{ animationDelay: '90ms' }}>
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <span className="text-sm text-[#a1a1a1] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" /> Meta Mensal
+                </span>
+                <p className="text-[10px] text-[#666] mt-0.5">Recalculada automaticamente</p>
+              </div>
+              {annualGoal > 0 && (
+                <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${goalToneClasses[goalTone].chip}`}>
+                  {monthGoalProgress >= 100 ? 'Meta batida' : `Faltam ${monthGoalMissingPct.toFixed(0)}%`}
+                </span>
+              )}
+            </div>
+            <div className="dash-heading text-2xl font-bold mb-1">
+              {annualGoal > 0 ? formatCurrency(currentMonthGoal) : '—'}
+            </div>
+            <div className="text-xs text-[#a1a1a1] mb-4">
+              {annualGoal > 0
+                ? (hideNumbers
+                    ? '••••• realizado'
+                    : `${formatShortCurrency(currentMonthRealized)} realizado · faltam ${formatShortCurrency(monthGoalRemaining)}`)
+                : 'Defina a meta anual em Faturamento'}
+            </div>
+            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${goalToneClasses[goalTone].bar} ${goalToneClasses[goalTone].glow}`}
+                style={{ width: `${monthGoalProgress}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[10px] text-[#666] mt-2 tabular-nums">
+              <span>0%</span>
+              <span className={goalToneClasses[goalTone].text}>{monthGoalProgress.toFixed(0)}%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
           {/* Receita do Mês */}
           <div className="lg:col-span-1 dash-card dash-card-soft p-5" style={{ animationDelay: '120ms' }}>
             <span className="text-xs text-[#a1a1a1] block mb-2">Receita Mês</span>
@@ -358,29 +453,59 @@ function Dashboard() {
                 <div className="text-[10px] text-[#666]">total no ano</div>
               </div>
             </div>
-            <div className="h-48 flex items-end justify-between gap-1.5">
-              {monthlyTotals.map((v, i) => {
-                const h = chartMax > 0 ? Math.max(2, (v / chartMax) * 100) : 2;
-                const isCurrent = i === selectedMonth;
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2 group/bar">
-                    <div className="w-full relative flex-1 flex items-end">
-                      <div
-                        className={`w-full rounded-t-sm transition-all duration-500 ${
-                          isCurrent
-                            ? 'bg-white group-hover/bar:opacity-80'
-                            : 'bg-white/10 group-hover/bar:bg-white/30'
-                        }`}
-                        style={{ height: `${h}%` }}
-                        title={hideNumbers ? '•••' : formatCurrency(v)}
+            <div className="w-full">
+              <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full h-48 overflow-visible">
+                {/* baseline grid */}
+                {[0.25, 0.5, 0.75, 1].map((g) => (
+                  <line
+                    key={g}
+                    x1="0"
+                    x2="600"
+                    y1={200 - g * 180}
+                    y2={200 - g * 180}
+                    stroke="rgba(255,255,255,0.04)"
+                    strokeDasharray="2 4"
+                  />
+                ))}
+                {monthlyTotals.map((v, i) => {
+                  const barW = 600 / 12;
+                  const innerW = barW * 0.55;
+                  const x = i * barW + (barW - innerW) / 2;
+                  const h = chartMax > 0 ? Math.max(2, (v / chartMax) * 180) : 2;
+                  const y = 200 - h;
+                  const isCurrent = i === selectedMonth;
+                  return (
+                    <g key={i}>
+                      <title>{`${monthFull[i]}: ${hideNumbers ? '•••' : formatCurrency(v)}`}</title>
+                      <rect
+                        x={x}
+                        y={y}
+                        width={innerW}
+                        height={h}
+                        rx={3}
+                        className={`transition-all duration-500 ${isCurrent ? 'fill-white' : 'fill-white/10 hover:fill-white/30'}`}
+                        style={{
+                          transformOrigin: `${x + innerW / 2}px 200px`,
+                          animation: `barGrow 0.6s ease-out ${i * 40}ms both`,
+                        }}
                       />
-                    </div>
-                    <span className={`text-[10px] uppercase tracking-wider ${isCurrent ? 'text-white' : 'text-[#666]'}`}>
-                      {monthAbbr[i]}
-                    </span>
-                  </div>
-                );
-              })}
+                    </g>
+                  );
+                })}
+                <style>{`@keyframes barGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }`}</style>
+              </svg>
+              <div className="flex justify-between mt-2 px-1">
+                {monthAbbr.map((m, i) => (
+                  <span
+                    key={m}
+                    className={`text-[10px] uppercase tracking-wider flex-1 text-center ${
+                      i === selectedMonth ? 'text-white font-bold' : 'text-[#666]'
+                    }`}
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -419,8 +544,164 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Planejamento Anual */}
+          <div className="md:col-span-4 lg:col-span-6 dash-card p-6" style={{ animationDelay: '570ms' }}>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
+                  <CalendarRange className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="dash-heading font-semibold">Planejamento Anual</h3>
+                  <p className="text-[10px] text-[#666]">Projeção inteligente para {selectedYear}</p>
+                </div>
+              </div>
+              {annualGoal > 0 && (
+                <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${goalToneClasses[goalTone].chip}`}>
+                  {goalProgress.toFixed(0)}% do ano
+                </span>
+              )}
+            </div>
+            {annualGoal <= 0 ? (
+              <p className="text-sm text-[#666] text-center py-8">
+                Defina sua meta anual na aba <span className="text-white">Faturamento</span> para ativar o planejamento inteligente.
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+                  {[
+                    { label: 'Meta Anual', value: formatShortCurrency(annualGoal) },
+                    { label: 'Acumulado', value: formatShortCurrency(realizedYearToDate) },
+                    { label: 'Restante', value: formatShortCurrency(annualRemaining) },
+                    { label: 'Meses restantes', value: hideNumbers ? '••' : String(monthsRemaining) },
+                    { label: 'Necessário/mês', value: formatShortCurrency(requiredPerRemainingMonth) },
+                  ].map((stat) => (
+                    <div key={stat.label} className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+                      <p className="text-[10px] uppercase tracking-wider text-[#666] mb-1">{stat.label}</p>
+                      <p className="dash-heading text-lg font-bold tabular-nums">{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Comparative bar: ideal vs current vs required */}
+                <div className="space-y-3">
+                  {[
+                    { label: 'Ideal acumulado', value: (annualGoal / 12) * (selectedMonth + 1), color: 'bg-white/30' },
+                    { label: 'Faturamento atual', value: realizedYearToDate, color: goalToneClasses[goalTone].bar },
+                    { label: 'Projeção fim de ano', value: projection, color: 'bg-sky-400/60' },
+                  ].map((row) => {
+                    const pct = annualGoal > 0 ? Math.min(100, (row.value / annualGoal) * 100) : 0;
+                    return (
+                      <div key={row.label} className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-[#a1a1a1]">{row.label}</span>
+                          <span className="dash-heading font-bold tabular-nums">
+                            {formatShortCurrency(row.value)}{' '}
+                            <span className="text-[10px] text-[#666] font-normal">({pct.toFixed(0)}%)</span>
+                          </span>
+                        </div>
+                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${row.color} transition-all duration-700`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Tabela inteligente de Metas Mensais */}
+          <div className="md:col-span-4 lg:col-span-6 dash-card overflow-hidden" style={{ animationDelay: '585ms' }}>
+            <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
+              <div>
+                <h3 className="dash-heading font-semibold">Metas Mensais</h3>
+                <p className="text-[10px] text-[#666] mt-0.5">Redistribuição automática conforme performance</p>
+              </div>
+              {annualGoal > 0 && (
+                <span className="text-[10px] text-[#a1a1a1]">
+                  Meta inicial: {formatShortCurrency(goalPlan.initialMonthly)}/mês
+                </span>
+              )}
+            </div>
+            {annualGoal <= 0 ? (
+              <p className="text-sm text-[#666] text-center py-10">Sem meta anual definida.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="text-[10px] text-[#666] uppercase tracking-widest border-b border-white/5">
+                      <th className="px-6 py-3 font-bold">Mês</th>
+                      <th className="px-6 py-3 font-bold text-right">Meta</th>
+                      <th className="px-6 py-3 font-bold text-right">Realizado</th>
+                      <th className="px-6 py-3 font-bold text-right">Diferença</th>
+                      <th className="px-6 py-3 font-bold">Progresso</th>
+                      <th className="px-6 py-3 font-bold text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {goalPlan.plan.map((row, i) => {
+                      const isCurrent = i === selectedMonth;
+                      const isFuture = i > selectedMonth;
+                      const pct = row.meta > 0 ? Math.min(100, (row.realized / row.meta) * 100) : 0;
+                      const tone = goalToneClasses[row.status === 'future' ? 'warn' : row.status];
+                      const statusLabel = isFuture
+                        ? 'Projetado'
+                        : row.realized >= row.meta
+                          ? 'Batida'
+                          : pct >= 70
+                            ? 'Em curso'
+                            : 'Abaixo';
+                      return (
+                        <tr key={i} className={`hover:bg-white/[0.02] transition-colors ${isCurrent ? 'bg-white/[0.03]' : ''}`}>
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{monthFull[i]}</span>
+                              {isCurrent && (
+                                <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-white text-black font-bold">Atual</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums dash-heading font-semibold">
+                            {formatShortCurrency(row.meta)}
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums">
+                            {isFuture ? <span className="text-[#666]">—</span> : formatShortCurrency(row.realized)}
+                          </td>
+                          <td className={`px-6 py-3 text-right tabular-nums font-semibold ${
+                            isFuture ? 'text-[#666]' : row.diff >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                          }`}>
+                            {isFuture ? '—' : `${row.diff >= 0 ? '+' : '−'}${formatShortCurrency(Math.abs(row.diff))}`}
+                          </td>
+                          <td className="px-6 py-3 min-w-[140px]">
+                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-700 ${isFuture ? 'bg-white/15' : tone.bar}`}
+                                style={{ width: `${isFuture ? 0 : pct}%` }}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-center">
+                            <span className={`text-[9px] font-semibold px-2 py-1 rounded-full ${
+                              isFuture ? 'bg-white/5 text-[#a1a1a1]' : tone.chip
+                            }`}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
           {/* Entradas do Mês */}
-          <div className="md:col-span-4 lg:col-span-6 dash-card overflow-hidden" style={{ animationDelay: '600ms' }}>
+          <div className="md:col-span-4 lg:col-span-6 dash-card overflow-hidden" style={{ animationDelay: '660ms' }}>
             <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
               <div>
                 <h3 className="dash-heading font-semibold">Entradas do Mês</h3>
