@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { PWAInstallButton } from '@/components/PWAInstallButton';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface LayoutProps {
@@ -177,8 +176,6 @@ export function Layout({ children }: LayoutProps) {
         </main>
       </div>
 
-      {/* PWA Install Button */}
-      <PWAInstallButton />
     </div>
   );
 }
