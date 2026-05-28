@@ -240,7 +240,7 @@ export default function Faturamento() {
 
   const saveManualMonth = async (month: number, rawValue: string) => {
     if (!user) return;
-    const num = parseFloat(rawValue.replace(',', '.'));
+    const num = parseBRNumber(rawValue);
     if (Number.isNaN(num)) {
       toast.error('Valor inválido');
       return;
