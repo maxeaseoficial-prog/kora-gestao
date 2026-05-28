@@ -351,13 +351,15 @@ export default function Faturamento() {
                   <Label htmlFor={`past-m-${idx}`} className="text-xs">{name}</Label>
                   <Input
                     id={`past-m-${idx}`}
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     placeholder="0,00"
                     value={pastDialogValues[idx] ?? ''}
-                    onChange={(e) =>
-                      setPastDialogValues((p) => ({ ...p, [idx]: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      // Allow only digits, comma, dot
+                      const v = e.target.value.replace(/[^\d.,]/g, '');
+                      setPastDialogValues((p) => ({ ...p, [idx]: v }));
+                    }}
                   />
                 </div>
               ))}
