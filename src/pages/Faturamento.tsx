@@ -128,7 +128,6 @@ export default function Faturamento() {
     const map: Record<number, number> = {};
     (data || []).forEach((r: any) => { map[r.month] = Number(r.value); });
     setManualRevenue(map);
-    setManualDrafts({});
   };
 
   useEffect(() => { loadManualRevenue(); /* eslint-disable-next-line */ }, [user, selectedYear]);
@@ -238,26 +237,7 @@ export default function Faturamento() {
       return;
     }
     setManualRevenue((prev) => ({ ...prev, [month]: num }));
-    setManualDrafts((prev) => { const n = { ...prev }; delete n[month]; return n; });
     toast.success(`${MONTHS[month]} atualizado`);
-  };
-
-  const clearManualMonth = async (month: number) => {
-    if (!user) return;
-    const { error } = await supabase
-      .from('manual_monthly_revenue')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('year', selectedYear)
-      .eq('month', month);
-    if (error) {
-      console.error(error);
-      toast.error('Erro ao remover');
-      return;
-    }
-    setManualRevenue((prev) => { const n = { ...prev }; delete n[month]; return n; });
-    setManualDrafts((prev) => { const n = { ...prev }; delete n[month]; return n; });
-    toast.success('Lançamento manual removido');
   };
 
   const goalNum = parseFloat(goalValue) || 0;
