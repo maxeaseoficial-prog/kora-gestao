@@ -546,6 +546,165 @@ function Dashboard() {
 
           {/* Entradas do Mês */}
           <div className="md:col-span-4 lg:col-span-6 dash-card overflow-hidden" style={{ animationDelay: '600ms' }}>
+          </div>
+          {/* Planejamento Anual */}
+          <div className="md:col-span-4 lg:col-span-6 dash-card p-6" style={{ animationDelay: '570ms' }}>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
+                  <CalendarRange className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="dash-heading font-semibold">Planejamento Anual</h3>
+                  <p className="text-[10px] text-[#666]">Projeção inteligente para {selectedYear}</p>
+                </div>
+              </div>
+              {annualGoal > 0 && (
+                <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${goalToneClasses[goalTone].chip}`}>
+                  {goalProgress.toFixed(0)}% do ano
+                </span>
+              )}
+            </div>
+            {annualGoal <= 0 ? (
+              <p className="text-sm text-[#666] text-center py-8">
+                Defina sua meta anual na aba <span className="text-white">Faturamento</span> para ativar o planejamento inteligente.
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+                  {[
+                    { label: 'Meta Anual', value: formatShortCurrency(annualGoal) },
+                    { label: 'Acumulado', value: formatShortCurrency(realizedYearToDate) },
+                    { label: 'Restante', value: formatShortCurrency(annualRemaining) },
+                    { label: 'Meses restantes', value: hideNumbers ? '••' : String(monthsRemaining) },
+                    { label: 'Necessário/mês', value: formatShortCurrency(requiredPerRemainingMonth) },
+                  ].map((stat) => (
+                    <div key={stat.label} className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+                      <p className="text-[10px] uppercase tracking-wider text-[#666] mb-1">{stat.label}</p>
+                      <p className="dash-heading text-lg font-bold tabular-nums">{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Comparative bar: ideal vs current vs required */}
+                <div className="space-y-3">
+                  {[
+                    { label: 'Ideal acumulado', value: (annualGoal / 12) * (selectedMonth + 1), color: 'bg-white/30' },
+                    { label: 'Faturamento atual', value: realizedYearToDate, color: goalToneClasses[goalTone].bar },
+                    { label: 'Projeção fim de ano', value: projection, color: 'bg-sky-400/60' },
+                  ].map((row) => {
+                    const pct = annualGoal > 0 ? Math.min(100, (row.value / annualGoal) * 100) : 0;
+                    return (
+                      <div key={row.label} className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-[#a1a1a1]">{row.label}</span>
+                          <span className="dash-heading font-bold tabular-nums">
+                            {formatShortCurrency(row.value)}{' '}
+                            <span className="text-[10px] text-[#666] font-normal">({pct.toFixed(0)}%)</span>
+                          </span>
+                        </div>
+                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${row.color} transition-all duration-700`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Tabela inteligente de Metas Mensais */}
+          <div className="md:col-span-4 lg:col-span-6 dash-card overflow-hidden" style={{ animationDelay: '585ms' }}>
+            <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
+              <div>
+                <h3 className="dash-heading font-semibold">Metas Mensais</h3>
+                <p className="text-[10px] text-[#666] mt-0.5">Redistribuição automática conforme performance</p>
+              </div>
+              {annualGoal > 0 && (
+                <span className="text-[10px] text-[#a1a1a1]">
+                  Meta inicial: {formatShortCurrency(goalPlan.initialMonthly)}/mês
+                </span>
+              )}
+            </div>
+            {annualGoal <= 0 ? (
+              <p className="text-sm text-[#666] text-center py-10">Sem meta anual definida.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="text-[10px] text-[#666] uppercase tracking-widest border-b border-white/5">
+                      <th className="px-6 py-3 font-bold">Mês</th>
+                      <th className="px-6 py-3 font-bold text-right">Meta</th>
+                      <th className="px-6 py-3 font-bold text-right">Realizado</th>
+                      <th className="px-6 py-3 font-bold text-right">Diferença</th>
+                      <th className="px-6 py-3 font-bold">Progresso</th>
+                      <th className="px-6 py-3 font-bold text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {goalPlan.plan.map((row, i) => {
+                      const isCurrent = i === selectedMonth;
+                      const isFuture = i > selectedMonth;
+                      const pct = row.meta > 0 ? Math.min(100, (row.realized / row.meta) * 100) : 0;
+                      const tone = goalToneClasses[row.status === 'future' ? 'warn' : row.status];
+                      const statusLabel = isFuture
+                        ? 'Projetado'
+                        : row.realized >= row.meta
+                          ? 'Batida'
+                          : pct >= 70
+                            ? 'Em curso'
+                            : 'Abaixo';
+                      return (
+                        <tr key={i} className={`hover:bg-white/[0.02] transition-colors ${isCurrent ? 'bg-white/[0.03]' : ''}`}>
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{monthFull[i]}</span>
+                              {isCurrent && (
+                                <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-white text-black font-bold">Atual</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums dash-heading font-semibold">
+                            {formatShortCurrency(row.meta)}
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums">
+                            {isFuture ? <span className="text-[#666]">—</span> : formatShortCurrency(row.realized)}
+                          </td>
+                          <td className={`px-6 py-3 text-right tabular-nums font-semibold ${
+                            isFuture ? 'text-[#666]' : row.diff >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                          }`}>
+                            {isFuture ? '—' : `${row.diff >= 0 ? '+' : '−'}${formatShortCurrency(Math.abs(row.diff))}`}
+                          </td>
+                          <td className="px-6 py-3 min-w-[140px]">
+                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-700 ${isFuture ? 'bg-white/15' : tone.bar}`}
+                                style={{ width: `${isFuture ? 0 : pct}%` }}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-center">
+                            <span className={`text-[9px] font-semibold px-2 py-1 rounded-full ${
+                              isFuture ? 'bg-white/5 text-[#a1a1a1]' : tone.chip
+                            }`}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Entradas do Mês */}
+          <div className="md:col-span-4 lg:col-span-6 dash-card overflow-hidden" style={{ animationDelay: '660ms' }}>
             <div className="px-6 py-5 border-b border-white/5 flex justify-between items-center">
               <div>
                 <h3 className="dash-heading font-semibold">Entradas do Mês</h3>
