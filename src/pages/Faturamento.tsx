@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Target, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { getRecurringRevenueForMonth } from '@/lib/revenue';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -107,19 +108,7 @@ export default function Faturamento() {
         })
         .reduce((s, f) => s + Number(f.value), 0);
 
-      // Sum active clients (recurring) for this month
-      const recurrenceRevenue = clients
-        .filter((c) => {
-          if (c.recurrence !== 'mensal') return false;
-          const entry = c.entryDate ? new Date(c.entryDate) : new Date(c.createdAt);
-          if (entry > monthEnd) return false;
-          if (c.deactivatedAt) {
-            const deact = new Date(c.deactivatedAt);
-            if (deact < monthStart) return false;
-          }
-          return true;
-        })
-        .reduce((s, c) => s + Number(c.monthlyValue), 0);
+      const recurrenceRevenue = getRecurringRevenueForMonth(clients, selectedYear, idx);
 
       return {
         idx,
