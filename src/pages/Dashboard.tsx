@@ -10,6 +10,8 @@ import {
   Kanban,
   Wallet,
   Receipt,
+  CalendarRange,
+  Sparkles,
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
@@ -123,6 +125,61 @@ function Dashboard() {
   const goalProgress = annualGoal > 0 ? Math.min(100, (yearTotal / annualGoal) * 100) : 0;
   const monthsElapsed = Math.max(1, selectedMonth + 1);
   const projection = (yearTotal / monthsElapsed) * 12;
+
+  // ---- Smart goal redistribution ----
+  // For each month m, dynamically compute its (recalculated) monthly target
+  // based on the remaining annual goal divided by remaining months.
+  const goalPlan = useMemo(() => {
+    const initialMonthly = annualGoal > 0 ? annualGoal / 12 : 0;
+    const plan: { meta: number; realized: number; diff: number; status: 'ok' | 'warn' | 'bad' | 'future' }[] = [];
+    let remaining = annualGoal;
+    for (let m = 0; m < 12; m++) {
+      const monthsLeft = 12 - m;
+      const meta = remaining > 0 && monthsLeft > 0 ? remaining / monthsLeft : 0;
+      const isPast = m < selectedMonth;
+      const isCurrent = m === selectedMonth;
+      const realized = isPast || isCurrent ? monthlyTotals[m] : 0;
+      const diff = realized - meta;
+      let status: 'ok' | 'warn' | 'bad' | 'future' = 'future';
+      if (isPast || isCurrent) {
+        if (meta <= 0) status = 'ok';
+        else if (realized >= meta) status = 'ok';
+        else if (realized >= meta * 0.7) status = 'warn';
+        else status = 'bad';
+      }
+      plan.push({ meta, realized, diff, status });
+      if (isPast || isCurrent) remaining = Math.max(0, remaining - realized);
+      else remaining = Math.max(0, remaining - meta);
+    }
+    return { plan, initialMonthly };
+  }, [annualGoal, monthlyTotals, selectedMonth]);
+
+  const currentMonthGoal = goalPlan.plan[selectedMonth]?.meta || 0;
+  const currentMonthRealized = monthlyTotals[selectedMonth] || 0;
+  const monthGoalProgress = currentMonthGoal > 0
+    ? Math.min(100, (currentMonthRealized / currentMonthGoal) * 100)
+    : 0;
+  const monthGoalRemaining = Math.max(0, currentMonthGoal - currentMonthRealized);
+  const monthGoalMissingPct = currentMonthGoal > 0
+    ? Math.max(0, 100 - monthGoalProgress)
+    : 0;
+
+  const goalTone =
+    monthGoalProgress >= 80 ? 'ok' : monthGoalProgress >= 50 ? 'warn' : 'bad';
+  const goalToneClasses: Record<string, { bar: string; text: string; chip: string; glow: string }> = {
+    ok:   { bar: 'bg-emerald-400', text: 'text-emerald-400', chip: 'bg-emerald-400/10 text-emerald-300', glow: 'shadow-[0_0_24px_-6px_rgba(52,211,153,0.6)]' },
+    warn: { bar: 'bg-amber-400',   text: 'text-amber-400',   chip: 'bg-amber-400/10 text-amber-300',   glow: 'shadow-[0_0_24px_-6px_rgba(251,191,36,0.55)]' },
+    bad:  { bar: 'bg-rose-400',    text: 'text-rose-400',    chip: 'bg-rose-400/10 text-rose-300',    glow: 'shadow-[0_0_24px_-6px_rgba(251,113,133,0.55)]' },
+  };
+
+  // ---- Annual planning summary ----
+  const realizedYearToDate = monthlyTotals
+    .slice(0, selectedMonth + 1)
+    .reduce((a, b) => a + b, 0);
+  const annualRemaining = Math.max(0, annualGoal - realizedYearToDate);
+  const monthsRemaining = Math.max(0, 11 - selectedMonth);
+  const requiredPerRemainingMonth =
+    monthsRemaining > 0 ? annualRemaining / monthsRemaining : annualRemaining;
 
   // Previous month for trend
   const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
