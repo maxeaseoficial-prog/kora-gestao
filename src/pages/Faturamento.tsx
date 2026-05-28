@@ -404,10 +404,6 @@ export default function Faturamento() {
                 (selectedYear === currentYear && m.idx < currentMonth);
               const isCurrent = selectedYear === currentYear && m.idx === currentMonth;
               const hit = monthGoal > 0 && m.total >= monthGoal;
-              const draft = manualDrafts[m.idx];
-              const draftValue = draft !== undefined
-                ? draft
-                : (m.hasManual ? String(m.manual) : '');
               return (
                 <div
                   key={m.idx}
@@ -454,41 +450,6 @@ export default function Faturamento() {
                         <Progress value={monthProgress} className="h-1.5" />
                       </>
                     )}
-                    <div className="pt-3 mt-2 border-t border-border space-y-2">
-                      <Label className="text-xs text-muted-foreground">
-                        Lançamento manual (R$)
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={draftValue}
-                          placeholder="0,00"
-                          onChange={(e) =>
-                            setManualDrafts((p) => ({ ...p, [m.idx]: e.target.value }))
-                          }
-                          className="h-8 text-sm"
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8"
-                          onClick={() => saveManualMonth(m.idx, draftValue)}
-                        >
-                          Salvar
-                        </Button>
-                        {m.hasManual && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8"
-                            onClick={() => clearManualMonth(m.idx)}
-                          >
-                            Limpar
-                          </Button>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
               );
