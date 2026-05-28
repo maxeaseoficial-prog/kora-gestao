@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Target, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, Calendar, Plus } from 'lucide-react';
 import { getRecurringRevenueForMonth } from '@/lib/revenue';
 
 const MONTHS = [
@@ -29,6 +30,8 @@ export default function Faturamento() {
 
   const availableYears = useMemo(() => {
     const years = new Set<number>([currentYear]);
+    // Always allow selecting the previous 5 years for historical entries
+    for (let i = 1; i <= 5; i++) years.add(currentYear - i);
     finances.forEach((f) => years.add(new Date(f.date).getFullYear()));
     clients.forEach((c) => {
       if (c.entryDate) years.add(new Date(c.entryDate).getFullYear());
@@ -44,7 +47,72 @@ export default function Faturamento() {
   // Manual monthly revenue overrides (per year/month). When set, replaces
   // the auto-computed total (cash + recorrência) for that month.
   const [manualRevenue, setManualRevenue] = useState<Record<number, number>>({});
-  const [manualDrafts, setManualDrafts] = useState<Record<number, string>>({});
+
+  // Dialog state for launching past-year revenue
+  const [pastYearDialogOpen, setPastYearDialogOpen] = useState(false);
+  const [pastDialogYear, setPastDialogYear] = useState<number>(currentYear - 1);
+  const [pastDialogValues, setPastDialogValues] = useState<Record<number, string>>({});
+  const [savingPast, setSavingPast] = useState(false);
+
+  const openPastYearDialog = async (year: number) => {
+    if (!user) return;
+    setPastDialogYear(year);
+    const { data } = await supabase
+      .from('manual_monthly_revenue')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('year', year);
+    const draft: Record<number, string> = {};
+    (data || []).forEach((r: any) => { draft[r.month] = String(r.value); });
+    setPastDialogValues(draft);
+    setPastYearDialogOpen(true);
+  };
+
+  const savePastYearRevenue = async () => {
+    if (!user) return;
+    setSavingPast(true);
+    try {
+      const rows: any[] = [];
+      const monthsToDelete: number[] = [];
+      for (let i = 0; i < 12; i++) {
+        const raw = (pastDialogValues[i] ?? '').trim();
+        if (raw === '') {
+          monthsToDelete.push(i);
+          continue;
+        }
+        const num = parseFloat(raw.replace(',', '.'));
+        if (Number.isNaN(num)) continue;
+        rows.push({ user_id: user.id, year: pastDialogYear, month: i, value: num });
+      }
+      if (rows.length > 0) {
+        const { error } = await supabase
+          .from('manual_monthly_revenue')
+          .upsert(rows, { onConflict: 'user_id,year,month' });
+        if (error) throw error;
+      }
+      if (monthsToDelete.length > 0) {
+        const { error } = await supabase
+          .from('manual_monthly_revenue')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('year', pastDialogYear)
+          .in('month', monthsToDelete);
+        if (error) throw error;
+      }
+      toast.success(`Faturamento de ${pastDialogYear} salvo`);
+      setPastYearDialogOpen(false);
+      setSelectedYear(pastDialogYear);
+      // Force reload if same year is now selected
+      if (selectedYear === pastDialogYear) {
+        await loadManualRevenue();
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao salvar faturamento');
+    } finally {
+      setSavingPast(false);
+    }
+  };
 
   const loadManualRevenue = async () => {
     if (!user) return;
@@ -60,7 +128,6 @@ export default function Faturamento() {
     const map: Record<number, number> = {};
     (data || []).forEach((r: any) => { map[r.month] = Number(r.value); });
     setManualRevenue(map);
-    setManualDrafts({});
   };
 
   useEffect(() => { loadManualRevenue(); /* eslint-disable-next-line */ }, [user, selectedYear]);
@@ -170,26 +237,7 @@ export default function Faturamento() {
       return;
     }
     setManualRevenue((prev) => ({ ...prev, [month]: num }));
-    setManualDrafts((prev) => { const n = { ...prev }; delete n[month]; return n; });
     toast.success(`${MONTHS[month]} atualizado`);
-  };
-
-  const clearManualMonth = async (month: number) => {
-    if (!user) return;
-    const { error } = await supabase
-      .from('manual_monthly_revenue')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('year', selectedYear)
-      .eq('month', month);
-    if (error) {
-      console.error(error);
-      toast.error('Erro ao remover');
-      return;
-    }
-    setManualRevenue((prev) => { const n = { ...prev }; delete n[month]; return n; });
-    setManualDrafts((prev) => { const n = { ...prev }; delete n[month]; return n; });
-    toast.success('Lançamento manual removido');
   };
 
   const goalNum = parseFloat(goalValue) || 0;
@@ -243,6 +291,14 @@ export default function Faturamento() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openPastYearDialog(currentYear - 1)}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Lançar ano anterior
+          </Button>
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <Select
             value={String(selectedYear)}
@@ -262,6 +318,55 @@ export default function Faturamento() {
           </Select>
         </div>
       </div>
+
+      {/* Past-year revenue dialog */}
+      <Dialog open={pastYearDialogOpen} onOpenChange={setPastYearDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Lançar faturamento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="past-year">Ano</Label>
+              <Input
+                id="past-year"
+                type="number"
+                value={pastDialogYear}
+                onChange={(e) => setPastDialogYear(Number(e.target.value) || currentYear - 1)}
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {MONTHS.map((name, idx) => (
+                <div key={idx}>
+                  <Label htmlFor={`past-m-${idx}`} className="text-xs">{name}</Label>
+                  <Input
+                    id={`past-m-${idx}`}
+                    type="number"
+                    step="0.01"
+                    placeholder="0,00"
+                    value={pastDialogValues[idx] ?? ''}
+                    onChange={(e) =>
+                      setPastDialogValues((p) => ({ ...p, [idx]: e.target.value }))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              O total do ano será a soma dos meses preenchidos. Deixe em branco para
+              remover o lançamento daquele mês.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPastYearDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={savePastYearRevenue} disabled={savingPast}>
+              {savingPast ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Goal card */}
       <Card>
@@ -356,10 +461,6 @@ export default function Faturamento() {
                 (selectedYear === currentYear && m.idx < currentMonth);
               const isCurrent = selectedYear === currentYear && m.idx === currentMonth;
               const hit = monthGoal > 0 && m.total >= monthGoal;
-              const draft = manualDrafts[m.idx];
-              const draftValue = draft !== undefined
-                ? draft
-                : (m.hasManual ? String(m.manual) : '');
               return (
                 <div
                   key={m.idx}
@@ -406,41 +507,6 @@ export default function Faturamento() {
                         <Progress value={monthProgress} className="h-1.5" />
                       </>
                     )}
-                    <div className="pt-3 mt-2 border-t border-border space-y-2">
-                      <Label className="text-xs text-muted-foreground">
-                        Lançamento manual (R$)
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={draftValue}
-                          placeholder="0,00"
-                          onChange={(e) =>
-                            setManualDrafts((p) => ({ ...p, [m.idx]: e.target.value }))
-                          }
-                          className="h-8 text-sm"
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8"
-                          onClick={() => saveManualMonth(m.idx, draftValue)}
-                        >
-                          Salvar
-                        </Button>
-                        {m.hasManual && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8"
-                            onClick={() => clearManualMonth(m.idx)}
-                          >
-                            Limpar
-                          </Button>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
               );
