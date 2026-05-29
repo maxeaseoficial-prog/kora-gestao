@@ -12,6 +12,7 @@ import {
   Package,
   ShoppingCart,
   Target,
+  Box,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'CRM', href: '/crm', icon: Kanban },
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Serviços', href: '/servicos', icon: Package },
+  { name: 'Produtos', href: '/produtos', icon: Box },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
   { name: 'Faturamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Orçamentos', href: '/orcamentos', icon: ShoppingCart },
