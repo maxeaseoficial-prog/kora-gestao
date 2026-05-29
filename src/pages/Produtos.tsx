@@ -180,7 +180,17 @@ export default function Produtos() {
                 'group transition-all hover:border-foreground/30',
                 !p.isActive && 'opacity-60'
               )}>
-                <CardContent className="p-5 space-y-4">
+                <CardContent className="p-0 overflow-hidden">
+                  {p.imageUrl ? (
+                    <div className="aspect-video bg-secondary overflow-hidden border-b border-border">
+                      <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-secondary/50 border-b border-border flex items-center justify-center">
+                      <Package className="h-10 w-10 text-muted-foreground/40" />
+                    </div>
+                  )}
+                  <div className="p-5 space-y-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -234,6 +244,7 @@ export default function Produtos() {
                         </AlertDialogContent>
                       </AlertDialog>
                     </div>
+                  </div>
                   </div>
                 </CardContent>
               </Card>
