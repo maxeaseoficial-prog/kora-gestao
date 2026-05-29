@@ -204,6 +204,7 @@ export function Caixa() {
       type: 'Mensalidade',
       description: '',
       serviceId: '',
+      productId: '',
     });
     setEditingEntry(null);
   };
@@ -223,6 +224,7 @@ export function Caixa() {
       type: entry.type,
       description: entry.description || '',
       serviceId: '',
+      productId: '',
     });
     setIsDialogOpen(true);
   };
