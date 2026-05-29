@@ -261,6 +261,41 @@ export default function Produtos() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
+              <Label>Imagem do produto</Label>
+              {form.imageUrl ? (
+                <div className="relative group/img rounded-md overflow-hidden border border-border aspect-video bg-secondary">
+                  <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <Button
+                    type="button" size="icon" variant="destructive"
+                    className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                    onClick={() => setForm({ ...form, imageUrl: '' })}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex flex-col items-center justify-center gap-2 aspect-video rounded-md border border-dashed border-border bg-secondary/30 cursor-pointer hover:bg-secondary/60 hover:border-foreground/30 transition-colors",
+                  uploading && "pointer-events-none opacity-60"
+                )}>
+                  {uploading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {uploading ? 'Enviando...' : 'Clique para enviar uma imagem (PNG, JPG até 5MB)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                  />
+                </label>
+              )}
+            </div>
+            <div className="space-y-1.5">
               <Label>Nome</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
