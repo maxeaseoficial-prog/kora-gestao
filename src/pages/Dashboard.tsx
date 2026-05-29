@@ -455,12 +455,16 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Filler small slot for symmetry on lg (col 5-6) */}
-          <div className="hidden lg:block lg:col-span-1 dash-card dash-card-soft p-5" style={{ animationDelay: '420ms' }}>
-            <span className="text-xs text-[#a1a1a1] block mb-2">Acumulado {selectedYear}</span>
-            <div className="dash-heading text-xl font-bold mb-2">{formatShortCurrency(yearTotal)}</div>
+          {/* Lucro Atual (Faturamento - Despesas) */}
+          <div className="lg:col-span-1 dash-card dash-card-soft p-5" style={{ animationDelay: '420ms' }}>
+            <span className="text-xs text-[#a1a1a1] block mb-2 flex items-center gap-1.5">
+              <TrendingUp className="w-3 h-3" /> Lucro Atual
+            </span>
+            <div className={`dash-heading text-xl font-bold mb-1 ${(totalMonth - monthExpenses) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {formatCurrency(totalMonth - monthExpenses)}
+            </div>
             <div className="text-[10px] text-[#666]">
-              {monthsElapsed} {monthsElapsed === 1 ? 'mês' : 'meses'} computados
+              {hideNumbers ? '•••' : `Despesas ${formatShortCurrency(monthExpenses)}`}
             </div>
           </div>
 
