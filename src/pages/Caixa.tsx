@@ -30,6 +30,12 @@ interface Service {
   currency: Currency;
 }
 
+interface Product {
+  id: string;
+  name: string;
+  salePrice: number;
+}
+
 export function Caixa() {
   const { finances, setFinances, clients } = useApp();
   const { user } = useAuth();
@@ -38,6 +44,7 @@ export function Caixa() {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
   const [services, setServices] = useState<Service[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState({
@@ -48,11 +55,13 @@ export function Caixa() {
     type: 'Mensalidade',
     description: '',
     serviceId: '',
+    productId: '',
   });
 
   useEffect(() => {
     if (user) {
       fetchServices();
+      fetchProducts();
     }
   }, [user]);
 
@@ -72,6 +81,24 @@ export function Caixa() {
       setServices(typedServices);
     } catch (error) {
       console.error('Error fetching services:', error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, sale_price, is_active')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      setProducts((data || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        salePrice: Number(p.sale_price) || 0,
+      })));
+    } catch (error) {
+      console.error('Error fetching products:', error);
     }
   };
 
@@ -161,9 +188,24 @@ export function Caixa() {
       setFormData({
         ...formData,
         serviceId,
+        productId: '',
         type: service.name,
         value: priceInBRL,
         description: `${service.name} (${formatCurrencyValue(Number(service.price), service.currency)})`,
+      });
+    }
+  };
+
+  const handleProductChange = (productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (product) {
+      setFormData({
+        ...formData,
+        productId,
+        serviceId: '',
+        type: product.name,
+        value: product.salePrice,
+        description: `${product.name} (Produto)`,
       });
     }
   };
@@ -177,6 +219,7 @@ export function Caixa() {
       type: 'Mensalidade',
       description: '',
       serviceId: '',
+      productId: '',
     });
     setEditingEntry(null);
   };
@@ -196,6 +239,7 @@ export function Caixa() {
       type: entry.type,
       description: entry.description || '',
       serviceId: '',
+      productId: '',
     });
     setIsDialogOpen(true);
   };
@@ -436,6 +480,25 @@ export function Caixa() {
                         </SelectItem>
                       );
                     })}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Product Selection */}
+            {products.length > 0 && (
+              <div>
+                <label className="text-sm font-medium">Produto (preenche valor automaticamente)</label>
+                <Select value={formData.productId} onValueChange={handleProductChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione um produto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.name} - {formatCurrency(product.salePrice)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
