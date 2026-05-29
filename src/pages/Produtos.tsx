@@ -263,27 +263,27 @@ export default function Produtos() {
             <div className="space-y-1.5">
               <Label>Imagem do produto</Label>
               {form.imageUrl ? (
-                <div className="relative group/img rounded-md overflow-hidden border border-border aspect-video bg-secondary">
+                <div className="relative group/img rounded-md overflow-hidden border border-border h-28 bg-secondary">
                   <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
                   <Button
                     type="button" size="icon" variant="destructive"
-                    className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover/img:opacity-100 transition-opacity"
                     onClick={() => setForm({ ...form, imageUrl: '' })}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               ) : (
                 <label className={cn(
-                  "flex flex-col items-center justify-center gap-2 aspect-video rounded-md border border-dashed border-border bg-secondary/30 cursor-pointer hover:bg-secondary/60 hover:border-foreground/30 transition-colors",
+                  "flex flex-col items-center justify-center gap-1.5 h-28 rounded-md border border-dashed border-border bg-secondary/30 cursor-pointer hover:bg-secondary/60 hover:border-foreground/30 transition-colors",
                   uploading && "pointer-events-none opacity-60"
                 )}>
                   {uploading ? (
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   ) : (
-                    <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                    <ImagePlus className="h-5 w-5 text-muted-foreground" />
                   )}
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[11px] text-muted-foreground text-center px-4">
                     {uploading ? 'Enviando...' : 'Clique para enviar uma imagem (PNG, JPG até 5MB)'}
                   </span>
                   <input
