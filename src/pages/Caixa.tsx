@@ -485,6 +485,25 @@ export function Caixa() {
               </div>
             )}
 
+            {/* Product Selection */}
+            {products.length > 0 && (
+              <div>
+                <label className="text-sm font-medium">Produto (preenche valor automaticamente)</label>
+                <Select value={formData.productId} onValueChange={handleProductChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione um produto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.name} - {formatCurrency(product.salePrice)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Valor</label>
