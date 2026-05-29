@@ -11,6 +11,7 @@ import Dashboard from "@/pages/Dashboard";
 import CRM from "@/pages/CRM";
 import Clientes from "@/pages/Clientes";
 import Caixa from "@/pages/Caixa";
+import Saidas from "@/pages/Saidas";
 import MindMapEditor from "@/pages/MindMapEditor";
 import Servicos from "@/pages/Servicos";
 import Produtos from "@/pages/Produtos";
@@ -69,6 +70,16 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Caixa />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/saidas"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Saidas />
                     </Layout>
                   </ProtectedRoute>
                 }
