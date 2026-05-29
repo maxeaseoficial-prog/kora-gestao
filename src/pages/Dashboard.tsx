@@ -143,15 +143,24 @@ function Dashboard() {
   // ---- Champions (most sold service / product in the month) ----
   const computeChampion = (names: string[]) => {
     if (!names.length) return null;
-    const set = new Set(names.map((n) => n.toLowerCase()));
+    const lowered = names.map((n) => n.toLowerCase()).filter(Boolean);
     const agg = new Map<string, { name: string; count: number; total: number }>();
     for (const f of filteredFinances) {
-      const key = (f.type || '').toLowerCase();
-      if (!set.has(key)) continue;
-      const cur = agg.get(key) || { name: f.type, count: 0, total: 0 };
+      const haystack = `${f.type || ''} ${f.description || ''}`.toLowerCase();
+      // Find the longest matching name to avoid partial-name collisions
+      let matched: string | null = null;
+      for (const n of lowered) {
+        if (haystack.includes(n) && (!matched || n.length > matched.length)) {
+          matched = n;
+        }
+      }
+      if (!matched) continue;
+      // Recover original-cased name
+      const original = names.find((n) => n.toLowerCase() === matched) || matched;
+      const cur = agg.get(matched) || { name: original, count: 0, total: 0 };
       cur.count += 1;
       cur.total += f.value;
-      agg.set(key, cur);
+      agg.set(matched, cur);
     }
     const arr = Array.from(agg.values()).sort((a, b) => b.count - a.count || b.total - a.total);
     return arr[0] || null;
