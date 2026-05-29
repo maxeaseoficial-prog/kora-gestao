@@ -12,6 +12,8 @@ import {
   Receipt,
   CalendarRange,
   Sparkles,
+  Trophy,
+  Package,
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
@@ -46,6 +48,8 @@ function Dashboard() {
   const [annualGoal, setAnnualGoal] = useState<number>(0);
   const [manualRevenue, setManualRevenue] = useState<Record<number, number>>({});
   const [monthExpenses, setMonthExpenses] = useState<number>(0);
+  const [serviceNames, setServiceNames] = useState<string[]>([]);
+  const [productNames, setProductNames] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -98,6 +102,22 @@ function Dashboard() {
     return () => { cancelled = true; };
   }, [user, selectedYear, selectedMonth]);
 
+  // Fetch services & products names to identify champions
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const [{ data: svcs }, { data: prods }] = await Promise.all([
+        supabase.from('services').select('name').eq('user_id', user.id),
+        supabase.from('products').select('name').eq('user_id', user.id),
+      ]);
+      if (cancelled) return;
+      setServiceNames((svcs || []).map((s: any) => s.name));
+      setProductNames((prods || []).map((p: any) => p.name));
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
   // ---- Current month metrics ----
   const activeClientsList = useMemo(
     () => clients.filter((c) => isClientActiveInMonth(c, selectedYear, selectedMonth)),
@@ -119,6 +139,25 @@ function Dashboard() {
   const monthlyRevenue = filteredFinances.reduce((acc, f) => acc + f.value, 0);
   const totalMonth = monthlyRevenue + currentRecurrence;
   const ticketMedio = monthlyRevenue / (filteredFinances.length || 1);
+
+  // ---- Champions (most sold service / product in the month) ----
+  const computeChampion = (names: string[]) => {
+    if (!names.length) return null;
+    const set = new Set(names.map((n) => n.toLowerCase()));
+    const agg = new Map<string, { name: string; count: number; total: number }>();
+    for (const f of filteredFinances) {
+      const key = (f.type || '').toLowerCase();
+      if (!set.has(key)) continue;
+      const cur = agg.get(key) || { name: f.type, count: 0, total: 0 };
+      cur.count += 1;
+      cur.total += f.value;
+      agg.set(key, cur);
+    }
+    const arr = Array.from(agg.values()).sort((a, b) => b.count - a.count || b.total - a.total);
+    return arr[0] || null;
+  };
+  const serviceChampion = useMemo(() => computeChampion(serviceNames), [serviceNames, filteredFinances]);
+  const productChampion = useMemo(() => computeChampion(productNames), [productNames, filteredFinances]);
 
   const recentEntries = useMemo(
     () =>
@@ -466,6 +505,58 @@ function Dashboard() {
             <div className="text-[10px] text-[#666]">
               {hideNumbers ? '•••' : `Despesas ${formatShortCurrency(monthExpenses)}`}
             </div>
+          </div>
+
+          {/* Serviço Campeão */}
+          <div className="md:col-span-2 lg:col-span-3 dash-card p-6" style={{ animationDelay: '440ms' }}>
+            <div className="flex items-start justify-between mb-3">
+              <span className="text-sm text-[#a1a1a1] flex items-center gap-1.5">
+                <Trophy className="w-3.5 h-3.5" /> Serviço Campeão
+              </span>
+              {serviceChampion && (
+                <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-white/10 text-white">
+                  {hideNumbers ? '••' : `${serviceChampion.count}× vendido`}
+                </span>
+              )}
+            </div>
+            {serviceChampion ? (
+              <>
+                <div className="dash-heading text-2xl font-bold mb-1 truncate">{serviceChampion.name}</div>
+                <div className="text-xs text-[#a1a1a1]">
+                  {hideNumbers ? '•••••' : `Total faturado: ${formatCurrency(serviceChampion.total)}`}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-[#666] py-2">
+                Nenhum serviço vendido neste mês.
+              </p>
+            )}
+          </div>
+
+          {/* Produto Campeão */}
+          <div className="md:col-span-2 lg:col-span-3 dash-card p-6" style={{ animationDelay: '460ms' }}>
+            <div className="flex items-start justify-between mb-3">
+              <span className="text-sm text-[#a1a1a1] flex items-center gap-1.5">
+                <Package className="w-3.5 h-3.5" /> Produto Campeão
+              </span>
+              {productChampion && (
+                <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-white/10 text-white">
+                  {hideNumbers ? '••' : `${productChampion.count}× vendido`}
+                </span>
+              )}
+            </div>
+            {productChampion ? (
+              <>
+                <div className="dash-heading text-2xl font-bold mb-1 truncate">{productChampion.name}</div>
+                <div className="text-xs text-[#a1a1a1]">
+                  {hideNumbers ? '•••••' : `Total faturado: ${formatCurrency(productChampion.total)}`}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-[#666] py-2">
+                Nenhum produto vendido neste mês.
+              </p>
+            )}
           </div>
 
           {/* Evolução 12 meses */}
