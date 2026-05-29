@@ -400,6 +400,48 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          cost_price: number
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          product_type: string
+          registration_date: string
+          sale_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          product_type?: string
+          registration_date?: string
+          sale_price?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          product_type?: string
+          registration_date?: string
+          sale_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           client_id: string | null
