@@ -45,6 +45,7 @@ function Dashboard() {
   // Annual goal + manual monthly overrides (from Faturamento module)
   const [annualGoal, setAnnualGoal] = useState<number>(0);
   const [manualRevenue, setManualRevenue] = useState<Record<number, number>>({});
+  const [monthExpenses, setMonthExpenses] = useState<number>(0);
 
   useEffect(() => {
     if (!user) return;
@@ -75,6 +76,27 @@ function Dashboard() {
       cancelled = true;
     };
   }, [user, selectedYear]);
+
+  // Fetch month expenses for "Lucro Atual"
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const start = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`;
+      const endDate = new Date(selectedYear, selectedMonth + 1, 0);
+      const end = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+      const { data } = await supabase
+        .from('expenses')
+        .select('value')
+        .eq('user_id', user.id)
+        .gte('entry_date', start)
+        .lte('entry_date', end);
+      if (cancelled) return;
+      const total = (data || []).reduce((acc: number, e: any) => acc + Number(e.value || 0), 0);
+      setMonthExpenses(total);
+    })();
+    return () => { cancelled = true; };
+  }, [user, selectedYear, selectedMonth]);
 
   // ---- Current month metrics ----
   const activeClientsList = useMemo(
@@ -433,12 +455,16 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Filler small slot for symmetry on lg (col 5-6) */}
-          <div className="hidden lg:block lg:col-span-1 dash-card dash-card-soft p-5" style={{ animationDelay: '420ms' }}>
-            <span className="text-xs text-[#a1a1a1] block mb-2">Acumulado {selectedYear}</span>
-            <div className="dash-heading text-xl font-bold mb-2">{formatShortCurrency(yearTotal)}</div>
+          {/* Lucro Atual (Faturamento - Despesas) */}
+          <div className="lg:col-span-1 dash-card dash-card-soft p-5" style={{ animationDelay: '420ms' }}>
+            <span className="text-xs text-[#a1a1a1] block mb-2 flex items-center gap-1.5">
+              <TrendingUp className="w-3 h-3" /> Lucro Atual
+            </span>
+            <div className={`dash-heading text-xl font-bold mb-1 ${(totalMonth - monthExpenses) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {formatCurrency(totalMonth - monthExpenses)}
+            </div>
             <div className="text-[10px] text-[#666]">
-              {monthsElapsed} {monthsElapsed === 1 ? 'mês' : 'meses'} computados
+              {hideNumbers ? '•••' : `Despesas ${formatShortCurrency(monthExpenses)}`}
             </div>
           </div>
 
