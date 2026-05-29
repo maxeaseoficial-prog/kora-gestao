@@ -45,6 +45,7 @@ function Dashboard() {
   // Annual goal + manual monthly overrides (from Faturamento module)
   const [annualGoal, setAnnualGoal] = useState<number>(0);
   const [manualRevenue, setManualRevenue] = useState<Record<number, number>>({});
+  const [monthExpenses, setMonthExpenses] = useState<number>(0);
 
   useEffect(() => {
     if (!user) return;
@@ -75,6 +76,27 @@ function Dashboard() {
       cancelled = true;
     };
   }, [user, selectedYear]);
+
+  // Fetch month expenses for "Lucro Atual"
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const start = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`;
+      const endDate = new Date(selectedYear, selectedMonth + 1, 0);
+      const end = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+      const { data } = await supabase
+        .from('expenses')
+        .select('value')
+        .eq('user_id', user.id)
+        .gte('entry_date', start)
+        .lte('entry_date', end);
+      if (cancelled) return;
+      const total = (data || []).reduce((acc: number, e: any) => acc + Number(e.value || 0), 0);
+      setMonthExpenses(total);
+    })();
+    return () => { cancelled = true; };
+  }, [user, selectedYear, selectedMonth]);
 
   // ---- Current month metrics ----
   const activeClientsList = useMemo(
