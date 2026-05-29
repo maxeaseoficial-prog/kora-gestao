@@ -13,6 +13,7 @@ import Clientes from "@/pages/Clientes";
 import Caixa from "@/pages/Caixa";
 import MindMapEditor from "@/pages/MindMapEditor";
 import Servicos from "@/pages/Servicos";
+import Produtos from "@/pages/Produtos";
 import Orcamentos from "@/pages/Orcamentos";
 import Faturamento from "@/pages/Faturamento";
 import Projetos from "@/pages/Projetos";
@@ -78,6 +79,16 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Servicos />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/produtos"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Produtos />
                     </Layout>
                   </ProtectedRoute>
                 }
