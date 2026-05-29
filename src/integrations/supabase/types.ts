@@ -185,6 +185,45 @@ export type Database = {
         }
         Relationships: []
       }
+      expenses: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          entry_date: string
+          id: string
+          payment_date: string | null
+          receipt_url: string | null
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          entry_date?: string
+          id?: string
+          payment_date?: string | null
+          receipt_url?: string | null
+          updated_at?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          entry_date?: string
+          id?: string
+          payment_date?: string | null
+          receipt_url?: string | null
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       finance_entries: {
         Row: {
           client_id: string | null
