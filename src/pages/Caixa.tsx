@@ -188,9 +188,24 @@ export function Caixa() {
       setFormData({
         ...formData,
         serviceId,
+        productId: '',
         type: service.name,
         value: priceInBRL,
         description: `${service.name} (${formatCurrencyValue(Number(service.price), service.currency)})`,
+      });
+    }
+  };
+
+  const handleProductChange = (productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (product) {
+      setFormData({
+        ...formData,
+        productId,
+        serviceId: '',
+        type: product.name,
+        value: product.salePrice,
+        description: `${product.name} (Produto)`,
       });
     }
   };
