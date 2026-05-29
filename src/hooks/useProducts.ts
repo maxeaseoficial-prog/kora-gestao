@@ -12,6 +12,7 @@ export interface Product {
   productType: 'fisico' | 'digital';
   isActive: boolean;
   registrationDate: string;
+  imageUrl?: string;
   createdAt: Date;
 }
 
@@ -27,6 +28,7 @@ function mapRow(row: any): Product {
     productType: (row.product_type as 'fisico' | 'digital') || 'fisico',
     isActive: !!row.is_active,
     registrationDate: row.registration_date,
+    imageUrl: row.image_url || undefined,
     createdAt: new Date(row.created_at),
   };
 }
@@ -68,6 +70,7 @@ export function useProducts() {
         product_type: input.productType,
         is_active: input.isActive,
         registration_date: input.registrationDate,
+        image_url: input.imageUrl || null,
       }).select().single();
       if (error) throw error;
       setProducts(prev => [mapRow(data), ...prev]);
@@ -88,6 +91,7 @@ export function useProducts() {
         product_type: input.productType,
         is_active: input.isActive,
         registration_date: input.registrationDate,
+        image_url: input.imageUrl || null,
       }).eq('id', id);
       if (error) throw error;
       setProducts(prev => prev.map(p => p.id === id ? { ...p, ...input } : p));

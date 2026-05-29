@@ -14,8 +14,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Plus, Package, Search, Pencil, Trash2, DollarSign, TrendingUp, Boxes, Sparkles } from 'lucide-react';
+import { Plus, Package, Search, Pencil, Trash2, DollarSign, TrendingUp, Boxes, Sparkles, ImagePlus, X, Loader2 } from 'lucide-react';
 import { useProducts, type ProductInput, type Product } from '@/hooks/useProducts';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const fmtBRL = (n: number) =>
@@ -31,13 +34,16 @@ const emptyForm: ProductInput = {
   productType: 'fisico',
   isActive: true,
   registrationDate: today(),
+  imageUrl: '',
 };
 
 export default function Produtos() {
   const { products, loading, addProduct, updateProduct, toggleActive, deleteProduct } = useProducts();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductInput>(emptyForm);
+  const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'fisico' | 'digital' | 'active' | 'inactive'>('all');
 
@@ -67,8 +73,25 @@ export default function Produtos() {
     setForm({
       name: p.name, description: p.description || '', costPrice: p.costPrice, salePrice: p.salePrice,
       productType: p.productType, isActive: p.isActive, registrationDate: p.registrationDate,
+      imageUrl: p.imageUrl || '',
     });
     setOpen(true);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Imagem maior que 5MB'); return; }
+    try {
+      setUploading(true);
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+      setForm(f => ({ ...f, imageUrl: data.publicUrl }));
+    } catch (e) {
+      console.error(e); toast.error('Erro ao enviar imagem');
+    } finally { setUploading(false); }
   };
 
   const submit = async () => {
@@ -157,7 +180,17 @@ export default function Produtos() {
                 'group transition-all hover:border-foreground/30',
                 !p.isActive && 'opacity-60'
               )}>
-                <CardContent className="p-5 space-y-4">
+                <CardContent className="p-0 overflow-hidden">
+                  {p.imageUrl ? (
+                    <div className="aspect-video bg-secondary overflow-hidden border-b border-border">
+                      <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-secondary/50 border-b border-border flex items-center justify-center">
+                      <Package className="h-10 w-10 text-muted-foreground/40" />
+                    </div>
+                  )}
+                  <div className="p-5 space-y-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -212,6 +245,7 @@ export default function Produtos() {
                       </AlertDialog>
                     </div>
                   </div>
+                  </div>
                 </CardContent>
               </Card>
             );
@@ -226,6 +260,41 @@ export default function Produtos() {
             <DialogTitle>{editing ? 'Editar produto' : 'Novo produto'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Imagem do produto</Label>
+              {form.imageUrl ? (
+                <div className="relative group/img rounded-md overflow-hidden border border-border aspect-video bg-secondary">
+                  <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <Button
+                    type="button" size="icon" variant="destructive"
+                    className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                    onClick={() => setForm({ ...form, imageUrl: '' })}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex flex-col items-center justify-center gap-2 aspect-video rounded-md border border-dashed border-border bg-secondary/30 cursor-pointer hover:bg-secondary/60 hover:border-foreground/30 transition-colors",
+                  uploading && "pointer-events-none opacity-60"
+                )}>
+                  {uploading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {uploading ? 'Enviando...' : 'Clique para enviar uma imagem (PNG, JPG até 5MB)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                  />
+                </label>
+              )}
+            </div>
             <div className="space-y-1.5">
               <Label>Nome</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
