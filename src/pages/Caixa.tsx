@@ -30,6 +30,12 @@ interface Service {
   currency: Currency;
 }
 
+interface Product {
+  id: string;
+  name: string;
+  salePrice: number;
+}
+
 export function Caixa() {
   const { finances, setFinances, clients } = useApp();
   const { user } = useAuth();
@@ -38,6 +44,7 @@ export function Caixa() {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
   const [services, setServices] = useState<Service[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState({
@@ -48,11 +55,13 @@ export function Caixa() {
     type: 'Mensalidade',
     description: '',
     serviceId: '',
+    productId: '',
   });
 
   useEffect(() => {
     if (user) {
       fetchServices();
+      fetchProducts();
     }
   }, [user]);
 
@@ -72,6 +81,24 @@ export function Caixa() {
       setServices(typedServices);
     } catch (error) {
       console.error('Error fetching services:', error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, sale_price, is_active')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      setProducts((data || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        salePrice: Number(p.sale_price) || 0,
+      })));
+    } catch (error) {
+      console.error('Error fetching products:', error);
     }
   };
 
