@@ -22,9 +22,11 @@ export const isClientActiveInMonth = (client: Client, year: number, month: numbe
   const selectedMonthKey = year * 12 + month;
   const entryMonthKey = getMonthKey(client.entryDate || client.createdAt);
   const deactivatedMonthKey = getMonthKey(client.deactivatedAt);
+  const endMonthKey = getMonthKey(client.endDate);
 
   if (entryMonthKey !== null && entryMonthKey > selectedMonthKey) return false;
   if (deactivatedMonthKey !== null && deactivatedMonthKey < selectedMonthKey) return false;
+  if (endMonthKey !== null && endMonthKey < selectedMonthKey) return false;
 
   return true;
 };
