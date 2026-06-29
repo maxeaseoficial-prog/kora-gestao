@@ -323,40 +323,59 @@ function AnnualTab({ year, plan, finances, clients }: any) {
   }));
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Meta anual {year}</CardTitle>
-          <Button onClick={() => setOpen(true)} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />{annual > 0 ? 'Editar meta' : 'Cadastrar meta'}
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <Kpi label="Meta anual" value={formatBRL(annual)} />
-            <Kpi label="Realizado" value={formatBRL(realized)} />
-            <Kpi label="Restante" value={formatBRL(remaining)} />
-            <Kpi label="% atingido" value={`${percent.toFixed(0)}%`} />
-            <Kpi label="Necessário/mês" value={formatBRL(perMonth)} />
+    <div className="space-y-5">
+      <Card className="overflow-hidden">
+        <div className="relative p-6 bg-gradient-to-br from-card via-card to-secondary/40">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Meta anual</p>
+              <p className="mt-1 text-4xl font-bold tabular-nums">{formatBRL(annual)}</p>
+              {plan.annual?.description && <p className="mt-2 text-sm text-muted-foreground max-w-md">{plan.annual.description}</p>}
+            </div>
+            <Button onClick={() => setOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />{annual > 0 ? 'Editar meta' : 'Cadastrar meta'}
+            </Button>
           </div>
-          {plan.annual?.description && (
-            <p className="mt-4 text-sm text-muted-foreground">{plan.annual.description}</p>
-          )}
-        </CardContent>
+          <div className="mt-6">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+              <span>{formatBRL(realized)} realizados</span>
+              <span className="font-medium text-foreground">{percent.toFixed(0)}%</span>
+              <span>{formatBRL(remaining)} restantes</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
+              <div className="h-full bg-foreground transition-all" style={{ width: `${percent}%` }} />
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 border-t border-border divide-x divide-border">
+          <div className="p-4"><p className="text-xs text-muted-foreground">Realizado</p><p className="mt-1 text-base font-semibold tabular-nums">{formatBRL(realized)}</p></div>
+          <div className="p-4"><p className="text-xs text-muted-foreground">Restante</p><p className="mt-1 text-base font-semibold tabular-nums">{formatBRL(remaining)}</p></div>
+          <div className="p-4"><p className="text-xs text-muted-foreground">% atingido</p><p className="mt-1 text-base font-semibold tabular-nums">{percent.toFixed(0)}%</p></div>
+          <div className="p-4"><p className="text-xs text-muted-foreground">Necessário/mês</p><p className="mt-1 text-base font-semibold tabular-nums">{formatBRL(perMonth)}</p></div>
+        </div>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Distribuição mensal</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base">Distribuição mensal</CardTitle>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-foreground" /> Realizado</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-muted-foreground/40" /> Meta</span>
+          </div>
+        </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="name" className="text-xs" />
-              <YAxis className="text-xs" tickFormatter={(v) => formatShortBRL(Number(v))} />
-              <Tooltip formatter={(v: any) => formatBRL(Number(v))} />
-              <Legend />
-              <Bar dataKey="meta" fill="hsl(var(--muted-foreground))" name="Meta" radius={[4,4,0,0]} />
-              <Bar dataKey="realizado" fill="hsl(var(--foreground))" name="Realizado" radius={[4,4,0,0]} />
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} barGap={4}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+              <YAxis tickFormatter={(v) => formatShortBRL(Number(v))} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={60} />
+              <Tooltip
+                cursor={{ fill: 'hsl(var(--secondary))', opacity: 0.5 }}
+                contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                formatter={(v: any) => formatBRL(Number(v))}
+              />
+              <Bar dataKey="meta" fill="hsl(var(--muted-foreground) / 0.35)" name="Meta" radius={[6,6,0,0]} />
+              <Bar dataKey="realizado" fill="hsl(var(--foreground))" name="Realizado" radius={[6,6,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
