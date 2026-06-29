@@ -349,8 +349,9 @@ function Clientes() {
                 return (
                   <tr
                     key={client.id}
+                    onClick={() => openEditClientDialog(client)}
                     className={cn(
-                      'border-b border-border last:border-0 transition-colors animate-fade-in',
+                      'border-b border-border last:border-0 transition-colors animate-fade-in cursor-pointer',
                       client.status === 'inativo'
                         ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive'
                         : 'hover:bg-secondary/30'
@@ -389,7 +390,7 @@ function Clientes() {
                     <td className={cn('p-4 capitalize', client.status === 'inativo' ? '' : 'text-muted-foreground')}>{client.recurrence}</td>
                     <td className="p-4 text-right font-semibold">{formatCurrency(client.monthlyValue)}</td>
                     <td className="p-4 text-center">{getStatusBadge(client.status)}</td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           variant="ghost"
