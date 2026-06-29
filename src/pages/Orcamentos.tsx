@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { Plus, Trash2, Edit2, ExternalLink, Package } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Trash2, Edit2, ExternalLink, Package, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -26,8 +29,11 @@ import { useBudgetItems, BudgetItem } from '@/hooks/useBudgetItems';
 
 export default function Orcamentos() {
   const { budgetItems, loading, addBudgetItem, updateBudgetItem, deleteBudgetItem, totalBalance } = useBudgetItems();
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BudgetItem | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -43,6 +49,27 @@ export default function Orcamentos() {
       imageUrl: '',
     });
     setEditingItem(null);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    try {
+      setUploading(true);
+      const ext = file.name.split('.').pop();
+      const path = `budget-items/${user.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+      setFormData((prev) => ({ ...prev, imageUrl: data.publicUrl }));
+      toast.success('Imagem enviada');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleOpenDialog = (item?: BudgetItem) => {
@@ -159,6 +186,31 @@ export default function Orcamentos() {
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                   placeholder="https://..."
                 />
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Enviando...</>
+                    ) : (
+                      <><Upload className="h-4 w-4 mr-2" />Fazer upload da imagem</>
+                    )}
+                  </Button>
+                  {formData.imageUrl && (
+                    <img src={formData.imageUrl} alt="preview" className="h-10 w-10 object-cover rounded border" />
+                  )}
+                </div>
               </div>
               <div className="flex gap-2 pt-4">
                 <Button
