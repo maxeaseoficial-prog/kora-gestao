@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, Package, Search, Pencil, Trash2, DollarSign, TrendingUp, Boxes, Sparkles, ImagePlus, X, Loader2 } from 'lucide-react';
 import { useProducts, type ProductInput, type Product } from '@/hooks/useProducts';
+import { PriceHistorySection } from '@/components/PriceHistorySection';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -255,7 +256,7 @@ export default function Produtos() {
 
       {/* Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar produto' : 'Novo produto'}</DialogTitle>
           </DialogHeader>
@@ -358,6 +359,24 @@ export default function Produtos() {
                 onCheckedChange={(v) => setForm({ ...form, isActive: v })}
               />
             </div>
+
+            {editing && (
+              <PriceHistorySection
+                entity="product"
+                entityId={editing.id}
+                currentSalePrice={form.salePrice}
+                currentCostPrice={form.costPrice}
+                onPriceSaved={async ({ salePrice, costPrice }) => {
+                  const next = {
+                    ...form,
+                    salePrice: salePrice ?? form.salePrice,
+                    costPrice: costPrice ?? form.costPrice,
+                  };
+                  setForm(next);
+                  await updateProduct(editing.id, next);
+                }}
+              />
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
