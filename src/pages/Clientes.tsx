@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useApp } from '@/contexts/AppContext';
@@ -52,6 +52,12 @@ function Clientes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
+  const [genderFilter, setGenderFilter] = useState<string>('todos');
+  const [ageMin, setAgeMin] = useState<string>('');
+  const [ageMax, setAgeMax] = useState<string>('');
+  const [entryFrom, setEntryFrom] = useState<Date | undefined>(undefined);
+  const [entryTo, setEntryTo] = useState<Date | undefined>(undefined);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [isTypePickerOpen, setIsTypePickerOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -63,8 +69,41 @@ function Clientes() {
       (client.company || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'todos' || client.status === statusFilter;
     const matchesType = typeFilter === 'todos' || (client.clientType || 'empresa') === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    const matchesGender = genderFilter === 'todos' || (client.gender || '') === genderFilter;
+    const ageNum = client.age ?? null;
+    const minN = ageMin === '' ? null : Number(ageMin);
+    const maxN = ageMax === '' ? null : Number(ageMax);
+    const matchesAge =
+      (minN === null && maxN === null) ||
+      (ageNum !== null && (minN === null || ageNum >= minN) && (maxN === null || ageNum <= maxN));
+    const entryTime = client.entryDate ? new Date(client.entryDate).getTime() : 0;
+    const matchesEntry =
+      (!entryFrom || entryTime >= new Date(entryFrom.setHours(0, 0, 0, 0)).getTime()) &&
+      (!entryTo || entryTime <= new Date(new Date(entryTo).setHours(23, 59, 59, 999)).getTime());
+    return matchesSearch && matchesStatus && matchesType && matchesGender && matchesAge && matchesEntry;
   });
+
+  const stats = useMemo(() => {
+    const total = clients.length;
+    const masculino = clients.filter((c) => c.gender === 'masculino').length;
+    const feminino = clients.filter((c) => c.gender === 'feminino').length;
+    return { total, masculino, feminino };
+  }, [clients]);
+
+  const activeFilterCount =
+    (typeFilter !== 'todos' ? 1 : 0) +
+    (genderFilter !== 'todos' ? 1 : 0) +
+    (ageMin !== '' || ageMax !== '' ? 1 : 0) +
+    (entryFrom || entryTo ? 1 : 0);
+
+  const clearFilters = () => {
+    setTypeFilter('todos');
+    setGenderFilter('todos');
+    setAgeMin('');
+    setAgeMax('');
+    setEntryFrom(undefined);
+    setEntryTo(undefined);
+  };
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -165,6 +204,22 @@ function Clientes() {
 
   return (
     <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Total de clientes</p>
+          <p className="text-2xl font-semibold mt-1">{stats.total}</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Masculino</p>
+          <p className="text-2xl font-semibold mt-1">{stats.masculino}</p>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Feminino</p>
+          <p className="text-2xl font-semibold mt-1">{stats.feminino}</p>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="flex flex-1 flex-col sm:flex-row gap-4">
@@ -177,16 +232,84 @@ function Clientes() {
               className="pl-10"
             />
           </div>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os tipos</SelectItem>
-              <SelectItem value="empresa">Empresas</SelectItem>
-              <SelectItem value="pessoa">Pessoas</SelectItem>
-            </SelectContent>
-          </Select>
+          <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto justify-start gap-2">
+                <FilterIcon className="h-4 w-4" />
+                Filtros
+                {activeFilterCount > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-foreground text-background text-xs font-medium">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-4 space-y-4" align="start">
+              <div>
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tipo</label>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os tipos</SelectItem>
+                    <SelectItem value="empresa">Empresas</SelectItem>
+                    <SelectItem value="pessoa">Pessoas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sexo</label>
+                <Select value={genderFilter} onValueChange={setGenderFilter}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="masculino">Masculino</SelectItem>
+                    <SelectItem value="feminino">Feminino</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Idade</label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <Input type="number" min={0} placeholder="Mín" value={ageMin} onChange={(e) => setAgeMin(e.target.value)} />
+                  <Input type="number" min={0} placeholder="Máx" value={ageMax} onChange={(e) => setAgeMax(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Data de entrada</label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn('justify-start text-left font-normal', !entryFrom && 'text-muted-foreground')}>
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        {entryFrom ? format(entryFrom, 'dd/MM/yy', { locale: ptBR }) : 'De'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={entryFrom} onSelect={setEntryFrom} initialFocus className="p-3 pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn('justify-start text-left font-normal', !entryTo && 'text-muted-foreground')}>
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        {entryTo ? format(entryTo, 'dd/MM/yy', { locale: ptBR }) : 'Até'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={entryTo} onSelect={setEntryTo} initialFocus className="p-3 pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-border">
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+                  <X className="h-3 w-3" /> Limpar
+                </Button>
+                <Button size="sm" onClick={() => setFiltersOpen(false)}>Aplicar</Button>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Status" />
