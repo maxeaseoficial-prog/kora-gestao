@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, Package, Search, Pencil, Trash2, DollarSign, TrendingUp, Boxes, Sparkles, ImagePlus, X, Loader2 } from 'lucide-react';
 import { useProducts, type ProductInput, type Product } from '@/hooks/useProducts';
+import { PriceHistorySection } from '@/components/PriceHistorySection';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
