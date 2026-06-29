@@ -359,6 +359,24 @@ export default function Produtos() {
                 onCheckedChange={(v) => setForm({ ...form, isActive: v })}
               />
             </div>
+
+            {editing && (
+              <PriceHistorySection
+                entity="product"
+                entityId={editing.id}
+                currentSalePrice={form.salePrice}
+                currentCostPrice={form.costPrice}
+                onPriceSaved={async ({ salePrice, costPrice }) => {
+                  const next = {
+                    ...form,
+                    salePrice: salePrice ?? form.salePrice,
+                    costPrice: costPrice ?? form.costPrice,
+                  };
+                  setForm(next);
+                  await updateProduct(editing.id, next);
+                }}
+              />
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
