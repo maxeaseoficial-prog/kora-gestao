@@ -73,49 +73,64 @@ export type Database = {
       }
       clients: {
         Row: {
+          age: number | null
+          client_type: string
           company: string | null
           contract_day: number
           created_at: string
           deactivated_at: string | null
           email: string | null
+          end_date: string | null
           entry_date: string
+          gender: string | null
           id: string
           monthly_value: number
           name: string
           phone: string | null
           recurrence: string
+          secondary_phone: string | null
           service_type: string
           status: string
           user_id: string
         }
         Insert: {
+          age?: number | null
+          client_type?: string
           company?: string | null
           contract_day?: number
           created_at?: string
           deactivated_at?: string | null
           email?: string | null
+          end_date?: string | null
           entry_date?: string
+          gender?: string | null
           id?: string
           monthly_value?: number
           name: string
           phone?: string | null
           recurrence?: string
+          secondary_phone?: string | null
           service_type: string
           status?: string
           user_id: string
         }
         Update: {
+          age?: number | null
+          client_type?: string
           company?: string | null
           contract_day?: number
           created_at?: string
           deactivated_at?: string | null
           email?: string | null
+          end_date?: string | null
           entry_date?: string
+          gender?: string | null
           id?: string
           monthly_value?: number
           name?: string
           phone?: string | null
           recurrence?: string
+          secondary_phone?: string | null
           service_type?: string
           status?: string
           user_id?: string

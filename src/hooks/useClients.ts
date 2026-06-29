@@ -27,6 +27,7 @@ export function useClients() {
 
       const mappedClients: Client[] = (data || []).map((c) => ({
         id: c.id,
+        clientType: ((c as any).client_type === 'pessoa' ? 'pessoa' : 'empresa') as 'empresa' | 'pessoa',
         name: c.name,
         company: c.company || '',
         serviceType: c.service_type,
@@ -36,9 +37,13 @@ export function useClients() {
         status: c.status as 'ativo' | 'inativo' | 'pendente',
         email: c.email || '',
         phone: c.phone || '',
+        secondaryPhone: (c as any).secondary_phone || '',
+        gender: ((c as any).gender || '') as Client['gender'],
+        age: (c as any).age ?? null,
         createdAt: new Date(c.created_at),
         entryDate: c.entry_date ? new Date(c.entry_date + 'T12:00:00Z') : new Date(c.created_at),
         deactivatedAt: c.deactivated_at ? new Date(c.deactivated_at + 'T12:00:00Z') : null,
+        endDate: (c as any).end_date ? new Date((c as any).end_date + 'T12:00:00Z') : null,
       }));
 
       setClientsState(mappedClients);
@@ -82,8 +87,9 @@ export function useClients() {
         const { error } = await supabase.from('clients').insert({
           id: client.id,
           user_id: user.id,
+          client_type: client.clientType,
           name: client.name,
-          company: client.company,
+          company: client.company || null,
           service_type: client.serviceType,
           recurrence: client.recurrence,
           monthly_value: client.monthlyValue,
@@ -91,9 +97,13 @@ export function useClients() {
           status: client.status,
           email: client.email,
           phone: client.phone,
+          secondary_phone: client.secondaryPhone || null,
+          gender: client.gender || null,
+          age: client.age ?? null,
           entry_date: client.entryDate.toISOString().split('T')[0],
           deactivated_at: client.deactivatedAt ? client.deactivatedAt.toISOString().split('T')[0] : null,
-        });
+          end_date: client.endDate ? client.endDate.toISOString().split('T')[0] : null,
+        } as any);
         if (error) throw error;
       }
 
@@ -114,8 +124,9 @@ export function useClients() {
           const { error } = await supabase
             .from('clients')
             .update({
+              client_type: client.clientType,
               name: client.name,
-              company: client.company,
+              company: client.company || null,
               service_type: client.serviceType,
               recurrence: client.recurrence,
               monthly_value: client.monthlyValue,
@@ -123,9 +134,13 @@ export function useClients() {
               status: client.status,
               email: client.email,
               phone: client.phone,
+              secondary_phone: client.secondaryPhone || null,
+              gender: client.gender || null,
+              age: client.age ?? null,
               entry_date: client.entryDate.toISOString().split('T')[0],
               deactivated_at: client.deactivatedAt ? client.deactivatedAt.toISOString().split('T')[0] : null,
-            })
+              end_date: client.endDate ? client.endDate.toISOString().split('T')[0] : null,
+            } as any)
             .eq('id', client.id)
             .eq('user_id', user.id);
           if (error) throw error;
