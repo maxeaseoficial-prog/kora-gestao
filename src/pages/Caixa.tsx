@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Calendar, TrendingUp, Search, Trash2, Pencil } from 'lucide-react';
+import { Plus, Calendar, TrendingUp, Search, Trash2, Pencil, Package, Wrench, ArrowLeft } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { FinanceEntry } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,10 @@ export function Caixa() {
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<FinanceEntry | null>(null);
+  const [dialogStep, setDialogStep] = useState<'type' | 'form'>('type');
+  const [entryKind, setEntryKind] = useState<'produto' | 'servico'>('servico');
+  const [clientMode, setClientMode] = useState<'cadastrado' | 'manual'>('cadastrado');
+  const [itemMode, setItemMode] = useState<'cadastrado' | 'manual'>('cadastrado');
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
   const [services, setServices] = useState<Service[]>([]);
@@ -222,6 +226,10 @@ export function Caixa() {
       productId: '',
     });
     setEditingEntry(null);
+    setDialogStep('type');
+    setEntryKind('servico');
+    setClientMode('cadastrado');
+    setItemMode('cadastrado');
   };
 
   const openNewDialog = () => {
@@ -241,7 +249,19 @@ export function Caixa() {
       serviceId: '',
       productId: '',
     });
+    setDialogStep('form');
+    setEntryKind('servico');
+    setClientMode(entry.clientId ? 'cadastrado' : 'manual');
+    setItemMode('manual');
     setIsDialogOpen(true);
+  };
+
+  const selectEntryKind = (kind: 'produto' | 'servico') => {
+    setEntryKind(kind);
+    setItemMode('cadastrado');
+    setClientMode('cadastrado');
+    setFormData((prev) => ({ ...prev, serviceId: '', productId: '' }));
+    setDialogStep('form');
   };
 
   const handleSave = () => {
@@ -429,136 +449,213 @@ export function Caixa() {
 
       {/* New/Edit Entry Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {editingEntry ? 'Editar Lançamento' : 'Nova Entrada'}
+            <DialogTitle className="flex items-center gap-2">
+              {!editingEntry && dialogStep === 'form' && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setDialogStep('type')}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
+              {editingEntry
+                ? 'Editar Lançamento'
+                : dialogStep === 'type'
+                ? 'Qual tipo de lançamento deseja realizar?'
+                : entryKind === 'produto'
+                ? 'Lançamento de Produto'
+                : 'Lançamento de Serviço'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div>
-              <label className="text-sm font-medium">Cliente</label>
-              <Select value={formData.clientId} onValueChange={handleClientChange}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.company}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Ou digite o nome</label>
-              <Input
-                value={formData.clientName}
-                onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                placeholder="Nome do cliente"
-                className="mt-1"
-              />
-            </div>
 
-            {/* Service Selection */}
-            {services.length > 0 && (
-              <div>
-                <label className="text-sm font-medium">Serviço (converte automaticamente para R$)</label>
-                <Select value={formData.serviceId} onValueChange={handleServiceChange}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Selecione um serviço" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map((service) => {
-                      const priceInBRL = convertToBRL(Number(service.price), service.currency);
-                      const showConversion = service.currency !== 'BRL';
-                      return (
-                        <SelectItem key={service.id} value={service.id}>
-                          {service.name} - {formatCurrencyValue(Number(service.price), service.currency)}
-                          {showConversion && ` → ${formatCurrency(priceInBRL)}`}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Product Selection */}
-            {products.length > 0 && (
-              <div>
-                <label className="text-sm font-medium">Produto (preenche valor automaticamente)</label>
-                <Select value={formData.productId} onValueChange={handleProductChange}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} - {formatCurrency(product.salePrice)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Valor</label>
-                <Input
-                  type="number"
-                  value={formData.value}
-                  onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) || 0 })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Data</label>
-                <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Tipo de Receita</label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => setFormData({ ...formData, type: value })}
+          {!editingEntry && dialogStep === 'type' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+              <button
+                type="button"
+                onClick={() => selectEntryKind('produto')}
+                className="group flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-8 hover:bg-secondary/60 hover:border-foreground/40 transition-all"
               >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Mensalidade">Mensalidade</SelectItem>
-                  <SelectItem value="Projeto">Projeto</SelectItem>
-                  <SelectItem value="Consultoria">Consultoria</SelectItem>
-                  <SelectItem value="Outros">Outros</SelectItem>
-                </SelectContent>
-              </Select>
+                <Package className="h-12 w-12 text-foreground" />
+                <div className="text-center">
+                  <div className="font-semibold text-lg">Produto</div>
+                  <div className="text-sm text-muted-foreground">Registrar uma venda de produto</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => selectEntryKind('servico')}
+                className="group flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-8 hover:bg-secondary/60 hover:border-foreground/40 transition-all"
+              >
+                <Wrench className="h-12 w-12 text-foreground" />
+                <div className="text-center">
+                  <div className="font-semibold text-lg">Serviço</div>
+                  <div className="text-sm text-muted-foreground">Registrar uma venda de serviço</div>
+                </div>
+              </button>
             </div>
-            <div>
-              <label className="text-sm font-medium">Descrição (opcional)</label>
-              <Input
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descrição da entrada"
-                className="mt-1"
-              />
+          ) : (
+            <div className="space-y-6 pt-2">
+              {/* Section 1: Cliente */}
+              <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    1. Cliente
+                  </h3>
+                  <div className="flex gap-1 rounded-md border border-border p-1">
+                    <button
+                      type="button"
+                      onClick={() => setClientMode('cadastrado')}
+                      className={`px-3 py-1 text-xs rounded ${clientMode === 'cadastrado' ? 'bg-foreground text-background' : 'text-muted-foreground'}`}
+                    >
+                      Cadastrado
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setClientMode('manual')}
+                      className={`px-3 py-1 text-xs rounded ${clientMode === 'manual' ? 'bg-foreground text-background' : 'text-muted-foreground'}`}
+                    >
+                      Manual
+                    </button>
+                  </div>
+                </div>
+                {clientMode === 'cadastrado' ? (
+                  <Select value={formData.clientId} onValueChange={handleClientChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.company || client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    value={formData.clientName}
+                    onChange={(e) => setFormData({ ...formData, clientName: e.target.value, clientId: '' })}
+                    placeholder="Nome do cliente"
+                  />
+                )}
+              </section>
+
+              {/* Section 2: Produto ou Serviço */}
+              <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    2. {entryKind === 'produto' ? 'Produto' : 'Serviço'}
+                  </h3>
+                  <div className="flex gap-1 rounded-md border border-border p-1">
+                    <button
+                      type="button"
+                      onClick={() => setItemMode('cadastrado')}
+                      className={`px-3 py-1 text-xs rounded ${itemMode === 'cadastrado' ? 'bg-foreground text-background' : 'text-muted-foreground'}`}
+                    >
+                      Cadastrado
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setItemMode('manual')}
+                      className={`px-3 py-1 text-xs rounded ${itemMode === 'manual' ? 'bg-foreground text-background' : 'text-muted-foreground'}`}
+                    >
+                      Manual
+                    </button>
+                  </div>
+                </div>
+
+                {itemMode === 'cadastrado' ? (
+                  entryKind === 'servico' ? (
+                    <Select value={formData.serviceId} onValueChange={handleServiceChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={services.length ? 'Selecione um serviço' : 'Nenhum serviço cadastrado'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {services.map((service) => {
+                          const priceInBRL = convertToBRL(Number(service.price), service.currency);
+                          const showConversion = service.currency !== 'BRL';
+                          return (
+                            <SelectItem key={service.id} value={service.id}>
+                              {service.name} - {formatCurrencyValue(Number(service.price), service.currency)}
+                              {showConversion && ` → ${formatCurrency(priceInBRL)}`}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Select value={formData.productId} onValueChange={handleProductChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={products.length ? 'Selecione um produto' : 'Nenhum produto cadastrado'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.map((product) => (
+                          <SelectItem key={product.id} value={product.id}>
+                            {product.name} - {formatCurrency(product.salePrice)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )
+                ) : (
+                  <Input
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value, serviceId: '', productId: '' })}
+                    placeholder={entryKind === 'produto' ? 'Nome do produto' : 'Nome do serviço'}
+                  />
+                )}
+              </section>
+
+              {/* Section 3: Informações */}
+              <section className="space-y-3">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  3. Informações do lançamento
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Valor</label>
+                    <Input
+                      type="number"
+                      value={formData.value}
+                      onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) || 0 })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Data</label>
+                    <Input
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Observações (opcional)</label>
+                  <Input
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Descrição da entrada"
+                    className="mt-1"
+                  />
+                </div>
+              </section>
+
+              <div className="flex gap-2 pt-2">
+                <Button onClick={handleSave} className="flex-1">
+                  {editingEntry ? 'Salvar Alterações' : 'Registrar'}
+                </Button>
+                <Button variant="outline" onClick={() => handleDialogClose(false)}>
+                  Cancelar
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2 pt-4">
-              <Button onClick={handleSave} className="flex-1">
-                {editingEntry ? 'Salvar Alterações' : 'Registrar'}
-              </Button>
-              <Button variant="outline" onClick={() => handleDialogClose(false)}>
-                Cancelar
-              </Button>
-            </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
