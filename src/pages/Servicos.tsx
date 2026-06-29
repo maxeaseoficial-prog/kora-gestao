@@ -295,7 +295,7 @@ export function Servicos() {
 
       {/* New/Edit Service Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingService ? 'Editar Serviço' : 'Novo Serviço'}
@@ -356,6 +356,28 @@ export function Servicos() {
                 className="mt-1"
               />
             </div>
+            {editingService && (
+              <PriceHistorySection
+                entity="service"
+                entityId={editingService.id}
+                currentPrice={formData.price}
+                currency={formData.currency}
+                onPriceSaved={async ({ price }) => {
+                  if (price == null) return;
+                  setFormData(prev => ({ ...prev, price }));
+                  const { error } = await supabase
+                    .from('services')
+                    .update({ price, currency: formData.currency })
+                    .eq('id', editingService.id);
+                  if (error) {
+                    console.error(error);
+                    toast.error('Erro ao atualizar preço atual');
+                  } else {
+                    fetchServices();
+                  }
+                }}
+              />
+            )}
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSave} className="flex-1">
                 {editingService ? 'Salvar' : 'Criar'}
