@@ -17,6 +17,7 @@ export type Database = {
       annual_goals: {
         Row: {
           created_at: string
+          description: string | null
           goal_value: number
           id: string
           updated_at: string
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           goal_value?: number
           id?: string
           updated_at?: string
@@ -33,6 +35,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           goal_value?: number
           id?: string
           updated_at?: string
@@ -248,6 +251,10 @@ export type Database = {
           entry_date: string
           entry_type: string
           id: string
+          kind: string | null
+          product_id: string | null
+          quantity: number | null
+          service_id: string | null
           user_id: string
           value: number
         }
@@ -259,6 +266,10 @@ export type Database = {
           entry_date?: string
           entry_type?: string
           id?: string
+          kind?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          service_id?: string | null
           user_id: string
           value?: number
         }
@@ -270,6 +281,10 @@ export type Database = {
           entry_date?: string
           entry_type?: string
           id?: string
+          kind?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          service_id?: string | null
           user_id?: string
           value?: number
         }
@@ -453,6 +468,117 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      monthly_goals: {
+        Row: {
+          created_at: string
+          id: string
+          is_manual: boolean
+          month: number
+          updated_at: string
+          user_id: string
+          value: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_manual?: boolean
+          month: number
+          updated_at?: string
+          user_id: string
+          value?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_manual?: boolean
+          month?: number
+          updated_at?: string
+          user_id?: string
+          value?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      planning_history: {
+        Row: {
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          metadata: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      planning_objectives: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          id: string
+          month: number
+          name: string
+          product_id: string | null
+          service_id: string | null
+          target_quantity: number | null
+          target_value: number
+          type: string
+          unit_price_snapshot: number | null
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          month: number
+          name: string
+          product_id?: string | null
+          service_id?: string | null
+          target_quantity?: number | null
+          target_value?: number
+          type: string
+          unit_price_snapshot?: number | null
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          month?: number
+          name?: string
+          product_id?: string | null
+          service_id?: string | null
+          target_quantity?: number | null
+          target_value?: number
+          type?: string
+          unit_price_snapshot?: number | null
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
       }
       product_price_history: {
         Row: {

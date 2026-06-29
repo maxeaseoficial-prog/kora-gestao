@@ -1,0 +1,887 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { usePlanning, MonthlyGoalRow } from '@/hooks/usePlanning';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Target, Plus, Pencil, Trash2, Copy, TrendingUp, Calendar, History, BarChart3, ListChecks, ArrowRight } from 'lucide-react';
+import { computeHealth, daysInMonth, daysElapsed, formatBRL, formatShortBRL, getRealizedForMonth, objectiveRealized, ObjectiveRow } from '@/lib/planning';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, Legend } from 'recharts';
+
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MONTH_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const TYPE_COLORS: Record<string, string> = {
+  produto: 'hsl(var(--foreground))',
+  servico: 'hsl(var(--muted-foreground))',
+  contrato: 'hsl(var(--accent-foreground))',
+  outro: 'hsl(var(--border))',
+};
+
+export default function Planejamento() {
+  const { user } = useAuth();
+  const { clients, finances } = useApp();
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth()); // 0..11
+
+  const plan = usePlanning(year);
+  const [products, setProducts] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const [{ data: p }, { data: s }] = await Promise.all([
+        supabase.from('products').select('id,name,sale_price').eq('user_id', user.id).eq('is_active', true),
+        supabase.from('services').select('id,name,price').eq('user_id', user.id),
+      ]);
+      setProducts(p || []);
+      setServices(s || []);
+    })();
+  }, [user]);
+
+  // ----- Computed core metrics for selected month -----
+  const monthGoalRow = plan.monthly.find(m => m.month === month + 1);
+  const monthGoal = monthGoalRow?.value ?? (plan.annual ? plan.annual.goal_value / 12 : 0);
+  const monthRealized = useMemo(() => getRealizedForMonth(finances, clients, year, month), [finances, clients, year, month]);
+  const remaining = Math.max(0, monthGoal - monthRealized);
+  const percent = monthGoal > 0 ? Math.min(1, monthRealized / monthGoal) : 0;
+  const dim = daysInMonth(year, month);
+  const elapsed = daysElapsed(year, month);
+  const daysLeft = Math.max(0, dim - elapsed);
+  const perDay = daysLeft > 0 ? remaining / daysLeft : 0;
+  const ritmoDiario = elapsed > 0 ? monthRealized / elapsed : 0;
+  const projection = ritmoDiario * dim;
+  const monthFraction = dim > 0 ? elapsed / dim : 0;
+  const health = computeHealth(percent, monthFraction);
+
+  // ----- Objectives for selected month -----
+  const monthObjectives = plan.objectives.filter(o => o.month === month + 1);
+  const objectivesWithRealized = monthObjectives.map(o => {
+    const r = objectiveRealized(o, finances, clients);
+    const pct = o.target_value > 0 ? Math.min(1, r.value / o.target_value) : 0;
+    return { ...o, realizedValue: r.value, realizedQuantity: r.quantity, pct };
+  });
+
+  // distribution by type
+  const distribution = useMemo(() => {
+    const acc: Record<string, number> = { produto: 0, servico: 0, contrato: 0, outro: 0 };
+    monthObjectives.forEach(o => { acc[o.type] = (acc[o.type] || 0) + Number(o.target_value || 0); });
+    return Object.entries(acc).filter(([_, v]) => v > 0).map(([k, v]) => ({ name: k, value: v }));
+  }, [monthObjectives]);
+
+  // quick summary
+  const summary = useMemo(() => {
+    const make = (type: string) => {
+      const objs = objectivesWithRealized.filter(o => o.type === type);
+      const needed = objs.reduce((a, o) => a + Number(o.target_quantity || 0), 0);
+      const done = objs.reduce((a, o) => a + o.realizedQuantity, 0);
+      return { needed: Math.round(needed), done: Math.round(done), left: Math.max(0, Math.round(needed - done)) };
+    };
+    return { contratos: make('contrato'), produtos: make('produto'), servicos: make('servico') };
+  }, [objectivesWithRealized]);
+
+  // tips
+  const tips = useMemo(() => {
+    const t: string[] = [];
+    if (monthGoal > 0 && remaining > 0 && daysLeft > 0) {
+      t.push(`Você precisa faturar ${formatBRL(perDay)} por dia para atingir a meta.`);
+    }
+    objectivesWithRealized
+      .filter(o => o.target_value > 0 && o.pct < (monthFraction - 0.1))
+      .slice(0, 3)
+      .forEach(o => {
+        const left = Math.max(0, o.target_value - o.realizedValue);
+        t.push(`O objetivo "${o.name}" está abaixo do esperado — faltam ${formatBRL(left)}.`);
+      });
+    if (!t.length) t.push('Você está no ritmo. Continue assim!');
+    return t;
+  }, [monthGoal, remaining, daysLeft, perDay, objectivesWithRealized, monthFraction]);
+
+  // ----- Tab: render -----
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-secondary"><Target className="h-5 w-5" /></div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Planejamento e Metas</h1>
+            <p className="text-sm text-muted-foreground">Centro estratégico do seu negócio</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+            <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 7 }, (_, i) => today.getFullYear() - 3 + i).map(y => (
+                <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="overview"><TrendingUp className="h-4 w-4 mr-1.5" />Visão Geral</TabsTrigger>
+          <TabsTrigger value="annual"><Calendar className="h-4 w-4 mr-1.5" />Metas Anuais</TabsTrigger>
+          <TabsTrigger value="monthly"><ListChecks className="h-4 w-4 mr-1.5" />Metas Mensais</TabsTrigger>
+          <TabsTrigger value="objectives"><Target className="h-4 w-4 mr-1.5" />Objetivos</TabsTrigger>
+          <TabsTrigger value="progress"><BarChart3 className="h-4 w-4 mr-1.5" />Progresso</TabsTrigger>
+          <TabsTrigger value="history"><History className="h-4 w-4 mr-1.5" />Histórico</TabsTrigger>
+        </TabsList>
+
+        {/* ============= VISÃO GERAL ============= */}
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Painel — {MONTHS[month]} {year}</span>
+                <span className={`flex items-center gap-2 text-sm font-medium ${health.colorClass}`}>
+                  <span className={`h-2.5 w-2.5 rounded-full ${health.dotClass}`} />
+                  {health.label}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <Kpi label="Meta do mês" value={formatBRL(monthGoal)} />
+                <Kpi label="Realizado" value={formatBRL(monthRealized)} />
+                <Kpi label="Restante" value={formatBRL(remaining)} />
+                <Kpi label="% atingido" value={`${(percent * 100).toFixed(0)}%`} />
+                <Kpi label="Dias restantes" value={String(daysLeft)} />
+                <Kpi label="Por dia" value={formatBRL(perDay)} />
+                <Kpi label="Projeção" value={formatBRL(projection)} />
+              </div>
+              <div className="mt-6">
+                <Progress value={percent * 100} className="h-2" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid lg:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Distribuição dos Objetivos</CardTitle></CardHeader>
+              <CardContent>
+                {distribution.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Nenhum objetivo cadastrado para este mês.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie data={distribution} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                        {distribution.map((d, i) => (<Cell key={i} fill={TYPE_COLORS[d.name] || 'hsl(var(--muted))'} />))}
+                      </Pie>
+                      <Tooltip formatter={(v: any) => formatBRL(Number(v))} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardHeader><CardTitle className="text-base">Objetivos da Meta</CardTitle></CardHeader>
+              <CardContent>
+                {objectivesWithRealized.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Crie objetivos na aba "Objetivos".</p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {objectivesWithRealized.map(o => {
+                      const h = computeHealth(o.pct, monthFraction);
+                      return (
+                        <li key={o.id} className="py-3 flex flex-col md:flex-row md:items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium truncate">{o.name}</span>
+                              <Badge variant="outline" className="capitalize">{o.type}</Badge>
+                            </div>
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              Meta {formatBRL(o.target_value)} · Realizado {formatBRL(o.realizedValue)} · Faltam {formatBRL(Math.max(0, o.target_value - o.realizedValue))}
+                            </div>
+                            <Progress value={o.pct * 100} className="h-1.5 mt-2" />
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-sm font-semibold">{(o.pct * 100).toFixed(0)}%</span>
+                            <span className={`text-xs ${h.colorClass}`}>● {h.label}</span>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Resumo Rápido</CardTitle></CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <SummaryRow label="Contratos" {...summary.contratos} />
+                <SummaryRow label="Produtos" {...summary.produtos} />
+                <SummaryRow label="Serviços" {...summary.servicos} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Projeção fim do mês</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <Scenario label="Mantendo ritmo" value={projection} />
+                <Scenario label="Melhorando 10%" value={projection * 1.1} />
+                <Scenario label="Caindo 10%" value={projection * 0.9} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Dicas para bater a meta</CardTitle></CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  {tips.map((t, i) => (
+                    <li key={i} className="flex gap-2"><span className="text-muted-foreground">›</span><span>{t}</span></li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ============= METAS ANUAIS ============= */}
+        <TabsContent value="annual" className="mt-6">
+          <AnnualTab year={year} plan={plan} finances={finances} clients={clients} />
+        </TabsContent>
+
+        {/* ============= METAS MENSAIS ============= */}
+        <TabsContent value="monthly" className="mt-6">
+          <MonthlyTab year={year} plan={plan} finances={finances} clients={clients} />
+        </TabsContent>
+
+        {/* ============= OBJETIVOS ============= */}
+        <TabsContent value="objectives" className="mt-6">
+          <ObjectivesTab
+            year={year}
+            month={month}
+            onMonthChange={setMonth}
+            plan={plan}
+            products={products}
+            services={services}
+            clients={clients}
+            finances={finances}
+          />
+        </TabsContent>
+
+        {/* ============= PROGRESSO ============= */}
+        <TabsContent value="progress" className="mt-6">
+          <ProgressTab year={year} month={month} plan={plan} finances={finances} clients={clients} />
+        </TabsContent>
+
+        {/* ============= HISTÓRICO ============= */}
+        <TabsContent value="history" className="mt-6">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Histórico de eventos</CardTitle></CardHeader>
+            <CardContent>
+              {plan.history.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum evento registrado ainda.</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {plan.history.map(h => (
+                    <li key={h.id} className="py-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm">{h.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{h.event_type}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {new Date(h.created_at).toLocaleString('pt-BR')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// ============================================================
+// Helpers / sub-components
+// ============================================================
+
+function Kpi({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border bg-card p-3">
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function SummaryRow({ label, needed, done, left }: { label: string; needed: number; done: number; left: number }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="tabular-nums">{done} / {needed} <span className="text-muted-foreground">({left} restantes)</span></span>
+    </div>
+  );
+}
+
+function Scenario({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium tabular-nums">{formatBRL(value)}</span>
+    </div>
+  );
+}
+
+// ============================================================
+// AnnualTab
+// ============================================================
+function AnnualTab({ year, plan, finances, clients }: any) {
+  const [open, setOpen] = useState(false);
+  const [goalValue, setGoalValue] = useState('');
+  const [description, setDescription] = useState('');
+
+  useEffect(() => {
+    setGoalValue(plan.annual ? String(plan.annual.goal_value) : '');
+    setDescription(plan.annual?.description || '');
+  }, [plan.annual]);
+
+  const realized = useMemo(() => {
+    let acc = 0;
+    for (let m = 0; m < 12; m++) acc += getRealizedForMonth(finances, clients, year, m);
+    return acc;
+  }, [finances, clients, year]);
+
+  const annual = plan.annual?.goal_value || 0;
+  const remaining = Math.max(0, annual - realized);
+  const percent = annual > 0 ? Math.min(100, (realized / annual) * 100) : 0;
+  const perMonth = annual > 0 ? annual / 12 : 0;
+
+  const data = Array.from({ length: 12 }, (_, m) => ({
+    name: MONTH_SHORT[m],
+    meta: plan.monthly.find((g: MonthlyGoalRow) => g.month === m + 1)?.value ?? perMonth,
+    realizado: getRealizedForMonth(finances, clients, year, m),
+  }));
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Meta anual {year}</CardTitle>
+          <Button onClick={() => setOpen(true)} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />{annual > 0 ? 'Editar meta' : 'Cadastrar meta'}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <Kpi label="Meta anual" value={formatBRL(annual)} />
+            <Kpi label="Realizado" value={formatBRL(realized)} />
+            <Kpi label="Restante" value={formatBRL(remaining)} />
+            <Kpi label="% atingido" value={`${percent.toFixed(0)}%`} />
+            <Kpi label="Necessário/mês" value={formatBRL(perMonth)} />
+          </div>
+          {plan.annual?.description && (
+            <p className="mt-4 text-sm text-muted-foreground">{plan.annual.description}</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Distribuição mensal</CardTitle></CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="name" className="text-xs" />
+              <YAxis className="text-xs" tickFormatter={(v) => formatShortBRL(Number(v))} />
+              <Tooltip formatter={(v: any) => formatBRL(Number(v))} />
+              <Legend />
+              <Bar dataKey="meta" fill="hsl(var(--muted-foreground))" name="Meta" radius={[4,4,0,0]} />
+              <Bar dataKey="realizado" fill="hsl(var(--foreground))" name="Realizado" radius={[4,4,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{annual > 0 ? 'Editar meta anual' : 'Cadastrar meta anual'} — {year}</DialogTitle>
+            <DialogDescription>O valor será distribuído automaticamente nos 12 meses (meses editados manualmente serão preservados).</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Valor da meta</Label>
+              <Input type="number" step="0.01" value={goalValue} onChange={(e) => setGoalValue(e.target.value)} placeholder="Ex: 240000" />
+            </div>
+            <div>
+              <Label>Descrição (opcional)</Label>
+              <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Resumo da meta" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={async () => {
+              const v = Number(goalValue);
+              if (!v || v <= 0) { toast.error('Informe um valor válido'); return; }
+              await plan.saveAnnual(v, description);
+              toast.success('Meta anual salva');
+              setOpen(false);
+            }}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ============================================================
+// MonthlyTab
+// ============================================================
+function MonthlyTab({ year, plan, finances, clients }: any) {
+  const [editMonth, setEditMonth] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingValue, setPendingValue] = useState<{ month: number; value: number } | null>(null);
+  const [dupOpen, setDupOpen] = useState<number | null>(null);
+  const [dupTarget, setDupTarget] = useState(0);
+
+  const rows = Array.from({ length: 12 }, (_, m) => {
+    const goalRow = plan.monthly.find((g: MonthlyGoalRow) => g.month === m + 1);
+    const meta = goalRow?.value ?? (plan.annual ? plan.annual.goal_value / 12 : 0);
+    const realized = getRealizedForMonth(finances, clients, year, m);
+    const remaining = Math.max(0, meta - realized);
+    const pct = meta > 0 ? (realized / meta) * 100 : 0;
+    return { month: m, meta, realized, remaining, pct, isManual: goalRow?.is_manual };
+  });
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Metas mensais — {year}</CardTitle></CardHeader>
+      <CardContent className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-muted-foreground">
+              <th className="py-2 pr-3">Mês</th>
+              <th className="py-2 pr-3">Meta</th>
+              <th className="py-2 pr-3">Realizado</th>
+              <th className="py-2 pr-3">Restante</th>
+              <th className="py-2 pr-3">%</th>
+              <th className="py-2 pr-3">Status</th>
+              <th className="py-2 pr-3">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => {
+              const h = computeHealth(r.pct / 100, 1);
+              return (
+                <tr key={r.month} className="border-b border-border/60">
+                  <td className="py-2 pr-3 font-medium">{MONTHS[r.month]} {r.isManual && <Badge variant="outline" className="ml-2 text-[10px]">manual</Badge>}</td>
+                  <td className="py-2 pr-3 tabular-nums">{formatBRL(r.meta)}</td>
+                  <td className="py-2 pr-3 tabular-nums">{formatBRL(r.realized)}</td>
+                  <td className="py-2 pr-3 tabular-nums">{formatBRL(r.remaining)}</td>
+                  <td className="py-2 pr-3 tabular-nums">{r.pct.toFixed(0)}%</td>
+                  <td className="py-2 pr-3"><span className={h.colorClass}>● {h.label}</span></td>
+                  <td className="py-2 pr-3">
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => { setEditMonth(r.month); setEditValue(String(r.meta)); }}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => { setDupOpen(r.month); setDupTarget(Math.min(11, r.month + 1)); }}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </CardContent>
+
+      <Dialog open={editMonth !== null} onOpenChange={(o) => { if (!o) setEditMonth(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar meta de {editMonth !== null ? MONTHS[editMonth] : ''}</DialogTitle>
+          </DialogHeader>
+          <Input type="number" step="0.01" value={editValue} onChange={(e) => setEditValue(e.target.value)} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditMonth(null)}>Cancelar</Button>
+            <Button onClick={() => {
+              const v = Number(editValue);
+              if (!v || v < 0) { toast.error('Informe um valor válido'); return; }
+              setPendingValue({ month: editMonth! + 1, value: v });
+              setConfirmOpen(true);
+              setEditMonth(null);
+            }}>Continuar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Recalcular meta anual?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta alteração deve recalcular a meta anual com a soma dos 12 meses?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={async () => {
+              if (pendingValue) await plan.saveMonthly(pendingValue.month, pendingValue.value, false);
+              toast.success('Meta do mês atualizada');
+              setConfirmOpen(false); setPendingValue(null);
+            }}>Não, manter</Button>
+            <AlertDialogAction onClick={async () => {
+              if (pendingValue) await plan.saveMonthly(pendingValue.month, pendingValue.value, true);
+              toast.success('Metas atualizadas');
+              setConfirmOpen(false); setPendingValue(null);
+            }}>Sim, recalcular</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={dupOpen !== null} onOpenChange={(o) => { if (!o) setDupOpen(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Duplicar planejamento</DialogTitle>
+            <DialogDescription>
+              Copia todos os objetivos de {dupOpen !== null ? MONTHS[dupOpen] : ''} para o mês de destino.
+            </DialogDescription>
+          </DialogHeader>
+          <div>
+            <Label>Mês de destino</Label>
+            <Select value={String(dupTarget)} onValueChange={(v) => setDupTarget(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDupOpen(null)}>Cancelar</Button>
+            <Button onClick={async () => {
+              if (dupOpen === null) return;
+              await plan.duplicateMonthPlan(dupOpen + 1, dupTarget + 1, year);
+              toast.success('Planejamento duplicado');
+              setDupOpen(null);
+            }}>Duplicar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
+// ============================================================
+// ObjectivesTab
+// ============================================================
+function ObjectivesTab({ year, month, onMonthChange, plan, products, services, clients, finances }: any) {
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<ObjectiveRow | null>(null);
+
+  const monthObjs = plan.objectives.filter((o: ObjectiveRow) => o.month === month + 1);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Select value={String(month)} onValueChange={(v) => onMonthChange(Number(v))}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
+          </Select>
+          <span className="text-sm text-muted-foreground">{year}</span>
+        </div>
+        <Button onClick={() => { setEditing(null); setOpen(true); }} className="gap-2">
+          <Plus className="h-4 w-4" /> Novo objetivo
+        </Button>
+      </div>
+
+      {monthObjs.length === 0 ? (
+        <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">
+          Nenhum objetivo cadastrado para {MONTHS[month]}. Clique em "Novo objetivo" para começar.
+        </CardContent></Card>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {monthObjs.map((o: ObjectiveRow) => {
+            const r = objectiveRealized(o, finances, clients);
+            const pct = o.target_value > 0 ? Math.min(1, r.value / o.target_value) : 0;
+            const qty = Number(o.target_quantity || 0);
+            return (
+              <Card key={o.id}>
+                <CardHeader className="flex flex-row items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <CardTitle className="text-base truncate">{o.name}</CardTitle>
+                    <Badge variant="outline" className="mt-1 capitalize">{o.type}</Badge>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => { setEditing(o); setOpen(true); }}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={async () => {
+                      if (confirm(`Remover objetivo "${o.name}"?`)) {
+                        await plan.deleteObjective(o.id, o.name);
+                        toast.success('Objetivo removido');
+                      }
+                    }}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div><p className="text-xs text-muted-foreground">Meta</p><p className="font-medium">{formatBRL(o.target_value)}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Realizado</p><p className="font-medium">{formatBRL(r.value)}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Faltam</p><p className="font-medium">{formatBRL(Math.max(0, o.target_value - r.value))}</p></div>
+                  </div>
+                  <Progress value={pct * 100} className="h-1.5" />
+                  {qty > 0 && (
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                      <div><p>Necessário</p><p className="text-foreground font-medium">{qty}</p></div>
+                      <div><p>Realizado</p><p className="text-foreground font-medium">{Math.round(r.quantity)}</p></div>
+                      <div><p>Restantes</p><p className="text-foreground font-medium">{Math.max(0, Math.round(qty - r.quantity))}</p></div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      <ObjectiveDialog
+        open={open}
+        onOpenChange={setOpen}
+        editing={editing}
+        year={year}
+        month={month + 1}
+        products={products}
+        services={services}
+        clients={clients}
+        onSave={async (obj: any) => {
+          await plan.saveObjective(editing ? { ...obj, id: editing.id } : obj);
+          toast.success(editing ? 'Objetivo atualizado' : 'Objetivo criado');
+          setOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+
+function ObjectiveDialog({ open, onOpenChange, editing, year, month, products, services, clients, onSave }: any) {
+  const [type, setType] = useState<'produto'|'servico'|'contrato'|'outro'>('produto');
+  const [refId, setRefId] = useState<string>('');
+  const [name, setName] = useState('');
+  const [mode, setMode] = useState<'value'|'quantity'>('value');
+  const [targetValue, setTargetValue] = useState('');
+  const [targetQuantity, setTargetQuantity] = useState('');
+  const [unitPrice, setUnitPrice] = useState('');
+
+  useEffect(() => {
+    if (editing) {
+      setType(editing.type);
+      setRefId(editing.product_id || editing.service_id || editing.client_id || '');
+      setName(editing.name);
+      setTargetValue(String(editing.target_value || ''));
+      setTargetQuantity(editing.target_quantity ? String(editing.target_quantity) : '');
+      setUnitPrice(editing.unit_price_snapshot ? String(editing.unit_price_snapshot) : '');
+    } else {
+      setType('produto'); setRefId(''); setName(''); setMode('value');
+      setTargetValue(''); setTargetQuantity(''); setUnitPrice('');
+    }
+  }, [editing, open]);
+
+  const options = type === 'produto' ? products : type === 'servico' ? services : type === 'contrato' ? clients : [];
+
+  useEffect(() => {
+    if (!refId) return;
+    const item = options.find((o: any) => o.id === refId);
+    if (!item) return;
+    setName(item.name);
+    const price = type === 'produto' ? Number(item.sale_price) : type === 'servico' ? Number(item.price) : type === 'contrato' ? Number(item.monthlyValue || 0) : 0;
+    if (price > 0) setUnitPrice(String(price));
+  }, [refId]);
+
+  // Auto-compute value <-> quantity
+  useEffect(() => {
+    const p = Number(unitPrice);
+    if (!p || p <= 0) return;
+    if (mode === 'value' && targetValue) {
+      const q = Number(targetValue) / p;
+      if (!Number.isNaN(q)) setTargetQuantity(q.toFixed(2));
+    } else if (mode === 'quantity' && targetQuantity) {
+      const v = Number(targetQuantity) * p;
+      if (!Number.isNaN(v)) setTargetValue(v.toFixed(2));
+    }
+  }, [mode, targetValue, targetQuantity, unitPrice]);
+
+  const submit = async () => {
+    if (!name.trim()) { toast.error('Informe o nome'); return; }
+    const tv = Number(targetValue);
+    if (!tv || tv <= 0) { toast.error('Informe a meta financeira'); return; }
+    await onSave({
+      year, month, type, name: name.trim(),
+      product_id: type === 'produto' ? (refId || null) : null,
+      service_id: type === 'servico' ? (refId || null) : null,
+      client_id: type === 'contrato' ? (refId || null) : null,
+      target_value: tv,
+      target_quantity: targetQuantity ? Number(targetQuantity) : null,
+      unit_price_snapshot: unitPrice ? Number(unitPrice) : null,
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{editing ? 'Editar objetivo' : 'Novo objetivo'} — {MONTHS[month - 1]} {year}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Tipo</Label>
+            <Select value={type} onValueChange={(v) => { setType(v as any); setRefId(''); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="produto">Produto</SelectItem>
+                <SelectItem value="servico">Serviço</SelectItem>
+                <SelectItem value="contrato">Contrato</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {type !== 'outro' && (
+            <div>
+              <Label>{type === 'contrato' ? 'Cliente' : type === 'produto' ? 'Produto cadastrado' : 'Serviço cadastrado'}</Label>
+              <Select value={refId} onValueChange={setRefId}>
+                <SelectTrigger><SelectValue placeholder="Selecionar ou deixe em branco para manual" /></SelectTrigger>
+                <SelectContent>
+                  {options.map((o: any) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div>
+            <Label>Nome do objetivo</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Marketing, Camiseta Premium..." />
+          </div>
+
+          <div>
+            <Label>Preço unitário (snapshot)</Label>
+            <Input type="number" step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="Usado para calcular quantidade × valor" />
+          </div>
+
+          <div>
+            <Label>Definir por</Label>
+            <div className="flex gap-2 mt-1">
+              <Button type="button" variant={mode === 'value' ? 'default' : 'outline'} size="sm" onClick={() => setMode('value')}>Meta financeira</Button>
+              <Button type="button" variant={mode === 'quantity' ? 'default' : 'outline'} size="sm" onClick={() => setMode('quantity')}>Quantidade</Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Meta financeira</Label>
+              <Input type="number" step="0.01" value={targetValue} onChange={(e) => setTargetValue(e.target.value)} disabled={mode === 'quantity'} />
+            </div>
+            <div>
+              <Label>Quantidade</Label>
+              <Input type="number" step="1" value={targetQuantity} onChange={(e) => setTargetQuantity(e.target.value)} disabled={mode === 'value'} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={submit}>Salvar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================================
+// ProgressTab
+// ============================================================
+function ProgressTab({ year, month, plan, finances, clients }: any) {
+  const monthGoalRow = plan.monthly.find((g: MonthlyGoalRow) => g.month === month + 1);
+  const monthGoal = monthGoalRow?.value ?? (plan.annual ? plan.annual.goal_value / 12 : 0);
+
+  const dim = daysInMonth(year, month);
+  // daily accumulated
+  const dailyData = Array.from({ length: dim }, (_, i) => {
+    const day = i + 1;
+    const accRealized = finances
+      .filter((f: any) => {
+        const d = new Date(f.date);
+        return d.getFullYear() === year && d.getMonth() === month && d.getDate() <= day;
+      })
+      .reduce((a: number, f: any) => a + Number(f.value || 0), 0);
+    const accMeta = (monthGoal / dim) * day;
+    return { day: String(day).padStart(2, '0'), Meta: accMeta, Realizado: accRealized };
+  });
+
+  const monthlyData = Array.from({ length: 12 }, (_, m) => ({
+    name: MONTH_SHORT[m],
+    Meta: plan.monthly.find((g: MonthlyGoalRow) => g.month === m + 1)?.value ?? (plan.annual ? plan.annual.goal_value / 12 : 0),
+    Realizado: getRealizedForMonth(finances, clients, year, m),
+  }));
+
+  const elapsed = daysElapsed(year, month);
+  const realized = getRealizedForMonth(finances, clients, year, month);
+  const ritmo = elapsed > 0 ? realized / elapsed : 0;
+  const projection = ritmo * dim;
+  const chance = monthGoal > 0 ? Math.min(100, Math.round((projection / monthGoal) * 100)) : 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid md:grid-cols-4 gap-4">
+        <Kpi label="Ritmo atual/dia" value={formatBRL(ritmo)} />
+        <Kpi label="Necessário/dia" value={formatBRL(Math.max(0, (monthGoal - realized) / Math.max(1, dim - elapsed)))} />
+        <Kpi label="Projeção" value={formatBRL(projection)} />
+        <Kpi label="Chance de atingir" value={`${chance}%`} />
+      </div>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Acumulado diário — {MONTHS[month]}</CardTitle></CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={dailyData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="day" className="text-xs" />
+              <YAxis tickFormatter={(v) => formatShortBRL(Number(v))} className="text-xs" />
+              <Tooltip formatter={(v: any) => formatBRL(Number(v))} />
+              <Legend />
+              <Line type="monotone" dataKey="Meta" stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" dot={false} />
+              <Line type="monotone" dataKey="Realizado" stroke="hsl(var(--foreground))" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Comparativo mensal — {year}</CardTitle></CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="name" className="text-xs" />
+              <YAxis tickFormatter={(v) => formatShortBRL(Number(v))} className="text-xs" />
+              <Tooltip formatter={(v: any) => formatBRL(Number(v))} />
+              <Legend />
+              <Bar dataKey="Meta" fill="hsl(var(--muted-foreground))" radius={[4,4,0,0]} />
+              <Bar dataKey="Realizado" fill="hsl(var(--foreground))" radius={[4,4,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
