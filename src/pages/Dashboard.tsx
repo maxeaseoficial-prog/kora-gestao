@@ -21,6 +21,7 @@ import { MonthYearPicker } from '@/components/MonthYearPicker';
 import { isClientActiveInMonth, getRecurringRevenueForMonth } from '@/lib/revenue';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const monthAbbr = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const monthFull = [
@@ -40,6 +41,7 @@ function initials(name: string) {
 function Dashboard() {
   const { clients, finances, crmCards, crmColumns, hideNumbers, setHideNumbers } = useApp();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -375,7 +377,15 @@ function Dashboard() {
           </div>
 
           {/* Meta Anual */}
-          <div className="md:col-span-2 lg:col-span-2 dash-card p-6 flex items-center justify-between gap-4" style={{ animationDelay: '60ms' }}>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate('/faturamento')}
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate('/faturamento'); }}
+            className="md:col-span-2 lg:col-span-2 dash-card p-6 flex items-center justify-between gap-4 cursor-pointer"
+            style={{ animationDelay: '60ms' }}
+            title="Abrir Planejamento e Metas"
+          >
             <div className="space-y-1 min-w-0">
               <span className="text-sm text-[#a1a1a1]">Meta Anual {selectedYear}</span>
               <div className="dash-heading text-2xl font-bold">
