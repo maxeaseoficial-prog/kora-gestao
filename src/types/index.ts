@@ -1,7 +1,8 @@
 export interface Client {
   id: string;
+  clientType: 'empresa' | 'pessoa';
   name: string;
-  company: string;
+  company?: string;
   serviceType: string;
   recurrence: 'mensal' | 'pontual';
   monthlyValue: number;
@@ -9,9 +10,13 @@ export interface Client {
   status: 'ativo' | 'inativo' | 'pendente';
   email?: string;
   phone?: string;
+  secondaryPhone?: string;
+  gender?: 'masculino' | 'feminino' | 'outro' | '';
+  age?: number | null;
   createdAt: Date;
   entryDate: Date;
   deactivatedAt?: Date | null;
+  endDate?: Date | null;
 }
 
 export interface CRMCard {
