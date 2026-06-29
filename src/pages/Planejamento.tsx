@@ -446,9 +446,7 @@ function MonthlyTab({ year, plan, finances, clients }: any) {
                       <Button variant="ghost" size="icon" onClick={() => { setEditMonth(r.month); setEditValue(String(r.meta)); }}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => { setDupOpen(r.month); setDupTarget(Math.min(11, r.month + 1)); }}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                      {/* duplicate removed */}
                     </div>
                   </td>
                 </tr>
@@ -500,32 +498,6 @@ function MonthlyTab({ year, plan, finances, clients }: any) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={dupOpen !== null} onOpenChange={(o) => { if (!o) setDupOpen(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Duplicar planejamento</DialogTitle>
-            <DialogDescription>
-              Copia todos os objetivos de {dupOpen !== null ? MONTHS[dupOpen] : ''} para o mês de destino.
-            </DialogDescription>
-          </DialogHeader>
-          <div>
-            <Label>Mês de destino</Label>
-            <Select value={String(dupTarget)} onValueChange={(v) => setDupTarget(Number(v))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDupOpen(null)}>Cancelar</Button>
-            <Button onClick={async () => {
-              if (dupOpen === null) return;
-              await plan.duplicateMonthPlan(dupOpen + 1, dupTarget + 1, year);
-              toast.success('Planejamento duplicado');
-              setDupOpen(null);
-            }}>Duplicar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }
