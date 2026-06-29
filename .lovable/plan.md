@@ -1,76 +1,117 @@
-## Refatoração do cadastro de clientes (Empresa / Pessoa)
+# Planejamento e Metas — Refatoração completa
 
-### 1. Banco de dados (migração)
-Adicionar à tabela `clients`:
-- `client_type` text not null default 'empresa' — `'empresa' | 'pessoa'`
-- `secondary_phone` text
-- `gender` text — `'masculino' | 'feminino' | 'outro'`
-- `age` integer (apenas para pessoa)
-- `end_date` date — data de encerramento do contrato
+Vou transformar a página atual `Faturamento` em um módulo completo **Planejamento e Metas**, mantendo a identidade visual existente (dark theme, cards padronizados, sem vermelho como cor principal) e aproveitando todos os cadastros já existentes (Clientes, Caixa, Produtos, Serviços).
 
-Tornar `company` nullable (pessoas não têm empresa).
+## Estrutura da página
 
-Cobranças recorrentes geradas mensalmente: filtrar para ignorar clientes cuja `end_date` já passou (lógica em `src/lib/revenue.ts` / `Caixa.tsx`).
+Nova página `src/pages/Planejamento.tsx` (substituindo o conteúdo de `Faturamento.tsx` mas mantendo a rota `/faturamento` para não quebrar links — também adiciono alias `/planejamento`). Sidebar/menu passa a exibir "Planejamento e Metas".
 
-### 2. Tipos
-Atualizar `src/types/index.ts` (`Client`):
-- `clientType: 'empresa' | 'pessoa'`
-- `secondaryPhone?: string`
-- `gender?: 'masculino' | 'feminino' | 'outro'`
-- `age?: number`
-- `endDate?: Date | null`
-- `company` opcional
+Navegação interna por tabs (componente `Tabs` do shadcn):
 
-Atualizar `src/hooks/useClients.ts` para mapear os novos campos no fetch / insert / update.
+1. **Visão Geral** — painel estratégico
+2. **Metas Anuais**
+3. **Metas Mensais**
+4. **Objetivos**
+5. **Progresso** — gráficos
+6. **Histórico**
 
-### 3. Novo fluxo de UI em `src/pages/Clientes.tsx`
+## 1. Visão Geral
 
-**Passo A — Modal de seleção de tipo**
-Ao clicar em "Novo Cliente", abrir um Dialog com dois cards grandes (ícone + título + descrição + botão "Selecionar"):
-- 🏢 Empresa
-- 👤 Pessoa
+Painel topo com indicadores inteligentes do mês corrente:
+- Meta do mês, Realizado, Restante, % atingido
+- Dias restantes, Valor necessário/dia
+- Projeção fim do mês (ritmo atual)
+- **Saúde da Meta** — classificação automática
 
-Selecionar um card fecha esse modal e abre o formulário correspondente já pré-configurado com `clientType`.
+Algoritmo de saúde (baseado em `% realizado` vs `% do mês decorrido`):
+- ratio ≥ 1.0 → 🟢 Excelente
+- ratio ≥ 0.85 → 🔵 No ritmo
+- ratio ≥ 0.6 → 🟡 Atenção
+- < 0.6 → 🔴 Crítico
 
-**Passo B — Formulário unificado e inteligente**
-Um único Dialog de formulário que se adapta ao `clientType`:
+Abaixo:
+- **Distribuição dos Objetivos** — gráfico Doughnut (recharts) por tipo (Produtos / Serviços / Contratos / Outros)
+- **Objetivos da Meta** — lista com Meta, Realizado, Restante, %, status
+- **Resumo Rápido** — contratos/produtos/serviços necessários × realizados × restantes
+- **Projeção fim do mês** — 3 cenários (manter / +10% / -10%)
+- **Dicas para bater a meta** — geradas automaticamente a partir dos objetivos com maior gap
 
-Seções visuais (com títulos):
-1. **Dados pessoais**
-   - Nome (sempre)
-   - Nome da empresa (somente Empresa)
-   - E-mail
-   - Telefone principal
-   - Telefone secundário (opcional)
-   - Sexo (select)
-   - Idade (somente Pessoa)
-2. **Dados do contrato**
-   - Tipo de serviço
-   - Recorrência (Mensal / Pontual)
-   - Valor
-   - Dia do contrato — **renderizado apenas se Recorrência = Mensal**
-3. **Controle**
-   - Data de entrada
-   - Data de encerramento (opcional, datepicker que pode ser limpo)
-   - Status (somente Empresa, mantém comportamento atual)
+## 2. Metas Anuais
 
-Comportamento dinâmico:
-- Mudar Recorrência para "Pontual" oculta `Dia do contrato` (sem reload).
-- Edição reabre o formulário no modo correspondente ao `clientType` do cliente.
+Lista de anos cadastrados. Cadastrar Ano + Valor anual + Descrição. Ao salvar, divide automaticamente por 12 nas metas mensais (sem sobrescrever meses já editados manualmente — marcador `is_manual`).
 
-### 4. Regra de encerramento
-Em `Caixa.tsx` / `revenue.ts` (geração de lançamentos recorrentes), pular clientes com `end_date` anterior ou igual ao mês alvo. Histórico anterior permanece intacto. Não há nada novo a apagar.
+Ao editar um mês individual em **Metas Mensais**, abre confirmação:
+> Esta alteração deve recalcular a meta anual?
+- Sim → soma os 12 meses e atualiza anual
+- Não → marca o mês como manual e mantém anual
 
-### 5. Lista de clientes
-- Mostrar um pequeno badge "Empresa" / "Pessoa" na coluna Cliente.
-- Coluna "Empresa" exibe `—` quando for pessoa.
-- Indicar visualmente quando `endDate` estiver preenchida (texto "Encerrado em dd/MM/yyyy").
+Gráfico de barras da distribuição mensal + KPIs (anual, realizado, restante, necessário/mês, %).
 
-### 6. Responsividade
-Grids dos formulários usam `grid-cols-1 md:grid-cols-2/3` para colapsar bem em mobile. Modal de seleção: cards em coluna no mobile, lado a lado em md+.
+## 3. Metas Mensais
 
-### Detalhes técnicos
-- Sem mudanças em outras páginas além das listadas.
-- Mantém shadcn (Dialog, Select, Popover/Calendar, Input, Button).
-- Sem dependências novas.
-- Sem alteração na lógica de Saídas, Dashboard, Compras.
+Tabela: Mês | Meta | Realizado | Restante | % | Status | Ações (Editar / Duplicar para próximo mês).
+
+"Duplicar planejamento" copia objetivos + distribuições do mês selecionado para o mês alvo.
+
+## 4. Objetivos
+
+Tela central. Para cada mês o usuário cria N objetivos:
+
+Modal "Novo Objetivo" multi-etapas:
+1. Tipo: Produto / Serviço / Contrato / Outro
+2. Selecionar cadastro existente (dropdown de `products` / `services` / `clients`) ou nome manual
+3. Definir Meta Financeira **OU** Quantidade — o sistema calcula o outro usando o preço vigente
+4. Salvar
+
+Cada objetivo mostra: Meta, Realizado, Faltante, %, contratos/produtos/serviços necessários × realizados × restantes.
+
+**Integração automática**: realized é calculado dinamicamente lendo `finance_entries` (filtrando por `product_id` / `service_id` / `client_id` / kind) no mês do objetivo. Cancelamentos/devoluções refletem automaticamente.
+
+## 5. Progresso
+
+Gráficos (recharts):
+- Linha diária acumulada (Meta vs Realizado)
+- Comparativo mensal do ano
+- Ritmo necessário/dia vs ritmo atual
+- Projeção e chance de atingir (% baseado em ritmo)
+
+## 6. Histórico
+
+Lista de eventos (`planning_history`) ordenada por data: meta criada/alterada, objetivo criado/removido, objetivo concluído, etc. Inserido por triggers/código no app.
+
+## Versionamento de preços
+
+Já existe `product_price_history` / `service_price_history`. Os objetivos guardam `unit_price_snapshot` no momento da criação para que metas antigas não sejam recalculadas. Metas futuras usam o preço vigente em `effective_date ≤ mês do objetivo`.
+
+## Integração com Dashboard
+
+Em `src/pages/Dashboard.tsx`, substituir o card de meta atual por card inteligente com: Meta, Realizado, Restante, %, Necessário/dia, Projeção, Saúde da meta. Card é clicável e navega para `/faturamento` (Visão Geral).
+
+## Mudanças técnicas
+
+### Banco de dados (uma migration)
+
+Novas tabelas:
+- `planning_objectives` — id, user_id, year, month, type ('product'|'service'|'contract'|'other'), product_id?, service_id?, name, target_value, target_quantity, unit_price_snapshot, created_at, updated_at
+- `planning_history` — id, user_id, event_type, description, metadata jsonb, created_at
+- `monthly_goals_manual` — flag `is_manual` adicionada em `annual_goals` (ou nova tabela `monthly_goals` se necessário). Vou usar a existente `annual_goals` (já é por mês) e adicionar coluna `is_manual boolean default false` + `annual_total numeric` na meta principal.
+
+Todas com RLS por `auth.uid() = user_id`, GRANT a `authenticated` e `service_role`, trigger `updated_at`.
+
+### Arquivos
+
+- **Novo** `src/pages/Planejamento.tsx` (página com tabs)
+- **Novos** `src/components/planning/VisaoGeral.tsx`, `MetasAnuais.tsx`, `MetasMensais.tsx`, `Objetivos.tsx`, `Progresso.tsx`, `Historico.tsx`, `ObjectiveDialog.tsx`, `GoalHealthBadge.tsx`
+- **Novo** `src/hooks/usePlanning.ts` — carrega objetivos, metas, calcula realizados a partir de `finances`/`clients`
+- **Novo** `src/lib/planning.ts` — funções puras: cálculo de saúde, projeção, dicas, distribuição
+- **Editado** `src/App.tsx` — rota `/planejamento` apontando para nova página (mantém `/faturamento` como alias)
+- **Editado** `src/components/Layout.tsx` (sidebar) — renomear "Faturamento" → "Planejamento e Metas"
+- **Editado** `src/pages/Dashboard.tsx` — card de meta inteligente clicável
+
+A identidade visual (cards, bordas, espaçamentos, tipografia, paleta B&W/cinza) é reaproveitada de Dashboard/MetricCard — nenhum novo token de cor.
+
+## Escopo / não-objetivos
+
+- Não altera Caixa, Produtos, Serviços, Clientes (apenas lê dados).
+- Não altera identidade visual nem adiciona cores novas.
+- Histórico de eventos é gravado a partir das ações do próprio módulo (sem triggers em outras tabelas).
