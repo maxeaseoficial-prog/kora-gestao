@@ -537,41 +537,67 @@ function ProgressTab({ year, month, plan, finances, clients }: any) {
   const chance = monthGoal > 0 ? Math.min(100, Math.round((projection / monthGoal) * 100)) : 0;
 
   return (
-    <div className="space-y-4">
-      <div className="grid md:grid-cols-4 gap-4">
-        <Kpi label="Ritmo atual/dia" value={formatBRL(ritmo)} />
-        <Kpi label="Necessário/dia" value={formatBRL(Math.max(0, (monthGoal - realized) / Math.max(1, dim - elapsed)))} />
-        <Kpi label="Projeção" value={formatBRL(projection)} />
-        <Kpi label="Chance de atingir" value={`${chance}%`} />
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon={<Activity className="h-4 w-4" />} label="Ritmo atual/dia" value={formatBRL(ritmo)} />
+        <StatCard icon={<Flag className="h-4 w-4" />} label="Necessário/dia" value={formatBRL(Math.max(0, (monthGoal - realized) / Math.max(1, dim - elapsed)))} />
+        <StatCard icon={<TrendingUp className="h-4 w-4" />} label="Projeção" value={formatBRL(projection)} />
+        <StatCard icon={<Sparkles className="h-4 w-4" />} label="Chance de atingir" value={`${chance}%`} />
       </div>
+
       <Card>
-        <CardHeader><CardTitle className="text-base">Acumulado diário — {MONTHS[month]}</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base">Acumulado diário — {MONTHS[month]}</CardTitle>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-foreground" /> Realizado</span>
+            <span className="flex items-center gap-1.5"><span className="h-0.5 w-3 bg-muted-foreground" /> Meta</span>
+          </div>
+        </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="day" className="text-xs" />
-              <YAxis tickFormatter={(v) => formatShortBRL(Number(v))} className="text-xs" />
-              <Tooltip formatter={(v: any) => formatBRL(Number(v))} />
-              <Legend />
-              <Line type="monotone" dataKey="Meta" stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" dot={false} />
-              <Line type="monotone" dataKey="Realizado" stroke="hsl(var(--foreground))" strokeWidth={2} dot={false} />
-            </LineChart>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="progressArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+              <YAxis tickFormatter={(v) => formatShortBRL(Number(v))} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={60} />
+              <Tooltip
+                contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                formatter={(v: any) => formatBRL(Number(v))}
+                labelFormatter={(l) => `Dia ${l}`}
+              />
+              <Line type="monotone" dataKey="Meta" stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" strokeWidth={1.5} dot={false} />
+              <Area type="monotone" dataKey="Realizado" stroke="hsl(var(--foreground))" strokeWidth={2.5} fill="url(#progressArea)" />
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
       <Card>
-        <CardHeader><CardTitle className="text-base">Comparativo mensal — {year}</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base">Comparativo mensal — {year}</CardTitle>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-foreground" /> Realizado</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-muted-foreground/40" /> Meta</span>
+          </div>
+        </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="name" className="text-xs" />
-              <YAxis tickFormatter={(v) => formatShortBRL(Number(v))} className="text-xs" />
-              <Tooltip formatter={(v: any) => formatBRL(Number(v))} />
-              <Legend />
-              <Bar dataKey="Meta" fill="hsl(var(--muted-foreground))" radius={[4,4,0,0]} />
-              <Bar dataKey="Realizado" fill="hsl(var(--foreground))" radius={[4,4,0,0]} />
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} barGap={4}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+              <YAxis tickFormatter={(v) => formatShortBRL(Number(v))} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={60} />
+              <Tooltip
+                cursor={{ fill: 'hsl(var(--secondary))', opacity: 0.5 }}
+                contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                formatter={(v: any) => formatBRL(Number(v))}
+              />
+              <Bar dataKey="Meta" fill="hsl(var(--muted-foreground) / 0.35)" radius={[6,6,0,0]} />
+              <Bar dataKey="Realizado" fill="hsl(var(--foreground))" radius={[6,6,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
