@@ -127,7 +127,7 @@ export default function Orcamentos() {
       {/* Header with Total Balance */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Orçamentos</h2>
+          <h2 className="text-2xl font-bold">Compras</h2>
           <p className="text-muted-foreground">Gerencie os produtos que você pretende comprar</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -236,7 +236,7 @@ export default function Orcamentos() {
       {/* Total Balance Card */}
       <Card className="bg-primary text-primary-foreground">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium opacity-90">Saldo Total do Orçamento</CardTitle>
+          <CardTitle className="text-lg font-medium opacity-90">Saldo Total das Compras</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-3xl font-bold">{formatCurrency(totalBalance)}</p>
