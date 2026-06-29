@@ -454,6 +454,47 @@ export type Database = {
           },
         ]
       }
+      product_price_history: {
+        Row: {
+          cost_price: number
+          created_at: string
+          effective_date: string
+          id: string
+          note: string | null
+          product_id: string
+          sale_price: number
+          user_id: string
+        }
+        Insert: {
+          cost_price?: number
+          created_at?: string
+          effective_date: string
+          id?: string
+          note?: string | null
+          product_id: string
+          sale_price: number
+          user_id: string
+        }
+        Update: {
+          cost_price?: number
+          created_at?: string
+          effective_date?: string
+          id?: string
+          note?: string | null
+          product_id?: string
+          sale_price?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_price_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           cost_price: number
@@ -695,6 +736,47 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_price_history: {
+        Row: {
+          created_at: string
+          currency: string
+          effective_date: string
+          id: string
+          note: string | null
+          price: number
+          service_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          effective_date: string
+          id?: string
+          note?: string | null
+          price: number
+          service_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          effective_date?: string
+          id?: string
+          note?: string | null
+          price?: number
+          service_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_price_history_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]
