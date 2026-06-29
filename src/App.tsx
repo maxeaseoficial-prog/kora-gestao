@@ -16,7 +16,7 @@ import MindMapEditor from "@/pages/MindMapEditor";
 import Servicos from "@/pages/Servicos";
 import Produtos from "@/pages/Produtos";
 import Orcamentos from "@/pages/Orcamentos";
-import Faturamento from "@/pages/Faturamento";
+import Planejamento from "@/pages/Planejamento";
 import Projetos from "@/pages/Projetos";
 import ProjetoDetalhe from "@/pages/ProjetoDetalhe";
 import Auth from "@/pages/Auth";
@@ -149,7 +149,17 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Layout>
-                      <Faturamento />
+                      <Planejamento />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/planejamento"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Planejamento />
                     </Layout>
                   </ProtectedRoute>
                 }

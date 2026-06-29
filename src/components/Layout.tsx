@@ -33,7 +33,7 @@ const navigation = [
   { name: 'Produtos', href: '/produtos', icon: Box },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
   { name: 'Saídas', href: '/saidas', icon: TrendingDown },
-  { name: 'Faturamento e Metas', href: '/faturamento', icon: Target },
+  { name: 'Planejamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Compras', href: '/orcamentos', icon: ShoppingCart },
   { name: 'Projetos', href: '/projetos', icon: Brain },
 ];
