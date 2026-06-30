@@ -12,7 +12,6 @@ import CRM from "@/pages/CRM";
 import Clientes from "@/pages/Clientes";
 import Caixa from "@/pages/Caixa";
 import Saidas from "@/pages/Saidas";
-import MindMapEditor from "@/pages/MindMapEditor";
 import Servicos from "@/pages/Servicos";
 import Produtos from "@/pages/Produtos";
 import Orcamentos from "@/pages/Orcamentos";
