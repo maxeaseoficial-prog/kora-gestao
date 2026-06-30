@@ -163,6 +163,9 @@ function Clientes() {
       endDate: client.endDate || null,
       avatarPath: client.avatarPath || null,
       avatarUrl: client.avatarUrl || null,
+      originType: client.originType || '',
+      originChannel: client.originChannel || null,
+      referrerName: client.referrerName || null,
     });
     setIsDialogOpen(true);
   };
