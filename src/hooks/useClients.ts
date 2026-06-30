@@ -46,6 +46,9 @@ export function useClients() {
         endDate: (c as any).end_date ? new Date((c as any).end_date + 'T12:00:00Z') : null,
         avatarPath: (c as any).avatar_url || null,
         avatarUrl: null,
+        originType: ((c as any).origin_type || '') as Client['originType'],
+        originChannel: (c as any).origin_channel || null,
+        referrerName: (c as any).referrer_name || null,
       }));
 
       // Resolve signed URLs for avatars (private bucket)
@@ -117,6 +120,9 @@ export function useClients() {
           deactivated_at: client.deactivatedAt ? client.deactivatedAt.toISOString().split('T')[0] : null,
           end_date: client.endDate ? client.endDate.toISOString().split('T')[0] : null,
           avatar_url: client.avatarPath || null,
+          origin_type: client.originType || null,
+          origin_channel: client.originChannel || null,
+          referrer_name: client.referrerName || null,
         } as any);
         if (error) throw error;
       }
@@ -155,6 +161,9 @@ export function useClients() {
               deactivated_at: client.deactivatedAt ? client.deactivatedAt.toISOString().split('T')[0] : null,
               end_date: client.endDate ? client.endDate.toISOString().split('T')[0] : null,
               avatar_url: client.avatarPath || null,
+              origin_type: client.originType || null,
+              origin_channel: client.originChannel || null,
+              referrer_name: client.referrerName || null,
             } as any)
             .eq('id', client.id)
             .eq('user_id', user.id);
