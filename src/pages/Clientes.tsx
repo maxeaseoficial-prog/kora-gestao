@@ -562,6 +562,52 @@ function Clientes() {
           </DialogHeader>
 
           <div className="space-y-6 pt-4">
+            {/* Foto */}
+            <section className="flex items-center gap-4">
+              <Avatar className="h-20 w-20 border border-border">
+                {formData.avatarUrl && <AvatarImage src={formData.avatarUrl} alt={formData.name || 'Cliente'} />}
+                <AvatarFallback className="bg-secondary text-base font-medium">
+                  {initials(formData.name || '?')}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium">Foto do cliente</p>
+                <p className="text-xs text-muted-foreground">PNG, JPG ou WEBP até 5MB.</p>
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAvatarUpload(file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    {formData.avatarUrl ? 'Trocar foto' : 'Enviar foto'}
+                  </Button>
+                  {formData.avatarUrl && (
+                    <Button type="button" variant="ghost" size="sm" onClick={handleAvatarRemove}>
+                      Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </section>
+
             {/* Dados pessoais */}
             <section className="space-y-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Dados pessoais</h3>
