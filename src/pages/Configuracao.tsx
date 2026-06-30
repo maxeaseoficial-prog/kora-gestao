@@ -315,21 +315,21 @@ export default function Configuracao() {
               <CardDescription>Precisa de ajuda? Estamos aqui.</CardDescription>
             </CardHeader>
             <CardContent className="grid sm:grid-cols-2 gap-3">
-              <a href="mailto:suporte@maxease.com?subject=Central%20de%20ajuda" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
+              <a href="mailto:suporte@kora.com?subject=Central%20de%20ajuda" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
                 <HelpCircle className="h-5 w-5" />
                 <div>
                   <div className="font-medium text-sm">Central de ajuda</div>
                   <div className="text-xs text-muted-foreground">Tire suas dúvidas</div>
                 </div>
               </a>
-              <a href="mailto:suporte@maxease.com?subject=Reportar%20problema" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
+              <a href="mailto:suporte@kora.com?subject=Reportar%20problema" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
                 <Bug className="h-5 w-5" />
                 <div>
                   <div className="font-medium text-sm">Reportar problema</div>
                   <div className="text-xs text-muted-foreground">Encontrou um bug?</div>
                 </div>
               </a>
-              <a href="mailto:suporte@maxease.com?subject=Solicitar%20funcionalidade" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
+              <a href="mailto:suporte@kora.com?subject=Solicitar%20funcionalidade" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
                 <Sparkles className="h-5 w-5" />
                 <div>
                   <div className="font-medium text-sm">Solicitar funcionalidade</div>
@@ -340,7 +340,7 @@ export default function Configuracao() {
                 <Info className="h-5 w-5" />
                 <div>
                   <div className="font-medium text-sm">Sobre o sistema</div>
-                  <div className="text-xs text-muted-foreground">MAXEASE • v1.0.0</div>
+                  <div className="text-xs text-muted-foreground">Kora • v1.0.0</div>
                 </div>
               </div>
             </CardContent>
