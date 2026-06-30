@@ -989,3 +989,261 @@ function Clientes() {
 }
 
 export default Clientes;
+
+// ===== Controle de cliente (analytics) =====
+const GRAY_PALETTE = [
+  'hsl(0 0% 10%)',
+  'hsl(0 0% 25%)',
+  'hsl(0 0% 38%)',
+  'hsl(0 0% 50%)',
+  'hsl(0 0% 60%)',
+  'hsl(0 0% 70%)',
+  'hsl(0 0% 78%)',
+  'hsl(0 0% 85%)',
+  'hsl(0 0% 90%)',
+];
+
+function ControleClientes({ clients }: { clients: Client[] }) {
+  const monthlyEntries = useMemoEntries(clients);
+  const { channelData, originSplit, topChannel, totalIndicacoes, topIndicador, notInformed } =
+    useMemoOrigins(clients);
+
+  const totalEntradas = clients.length;
+  const last12Total = monthlyEntries.reduce((s, m) => s + m.count, 0);
+
+  return (
+    <div className="space-y-6">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard label="Total de clientes" value={String(totalEntradas)} />
+        <KpiCard label="Entradas (12 meses)" value={String(last12Total)} />
+        <KpiCard
+          label="Canal que mais traz"
+          value={topChannel ? topChannel.name : '—'}
+          hint={topChannel ? `${topChannel.value} cliente${topChannel.value > 1 ? 's' : ''}` : 'Sem dados'}
+        />
+        <KpiCard
+          label="Indicações"
+          value={String(totalIndicacoes)}
+          hint={topIndicador ? `Top: ${topIndicador.name} (${topIndicador.value})` : 'Sem indicações'}
+        />
+      </div>
+
+      {/* Entradas mensais */}
+      <div className="bg-card border border-border rounded-xl p-5">
+        <div className="flex items-end justify-between mb-4">
+          <div>
+            <h3 className="text-base font-semibold">Entradas de clientes</h3>
+            <p className="text-xs text-muted-foreground">Novos clientes cadastrados por mês (últimos 12 meses)</p>
+          </div>
+        </div>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={monthlyEntries} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+              <RTooltip
+                cursor={{ fill: 'hsl(var(--muted) / 0.4)' }}
+                contentStyle={{
+                  background: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: 8,
+                  fontSize: 12,
+                }}
+                formatter={(v: number) => [`${v} cliente${v > 1 ? 's' : ''}`, 'Entradas']}
+              />
+              <Bar dataKey="count" fill="hsl(var(--foreground))" radius={[6, 6, 0, 0]} maxBarSize={42} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Pizza por canal/indicação */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <h3 className="text-base font-semibold">Origem dos clientes</h3>
+          <p className="text-xs text-muted-foreground mb-2">
+            Distribuição por canal de vendas e indicações
+          </p>
+          {channelData.length === 0 ? (
+            <div className="h-72 flex items-center justify-center text-sm text-muted-foreground">
+              Cadastre a origem dos clientes para ver o gráfico
+            </div>
+          ) : (
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={channelData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={95}
+                    paddingAngle={2}
+                    stroke="hsl(var(--background))"
+                    strokeWidth={2}
+                  >
+                    {channelData.map((_, i) => (
+                      <Cell key={i} fill={GRAY_PALETTE[i % GRAY_PALETTE.length]} />
+                    ))}
+                  </Pie>
+                  <RTooltip
+                    contentStyle={{
+                      background: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                    formatter={(v: number, n: string) => [`${v} cliente${v > 1 ? 's' : ''}`, n]}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+        {/* Tabela detalhada */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <h3 className="text-base font-semibold">Detalhamento por canal</h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            Quantos clientes vieram de cada origem
+          </p>
+          <div className="space-y-2">
+            {channelData.length === 0 && (
+              <p className="text-sm text-muted-foreground py-8 text-center">Sem dados de origem ainda.</p>
+            )}
+            {channelData.map((c, i) => {
+              const pct = totalEntradas > 0 ? (c.value / totalEntradas) * 100 : 0;
+              return (
+                <div key={c.name} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full inline-block"
+                        style={{ background: GRAY_PALETTE[i % GRAY_PALETTE.length] }}
+                      />
+                      <span className="font-medium">{c.name}</span>
+                    </div>
+                    <span className="tabular-nums text-muted-foreground">
+                      {c.value} <span className="text-xs">({pct.toFixed(1)}%)</span>
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-foreground rounded-full transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            {notInformed > 0 && (
+              <p className="text-xs text-muted-foreground pt-3 border-t border-border mt-3">
+                {notInformed} cliente{notInformed > 1 ? 's' : ''} sem origem informada
+              </p>
+            )}
+          </div>
+
+          {/* Split canal x indicação */}
+          {(originSplit.canal > 0 || originSplit.indicacao > 0) && (
+            <div className="grid grid-cols-2 gap-3 mt-5 pt-5 border-t border-border">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Canal de vendas</p>
+                <p className="text-xl font-semibold mt-1">{originSplit.canal}</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Indicações</p>
+                <p className="text-xl font-semibold mt-1">{originSplit.indicacao}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="bg-card border border-border rounded-xl p-4">
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-2xl font-semibold mt-1 truncate">{value}</p>
+      {hint && <p className="text-xs text-muted-foreground mt-1 truncate">{hint}</p>}
+    </div>
+  );
+}
+
+function useMemoEntries(clients: Client[]) {
+  return useMemo(() => {
+    const now = new Date();
+    const months: { key: string; label: string; count: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      months.push({
+        key,
+        label: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+        count: 0,
+      });
+    }
+    clients.forEach((c) => {
+      const d = c.entryDate ? new Date(c.entryDate) : null;
+      if (!d) return;
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const m = months.find((x) => x.key === key);
+      if (m) m.count += 1;
+    });
+    return months;
+  }, [clients]);
+}
+
+function useMemoOrigins(clients: Client[]) {
+  return useMemo(() => {
+    const channelMap = new Map<string, number>();
+    const indicadorMap = new Map<string, number>();
+    let canal = 0;
+    let indicacao = 0;
+    let notInformed = 0;
+
+    clients.forEach((c) => {
+      if (c.originType === 'canal_vendas' && c.originChannel) {
+        canal += 1;
+        channelMap.set(c.originChannel, (channelMap.get(c.originChannel) || 0) + 1);
+      } else if (c.originType === 'indicacao') {
+        indicacao += 1;
+        const name = (c.referrerName || 'Sem nome').trim() || 'Sem nome';
+        indicadorMap.set(name, (indicadorMap.get(name) || 0) + 1);
+      } else {
+        notInformed += 1;
+      }
+    });
+
+    const channelData = [
+      ...Array.from(channelMap.entries()).map(([name, value]) => ({ name, value })),
+      ...(indicacao > 0 ? [{ name: 'Indicação', value: indicacao }] : []),
+    ].sort((a, b) => b.value - a.value);
+
+    const topChannel = channelData[0] || null;
+    const topIndicador =
+      Array.from(indicadorMap.entries())
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)[0] || null;
+
+    return {
+      channelData,
+      originSplit: { canal, indicacao },
+      topChannel,
+      totalIndicacoes: indicacao,
+      topIndicador,
+      notInformed,
+    };
+  }, [clients]);
+}
