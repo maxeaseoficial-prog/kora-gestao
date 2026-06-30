@@ -123,8 +123,8 @@ function Auth() {
         <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <img src={logoLight.url} alt="Kora" className="h-16 w-auto block dark:hidden" />
-            <img src={logoDark.url} alt="Kora" className="h-16 w-auto hidden dark:block" />
+            <img src={logoLight.url} alt="Kora" className="h-32 md:h-40 w-auto block dark:hidden" />
+            <img src={logoDark.url} alt="Kora" className="h-32 md:h-40 w-auto hidden dark:block" />
           </div>
           
           <h1 className="text-2xl font-bold text-center mb-2">
