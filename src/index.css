@@ -192,6 +192,12 @@ html:not(.dark) .obs-card .text-white,
 html:not(.dark) .dash-heading.text-white,
 html:not(.dark) .obs-heading.text-white { color: hsl(var(--foreground)) !important; }
 
+/* Global text-white override for light mode (dialogs, inputs, etc. in Dashboard/Saídas) */
+html:not(.dark) .text-white { color: hsl(var(--foreground)) !important; }
+html:not(.dark) .text-white\/70 { color: hsl(var(--muted-foreground)) !important; }
+html:not(.dark) .text-white\/80 { color: hsl(var(--foreground) / 0.85) !important; }
+html:not(.dark) .hover\:text-white:hover { color: hsl(var(--foreground)) !important; }
+
 html:not(.dark) .bg-white { background-color: hsl(var(--foreground)) !important; }
 html:not(.dark) .text-black { color: hsl(var(--background)) !important; }
 html:not(.dark) .hover\:bg-white\/90:hover { background-color: hsl(var(--foreground) / 0.9) !important; }
