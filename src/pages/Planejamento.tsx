@@ -480,12 +480,19 @@ function MonthlyTab({ year, plan, finances, clients }: any) {
           <DialogHeader>
             <DialogTitle>Editar meta de {editMonth !== null ? MONTHS[editMonth] : ''}</DialogTitle>
           </DialogHeader>
-          <Input type="number" step="0.01" value={editValue} onChange={(e) => setEditValue(e.target.value)} />
+          <Input
+            type="text"
+            inputMode="decimal"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value.replace(/[^\d.,]/g, ''))}
+            placeholder="Ex: 8.333,33"
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditMonth(null)}>Cancelar</Button>
             <Button onClick={() => {
-              const v = Number(editValue);
-              if (!v || v < 0) { toast.error('Informe um valor válido'); return; }
+              const normalized = editValue.trim().replace(/\./g, '').replace(',', '.');
+              const v = Number(normalized);
+              if (!isFinite(v) || v <= 0) { toast.error('Informe um valor válido'); return; }
               setPendingValue({ month: editMonth! + 1, value: v });
               setConfirmOpen(true);
               setEditMonth(null);
