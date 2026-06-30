@@ -755,6 +755,66 @@ function Clientes() {
               </div>
             </section>
 
+            {/* Origem */}
+            <section className="space-y-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Origem do cliente</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Como chegou</label>
+                  <Select
+                    value={formData.originType || ''}
+                    onValueChange={(value: 'canal_vendas' | 'indicacao') =>
+                      setFormData({
+                        ...formData,
+                        originType: value,
+                        originChannel: value === 'canal_vendas' ? formData.originChannel : null,
+                        referrerName: value === 'indicacao' ? formData.referrerName : null,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Selecionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="canal_vendas">Canal de vendas</SelectItem>
+                      <SelectItem value="indicacao">Indicação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.originType === 'canal_vendas' && (
+                  <div>
+                    <label className="text-sm font-medium">Canal de vendas</label>
+                    <Select
+                      value={formData.originChannel || ''}
+                      onValueChange={(value) => setFormData({ ...formData, originChannel: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecionar canal" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SALES_CHANNELS.map((ch) => (
+                          <SelectItem key={ch} value={ch}>{ch}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {formData.originType === 'indicacao' && (
+                  <div>
+                    <label className="text-sm font-medium">Indicado por</label>
+                    <Input
+                      value={formData.referrerName || ''}
+                      onChange={(e) => setFormData({ ...formData, referrerName: e.target.value })}
+                      placeholder="Nome de quem indicou"
+                      className="mt-1"
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
+
             {/* Controle */}
             <section className="space-y-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Controle</h3>
