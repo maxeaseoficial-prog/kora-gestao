@@ -18,9 +18,9 @@ export default defineConfig(({ mode }) => ({
       injectRegister: "auto",
       includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
       manifest: {
-        name: "MAXEASE – Workflow & Gestão",
-        short_name: "MAXEASE",
-        description: "Plataforma interna de workflow, CRM, clientes, finanças e relatórios da agência MAXEASE",
+        name: "Kora – Gestão Inteligente",
+        short_name: "Kora",
+        description: "Plataforma interna de workflow, CRM, clientes, finanças e relatórios da agência Kora",
         theme_color: "#000000",
         background_color: "#ffffff",
         display: "standalone",

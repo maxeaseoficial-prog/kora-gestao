@@ -123,13 +123,13 @@ function Auth() {
           <div className="flex justify-center mb-8">
             <img 
               src="/pwa-192x192.png" 
-              alt="MAXEASE" 
+              alt="Kora" 
               className="h-16 w-16"
             />
           </div>
           
           <h1 className="text-2xl font-bold text-center mb-2">
-            {isLogin ? 'Entrar no MAXEASE' : 'Criar conta'}
+            {isLogin ? 'Entrar no Kora' : 'Criar conta'}
           </h1>
           <p className="text-muted-foreground text-center mb-6">
             {isLogin 

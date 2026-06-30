@@ -85,7 +85,7 @@ export function Layout({ children }: LayoutProps) {
           )}>
             {!collapsed && (
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight">MAXEASE</span>
+                <span className="text-xl font-bold tracking-tight">Kora</span>
               </div>
             )}
             <Button
@@ -148,7 +148,7 @@ export function Layout({ children }: LayoutProps) {
             </Button>
             {!collapsed && (
               <p className="text-xs text-muted-foreground text-center">
-                © 2025 MAXEASE
+                © 2025 Kora
               </p>
             )}
           </div>

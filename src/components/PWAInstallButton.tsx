@@ -35,7 +35,7 @@ export function PWAInstallButton() {
       setIsInstallable(false);
       setDeferredPrompt(null);
       toast({
-        title: "MAXEASE instalado!",
+        title: "Kora instalado!",
         description: "O aplicativo foi instalado com sucesso.",
       });
     };
@@ -91,12 +91,12 @@ export function PWAInstallButton() {
       }`}
       title={
         isInstallable
-          ? "Instalar MAXEASE"
+          ? "Instalar Kora"
           : "Abra o link publicado no Chrome/Edge para habilitar a instalação (ou veja instruções ao clicar)"
       }
     >
       <Download className="h-4 w-4 mr-2" />
-      Instalar MAXEASE
+      Instalar Kora
     </Button>
   );
 }

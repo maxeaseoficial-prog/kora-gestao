@@ -5,9 +5,9 @@ export default function Install() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Instalar MAXEASE</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Instalar Kora</h1>
         <p className="text-muted-foreground mt-1">
-          Siga as instruções abaixo para instalar o MAXEASE como aplicativo no seu dispositivo.
+          Siga as instruções abaixo para instalar o Kora como aplicativo no seu dispositivo.
         </p>
       </div>
 
@@ -28,13 +28,13 @@ export default function Install() {
           <CardContent className="space-y-4">
             <ol className="list-decimal list-inside space-y-3 text-sm">
               <li>
-                Abra o <strong>link publicado</strong> do MAXEASE no <strong>Google Chrome</strong> ou <strong>Microsoft Edge</strong>
+                Abra o <strong>link publicado</strong> do Kora no <strong>Google Chrome</strong> ou <strong>Microsoft Edge</strong>
               </li>
               <li>
                 Clique no ícone de <strong>instalação</strong> na barra de endereços (ícone de monitor com seta)
               </li>
               <li>
-                Ou acesse o <strong>menu do navegador</strong> (três pontos) e clique em <strong>"Instalar MAXEASE"</strong>
+                Ou acesse o <strong>menu do navegador</strong> (três pontos) e clique em <strong>"Instalar Kora"</strong>
               </li>
               <li>
                 Confirme clicando em <strong>"Instalar"</strong>
@@ -62,13 +62,13 @@ export default function Install() {
           <CardContent className="space-y-4">
             <ol className="list-decimal list-inside space-y-3 text-sm">
               <li>
-                Abra o <strong>link publicado</strong> do MAXEASE no <strong>Google Chrome</strong> ou <strong>Microsoft Edge</strong>
+                Abra o <strong>link publicado</strong> do Kora no <strong>Google Chrome</strong> ou <strong>Microsoft Edge</strong>
               </li>
               <li>
                 Clique no ícone de <strong>instalação</strong> na barra de endereços
               </li>
               <li>
-                Ou acesse <strong>Chrome → Arquivo → Instalar MAXEASE</strong>
+                Ou acesse <strong>Chrome → Arquivo → Instalar Kora</strong>
               </li>
               <li>
                 Confirme clicando em <strong>"Instalar"</strong>
@@ -96,7 +96,7 @@ export default function Install() {
           <CardContent className="space-y-4">
             <ol className="list-decimal list-inside space-y-3 text-sm">
               <li>
-                Acesse o <strong>link publicado</strong> do MAXEASE
+                Acesse o <strong>link publicado</strong> do Kora
               </li>
               <li>
                 Pressione <strong>Ctrl + Shift + I</strong> (Windows) ou <strong>Cmd + Shift + I</strong> (Mac) para abrir DevTools
@@ -130,7 +130,7 @@ export default function Install() {
                 <strong>Google Chrome</strong> ou <strong>Microsoft Edge</strong> (versão atualizada)
               </li>
               <li>
-                Acesso ao <strong>link publicado</strong> do MAXEASE (não funciona no preview do Lovable)
+                Acesso ao <strong>link publicado</strong> do Kora (não funciona no preview do Lovable)
               </li>
               <li>
                 Conexão com a internet na primeira instalação
