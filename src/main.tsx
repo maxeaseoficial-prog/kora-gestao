@@ -5,4 +5,10 @@ import "./index.css";
 
 registerSW({ immediate: true });
 
+try {
+  if (localStorage.getItem('maxease-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
+} catch {}
+
 createRoot(document.getElementById("root")!).render(<App />);

@@ -16,6 +16,7 @@ import Servicos from "@/pages/Servicos";
 import Produtos from "@/pages/Produtos";
 import Orcamentos from "@/pages/Orcamentos";
 import Planejamento from "@/pages/Planejamento";
+import Configuracao from "@/pages/Configuracao";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -127,6 +128,16 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Planejamento />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/configuracao"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Configuracao />
                     </Layout>
                   </ProtectedRoute>
                 }

@@ -15,7 +15,8 @@ import {
   Box,
   TrendingDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ const navigation = [
   { name: 'Saídas', href: '/saidas', icon: TrendingDown },
   { name: 'Planejamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Compras', href: '/orcamentos', icon: ShoppingCart },
+  { name: 'Configuração', href: '/configuracao', icon: Settings },
 ];
 
 const STORAGE_KEY_COLLAPSED = 'maxease-sidebar-collapsed';
