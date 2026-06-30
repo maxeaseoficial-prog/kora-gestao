@@ -21,6 +21,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import logoDark from '@/assets/kora-branca.png.asset.json';
+import logoLight from '@/assets/kora-preta.png.asset.json';
 
 interface LayoutProps {
   children: ReactNode;
@@ -85,7 +87,8 @@ export function Layout({ children }: LayoutProps) {
           )}>
             {!collapsed && (
               <div className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight">Kora</span>
+                <img src={logoLight.url} alt="Kora" className="h-8 w-auto block dark:hidden" />
+                <img src={logoDark.url} alt="Kora" className="h-8 w-auto hidden dark:block" />
               </div>
             )}
             <Button
