@@ -77,6 +77,7 @@ export type Database = {
       clients: {
         Row: {
           age: number | null
+          avatar_url: string | null
           client_type: string
           company: string | null
           contract_day: number
@@ -98,6 +99,7 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          avatar_url?: string | null
           client_type?: string
           company?: string | null
           contract_day?: number
@@ -119,6 +121,7 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          avatar_url?: string | null
           client_type?: string
           company?: string | null
           contract_day?: number

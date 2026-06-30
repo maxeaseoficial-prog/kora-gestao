@@ -1,11 +1,15 @@
-import { useState, useMemo } from 'react';
-import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Client } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -45,10 +49,15 @@ const buildInitialState = (clientType: ClientType): FormState => ({
   entryDate: new Date(),
   deactivatedAt: null,
   endDate: null,
+  avatarPath: null,
+  avatarUrl: null,
 });
 
 function Clientes() {
   const { clients, setClients } = useApp();
+  const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
@@ -138,8 +147,61 @@ function Clientes() {
       entryDate: client.entryDate || new Date(),
       deactivatedAt: client.deactivatedAt || null,
       endDate: client.endDate || null,
+      avatarPath: client.avatarPath || null,
+      avatarUrl: client.avatarUrl || null,
     });
     setIsDialogOpen(true);
+  };
+
+  const initials = (name: string) =>
+    name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase())
+      .join('') || '?';
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem muito grande (máx 5MB).');
+      return;
+    }
+    try {
+      setUploadingAvatar(true);
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('client-avatars')
+        .upload(path, file, { cacheControl: '3600', upsert: false });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from('client-avatars')
+        .createSignedUrl(path, 60 * 60 * 24 * 7);
+      if (signErr) throw signErr;
+      // Try to remove previous avatar if any
+      if (formData.avatarPath) {
+        await supabase.storage.from('client-avatars').remove([formData.avatarPath]);
+      }
+      setFormData((prev) => ({ ...prev, avatarPath: path, avatarUrl: signed?.signedUrl || null }));
+      toast.success('Foto enviada');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao enviar foto');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    if (formData.avatarPath) {
+      await supabase.storage.from('client-avatars').remove([formData.avatarPath]);
+    }
+    setFormData((prev) => ({ ...prev, avatarPath: null, avatarUrl: null }));
   };
 
   const handleSave = () => {
@@ -358,21 +420,28 @@ function Clientes() {
                     )}
                   >
                     <td className="p-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{client.name}</p>
-                          <span className={cn(
-                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border',
-                            type === 'empresa' ? 'bg-secondary text-secondary-foreground border-border' : 'bg-muted text-muted-foreground border-border'
-                          )}>
-                            {type === 'empresa' ? <Building2 className="h-3 w-3" /> : <UserIcon className="h-3 w-3" />}
-                            {type === 'empresa' ? 'Empresa' : 'Pessoa'}
-                          </span>
-                        </div>
-                        {client.email && (
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-border">
+                          {client.avatarUrl && <AvatarImage src={client.avatarUrl} alt={client.name} />}
+                          <AvatarFallback className="text-xs font-medium bg-secondary">
+                            {initials(client.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium">{client.name}</p>
+                            <span className={cn(
+                              'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border',
+                              type === 'empresa' ? 'bg-secondary text-secondary-foreground border-border' : 'bg-muted text-muted-foreground border-border'
+                            )}>
+                              {type === 'empresa' ? <Building2 className="h-3 w-3" /> : <UserIcon className="h-3 w-3" />}
+                              {type === 'empresa' ? 'Empresa' : 'Pessoa'}
+                            </span>
+                          </div>
+                          {client.email && (
                           <p className={cn('text-sm', client.status === 'inativo' ? 'text-destructive/80' : 'text-muted-foreground')}>{client.email}</p>
-                        )}
-                        <p className={cn('text-xs mt-0.5', client.status === 'inativo' ? 'text-destructive/80' : 'text-muted-foreground')}>
+                          )}
+                          <p className={cn('text-xs mt-0.5', client.status === 'inativo' ? 'text-destructive/80' : 'text-muted-foreground')}>
                           Entrada: {format(new Date(client.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
                           {client.endDate && (
                             <> · Encerrado em {format(new Date(client.endDate), 'dd/MM/yyyy', { locale: ptBR })}</>
@@ -381,6 +450,7 @@ function Clientes() {
                             <> · Desativado: {format(new Date(client.deactivatedAt), 'dd/MM/yyyy', { locale: ptBR })}</>
                           )}
                         </p>
+                        </div>
                       </div>
                     </td>
                     <td className={cn('p-4', client.status === 'inativo' ? '' : 'text-muted-foreground')}>
@@ -492,6 +562,52 @@ function Clientes() {
           </DialogHeader>
 
           <div className="space-y-6 pt-4">
+            {/* Foto */}
+            <section className="flex items-center gap-4">
+              <Avatar className="h-20 w-20 border border-border">
+                {formData.avatarUrl && <AvatarImage src={formData.avatarUrl} alt={formData.name || 'Cliente'} />}
+                <AvatarFallback className="bg-secondary text-base font-medium">
+                  {initials(formData.name || '?')}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium">Foto do cliente</p>
+                <p className="text-xs text-muted-foreground">PNG, JPG ou WEBP até 5MB.</p>
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAvatarUpload(file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    {formData.avatarUrl ? 'Trocar foto' : 'Enviar foto'}
+                  </Button>
+                  {formData.avatarUrl && (
+                    <Button type="button" variant="ghost" size="sm" onClick={handleAvatarRemove}>
+                      Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </section>
+
             {/* Dados pessoais */}
             <section className="space-y-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Dados pessoais</h3>

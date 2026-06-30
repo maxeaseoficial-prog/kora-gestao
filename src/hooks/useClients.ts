@@ -44,9 +44,22 @@ export function useClients() {
         entryDate: c.entry_date ? new Date(c.entry_date + 'T12:00:00Z') : new Date(c.created_at),
         deactivatedAt: c.deactivated_at ? new Date(c.deactivated_at + 'T12:00:00Z') : null,
         endDate: (c as any).end_date ? new Date((c as any).end_date + 'T12:00:00Z') : null,
+        avatarPath: (c as any).avatar_url || null,
+        avatarUrl: null,
       }));
 
-      setClientsState(mappedClients);
+      // Resolve signed URLs for avatars (private bucket)
+      const withAvatars = await Promise.all(
+        mappedClients.map(async (c) => {
+          if (!c.avatarPath) return c;
+          const { data: signed } = await supabase.storage
+            .from('client-avatars')
+            .createSignedUrl(c.avatarPath, 60 * 60 * 24 * 7);
+          return { ...c, avatarUrl: signed?.signedUrl || null };
+        })
+      );
+
+      setClientsState(withAvatars);
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast.error('Erro ao carregar clientes');
@@ -103,6 +116,7 @@ export function useClients() {
           entry_date: client.entryDate.toISOString().split('T')[0],
           deactivated_at: client.deactivatedAt ? client.deactivatedAt.toISOString().split('T')[0] : null,
           end_date: client.endDate ? client.endDate.toISOString().split('T')[0] : null,
+          avatar_url: client.avatarPath || null,
         } as any);
         if (error) throw error;
       }
@@ -140,6 +154,7 @@ export function useClients() {
               entry_date: client.entryDate.toISOString().split('T')[0],
               deactivated_at: client.deactivatedAt ? client.deactivatedAt.toISOString().split('T')[0] : null,
               end_date: client.endDate ? client.endDate.toISOString().split('T')[0] : null,
+              avatar_url: client.avatarPath || null,
             } as any)
             .eq('id', client.id)
             .eq('user_id', user.id);
