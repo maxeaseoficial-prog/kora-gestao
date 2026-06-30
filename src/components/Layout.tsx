@@ -21,8 +21,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import logoDark from '@/assets/kora-sidebar-branca.png.asset.json';
-import logoLight from '@/assets/kora-login.png.asset.json';
+import logoDark from '@/assets/kora-sidebar-branca-v2.png.asset.json';
+import logoLight from '@/assets/kora-sidebar-preta-v2.png.asset.json';
 
 interface LayoutProps {
   children: ReactNode;
