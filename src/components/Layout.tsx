@@ -35,7 +35,6 @@ const navigation = [
   { name: 'Saídas', href: '/saidas', icon: TrendingDown },
   { name: 'Planejamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Compras', href: '/orcamentos', icon: ShoppingCart },
-  { name: 'Projetos', href: '/projetos', icon: Brain },
 ];
 
 const STORAGE_KEY_COLLAPSED = 'maxease-sidebar-collapsed';

@@ -17,8 +17,6 @@ import Servicos from "@/pages/Servicos";
 import Produtos from "@/pages/Produtos";
 import Orcamentos from "@/pages/Orcamentos";
 import Planejamento from "@/pages/Planejamento";
-import Projetos from "@/pages/Projetos";
-import ProjetoDetalhe from "@/pages/ProjetoDetalhe";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -100,36 +98,6 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Produtos />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projetos"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Projetos />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projetos/:id"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ProjetoDetalhe />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projetos/:projectId/mapas-mentais/:id"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <MindMapEditor />
                     </Layout>
                   </ProtectedRoute>
                 }
