@@ -90,8 +90,11 @@ export type Database = {
           id: string
           monthly_value: number
           name: string
+          origin_channel: string | null
+          origin_type: string | null
           phone: string | null
           recurrence: string
+          referrer_name: string | null
           secondary_phone: string | null
           service_type: string
           status: string
@@ -112,8 +115,11 @@ export type Database = {
           id?: string
           monthly_value?: number
           name: string
+          origin_channel?: string | null
+          origin_type?: string | null
           phone?: string | null
           recurrence?: string
+          referrer_name?: string | null
           secondary_phone?: string | null
           service_type: string
           status?: string
@@ -134,8 +140,11 @@ export type Database = {
           id?: string
           monthly_value?: number
           name?: string
+          origin_channel?: string | null
+          origin_type?: string | null
           phone?: string | null
           recurrence?: string
+          referrer_name?: string | null
           secondary_phone?: string | null
           service_type?: string
           status?: string
