@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import logoDark from '@/assets/kora-branca.png.asset.json';
-import logoLight from '@/assets/kora-preta.png.asset.json';
+import logoLight from '@/assets/kora-login.png.asset.json';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Email inválido" }),
@@ -123,8 +123,8 @@ function Auth() {
         <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <img src={logoLight.url} alt="Kora" className="h-32 md:h-40 w-auto block dark:hidden" />
-            <img src={logoDark.url} alt="Kora" className="h-32 md:h-40 w-auto hidden dark:block" />
+            <img src={logoLight.url} alt="Kora" className="w-full max-w-sm h-auto block dark:hidden" />
+            <img src={logoDark.url} alt="Kora" className="w-full max-w-sm h-auto hidden dark:block" />
           </div>
           
           <h1 className="text-2xl font-bold text-center mb-2">
