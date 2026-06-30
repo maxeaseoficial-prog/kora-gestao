@@ -420,21 +420,28 @@ function Clientes() {
                     )}
                   >
                     <td className="p-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{client.name}</p>
-                          <span className={cn(
-                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border',
-                            type === 'empresa' ? 'bg-secondary text-secondary-foreground border-border' : 'bg-muted text-muted-foreground border-border'
-                          )}>
-                            {type === 'empresa' ? <Building2 className="h-3 w-3" /> : <UserIcon className="h-3 w-3" />}
-                            {type === 'empresa' ? 'Empresa' : 'Pessoa'}
-                          </span>
-                        </div>
-                        {client.email && (
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-border">
+                          {client.avatarUrl && <AvatarImage src={client.avatarUrl} alt={client.name} />}
+                          <AvatarFallback className="text-xs font-medium bg-secondary">
+                            {initials(client.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium">{client.name}</p>
+                            <span className={cn(
+                              'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border',
+                              type === 'empresa' ? 'bg-secondary text-secondary-foreground border-border' : 'bg-muted text-muted-foreground border-border'
+                            )}>
+                              {type === 'empresa' ? <Building2 className="h-3 w-3" /> : <UserIcon className="h-3 w-3" />}
+                              {type === 'empresa' ? 'Empresa' : 'Pessoa'}
+                            </span>
+                          </div>
+                          {client.email && (
                           <p className={cn('text-sm', client.status === 'inativo' ? 'text-destructive/80' : 'text-muted-foreground')}>{client.email}</p>
-                        )}
-                        <p className={cn('text-xs mt-0.5', client.status === 'inativo' ? 'text-destructive/80' : 'text-muted-foreground')}>
+                          )}
+                          <p className={cn('text-xs mt-0.5', client.status === 'inativo' ? 'text-destructive/80' : 'text-muted-foreground')}>
                           Entrada: {format(new Date(client.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
                           {client.endDate && (
                             <> · Encerrado em {format(new Date(client.endDate), 'dd/MM/yyyy', { locale: ptBR })}</>
@@ -443,6 +450,7 @@ function Clientes() {
                             <> · Desativado: {format(new Date(client.deactivatedAt), 'dd/MM/yyyy', { locale: ptBR })}</>
                           )}
                         </p>
+                        </div>
                       </div>
                     </td>
                     <td className={cn('p-4', client.status === 'inativo' ? '' : 'text-muted-foreground')}>
