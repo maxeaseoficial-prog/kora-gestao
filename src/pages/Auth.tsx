@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import logoDark from '@/assets/kora-branca.png.asset.json';
+import logoLight from '@/assets/kora-preta.png.asset.json';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Email inválido" }),
