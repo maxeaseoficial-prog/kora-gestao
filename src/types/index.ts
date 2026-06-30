@@ -17,6 +17,8 @@ export interface Client {
   entryDate: Date;
   deactivatedAt?: Date | null;
   endDate?: Date | null;
+  avatarUrl?: string | null;
+  avatarPath?: string | null;
 }
 
 export interface CRMCard {
