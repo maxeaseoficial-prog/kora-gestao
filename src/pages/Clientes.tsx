@@ -51,7 +51,21 @@ const buildInitialState = (clientType: ClientType): FormState => ({
   endDate: null,
   avatarPath: null,
   avatarUrl: null,
+  originType: '',
+  originChannel: null,
+  referrerName: null,
 });
+
+const SALES_CHANNELS = [
+  'Prospecção',
+  'Presencial',
+  'WhatsApp',
+  'Instagram',
+  'Tráfego pago',
+  'YouTube',
+  'Facebook',
+  'LinkedIn',
+];
 
 function Clientes() {
   const { clients, setClients } = useApp();
