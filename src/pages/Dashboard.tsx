@@ -306,7 +306,7 @@ function Dashboard() {
 
   // Sora + Manrope scoped via className on root
   return (
-    <div className="dark -m-4 lg:-m-6 min-h-[calc(100vh-4rem)] bg-[#0a0a0a] text-[#fafafa] p-4 md:p-6 lg:p-8" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="-m-4 lg:-m-6 min-h-[calc(100vh-4rem)] bg-[#0a0a0a] text-[#fafafa] p-4 md:p-6 lg:p-8" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <style>{`
         .dash-heading { font-family: 'Sora', sans-serif; letter-spacing: -0.02em; }
         .dash-card { background: #141414; border: 1px solid rgba(255,255,255,0.05); border-radius: 1.5rem; transition: border-color .3s ease, background .3s ease, box-shadow .3s ease, transform .3s ease; }
