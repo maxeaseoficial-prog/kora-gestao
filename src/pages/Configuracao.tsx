@@ -221,7 +221,7 @@ export default function Configuracao() {
                   className={`text-left rounded-lg border p-4 transition ${theme === 'light' ? 'border-foreground ring-2 ring-foreground/20' : 'border-border hover:bg-accent'}`}
                 >
                   <div className="flex items-center gap-2 mb-2"><Sun className="h-4 w-4" /> <span className="font-medium">Tema Claro</span></div>
-                  <div className="h-16 rounded-md bg-white border" />
+                  <div className="h-16 rounded-md border" style={{ backgroundColor: '#ffffff' }} />
                 </button>
                 <button
                   onClick={() => setTheme('dark')}
