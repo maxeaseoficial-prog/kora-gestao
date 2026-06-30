@@ -19,6 +19,9 @@ export interface Client {
   endDate?: Date | null;
   avatarUrl?: string | null;
   avatarPath?: string | null;
+  originType?: 'canal_vendas' | 'indicacao' | '' | null;
+  originChannel?: string | null;
+  referrerName?: string | null;
 }
 
 export interface CRMCard {
