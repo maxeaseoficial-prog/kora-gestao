@@ -297,8 +297,15 @@ function Clientes() {
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <Tabs defaultValue="lista" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="lista">Clientes</TabsTrigger>
+          <TabsTrigger value="controle">Controle de cliente</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="lista" className="space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-card border border-border rounded-xl p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Total de clientes</p>
           <p className="text-2xl font-semibold mt-1">{stats.total}</p>
