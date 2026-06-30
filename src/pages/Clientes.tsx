@@ -1,11 +1,15 @@
-import { useState, useMemo } from 'react';
-import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Client } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -45,10 +49,15 @@ const buildInitialState = (clientType: ClientType): FormState => ({
   entryDate: new Date(),
   deactivatedAt: null,
   endDate: null,
+  avatarPath: null,
+  avatarUrl: null,
 });
 
 function Clientes() {
   const { clients, setClients } = useApp();
+  const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
@@ -138,8 +147,61 @@ function Clientes() {
       entryDate: client.entryDate || new Date(),
       deactivatedAt: client.deactivatedAt || null,
       endDate: client.endDate || null,
+      avatarPath: client.avatarPath || null,
+      avatarUrl: client.avatarUrl || null,
     });
     setIsDialogOpen(true);
+  };
+
+  const initials = (name: string) =>
+    name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase())
+      .join('') || '?';
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem muito grande (máx 5MB).');
+      return;
+    }
+    try {
+      setUploadingAvatar(true);
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('client-avatars')
+        .upload(path, file, { cacheControl: '3600', upsert: false });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from('client-avatars')
+        .createSignedUrl(path, 60 * 60 * 24 * 7);
+      if (signErr) throw signErr;
+      // Try to remove previous avatar if any
+      if (formData.avatarPath) {
+        await supabase.storage.from('client-avatars').remove([formData.avatarPath]);
+      }
+      setFormData((prev) => ({ ...prev, avatarPath: path, avatarUrl: signed?.signedUrl || null }));
+      toast.success('Foto enviada');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao enviar foto');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    if (formData.avatarPath) {
+      await supabase.storage.from('client-avatars').remove([formData.avatarPath]);
+    }
+    setFormData((prev) => ({ ...prev, avatarPath: null, avatarUrl: null }));
   };
 
   const handleSave = () => {
