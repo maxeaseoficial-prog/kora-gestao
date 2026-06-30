@@ -531,6 +531,12 @@ function Clientes() {
           </table>
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="controle" className="space-y-6">
+          <ControleClientes clients={clients} />
+        </TabsContent>
+      </Tabs>
 
       {/* Type picker dialog */}
       <Dialog open={isTypePickerOpen} onOpenChange={setIsTypePickerOpen}>
