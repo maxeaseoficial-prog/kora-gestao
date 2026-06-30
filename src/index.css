@@ -172,3 +172,63 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+/* ===== Light-theme overrides for pages that use hardcoded dark hex utilities (Dashboard, Saídas) ===== */
+html:not(.dark) .bg-\[\#0a0a0a\] { background-color: hsl(var(--background)) !important; }
+html:not(.dark) .bg-\[\#141414\] { background-color: hsl(var(--card)) !important; }
+html:not(.dark) .bg-\[\#171717\] { background-color: hsl(var(--secondary)) !important; }
+html:not(.dark) .bg-\[\#1a1a1a\] { background-color: hsl(var(--muted)) !important; }
+html:not(.dark) .bg-\[\#1f1f1f\] { background-color: hsl(var(--accent)) !important; }
+html:not(.dark) .hover\:bg-\[\#1f1f1f\]:hover { background-color: hsl(var(--accent)) !important; }
+
+html:not(.dark) .text-\[\#fafafa\] { color: hsl(var(--foreground)) !important; }
+html:not(.dark) .text-\[\#a1a1a1\] { color: hsl(var(--muted-foreground)) !important; }
+html:not(.dark) .text-\[\#666\] { color: hsl(var(--muted-foreground) / 0.75) !important; }
+html:not(.dark) .text-\[\#444\] { color: hsl(var(--muted-foreground) / 0.55) !important; }
+
+/* Pure white/black tokens used as foreground bits inside these pages */
+html:not(.dark) .dash-card .text-white,
+html:not(.dark) .obs-card .text-white,
+html:not(.dark) .dash-heading.text-white,
+html:not(.dark) .obs-heading.text-white { color: hsl(var(--foreground)) !important; }
+
+html:not(.dark) .bg-white { background-color: hsl(var(--foreground)) !important; }
+html:not(.dark) .text-black { color: hsl(var(--background)) !important; }
+html:not(.dark) .hover\:bg-white\/90:hover { background-color: hsl(var(--foreground) / 0.9) !important; }
+
+/* Subtle white overlays → switch to subtle dark overlays for light mode */
+html:not(.dark) .border-white\/5  { border-color: hsl(var(--border)) !important; }
+html:not(.dark) .border-white\/10 { border-color: hsl(var(--border)) !important; }
+html:not(.dark) .border-white\/15 { border-color: hsl(var(--border)) !important; }
+html:not(.dark) .border-white\/20 { border-color: hsl(var(--border)) !important; }
+html:not(.dark) .border-white\/30 { border-color: hsl(var(--border)) !important; }
+
+html:not(.dark) .bg-white\/\[0\.02\] { background-color: hsl(var(--muted) / 0.5) !important; }
+html:not(.dark) .bg-white\/5  { background-color: hsl(var(--muted)) !important; }
+html:not(.dark) .bg-white\/10 { background-color: hsl(var(--accent)) !important; }
+html:not(.dark) .bg-white\/15 { background-color: hsl(var(--accent)) !important; }
+html:not(.dark) .bg-white\/20 { background-color: hsl(var(--accent)) !important; }
+html:not(.dark) .bg-white\/30 { background-color: hsl(var(--foreground) / 0.3) !important; }
+
+html:not(.dark) .hover\:bg-white\/10:hover { background-color: hsl(var(--accent)) !important; }
+html:not(.dark) .hover\:bg-white\/20:hover { background-color: hsl(var(--accent)) !important; }
+
+/* SVG fills used in the dashboard chart */
+html:not(.dark) .fill-white      { fill: hsl(var(--foreground)) !important; }
+html:not(.dark) .fill-white\/10  { fill: hsl(var(--foreground) / 0.12) !important; }
+html:not(.dark) .fill-white\/30  { fill: hsl(var(--foreground) / 0.3) !important; }
+html:not(.dark) .hover\:fill-white\/30:hover { fill: hsl(var(--foreground) / 0.3) !important; }
+html:not(.dark) .text-white\/5   { color: hsl(var(--foreground) / 0.08) !important; }
+
+/* Inline-styled cards from Dashboard/Saídas */
+html:not(.dark) .dash-card,
+html:not(.dark) .obs-card {
+  background: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+html:not(.dark) .dash-card:hover,
+html:not(.dark) .obs-card:hover {
+  border-color: hsl(var(--ring) / 0.4) !important;
+  box-shadow: 0 0 40px -16px hsl(var(--foreground) / 0.08) !important;
+}
+html:not(.dark) .dash-card-soft:hover { background: hsl(var(--muted)) !important; }
