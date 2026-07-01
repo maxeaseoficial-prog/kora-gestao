@@ -24,8 +24,11 @@ import {
   Upload,
 } from 'lucide-react';
 
-const PROFILE_KEY = 'maxease-profile';
+const PROFILE_KEY_LEGACY = 'maxease-profile';
+const PROFILE_KEY_PREFIX = 'maxease-profile:';
 const THEME_KEY = 'maxease-theme';
+const getProfileKey = (userId?: string | null) =>
+  userId ? `${PROFILE_KEY_PREFIX}${userId}` : null;
 
 type ProfileData = {
   name: string;
@@ -67,13 +70,20 @@ export default function Configuracao() {
   const [savingPwd, setSavingPwd] = useState(false);
 
   useEffect(() => {
+    const key = getProfileKey(user?.id);
+    if (!key) {
+      setProfile({ ...emptyProfile });
+      return;
+    }
+    // Clean up legacy global profile so it never leaks between accounts
+    try { localStorage.removeItem(PROFILE_KEY_LEGACY); } catch {}
     try {
-      const raw = localStorage.getItem(PROFILE_KEY);
+      const raw = localStorage.getItem(key);
       const stored = raw ? JSON.parse(raw) : {};
       setProfile({
         ...emptyProfile,
         ...stored,
-        email: stored.email || user?.email || '',
+        email: user?.email || stored.email || '',
       });
     } catch {
       setProfile({ ...emptyProfile, email: user?.email || '' });
@@ -85,8 +95,10 @@ export default function Configuracao() {
   }, [theme]);
 
   const handleSaveProfile = () => {
+    const key = getProfileKey(user?.id);
+    if (!key) return;
     try {
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      localStorage.setItem(key, JSON.stringify(profile));
       toast({ title: 'Perfil salvo', description: 'Suas informações foram atualizadas.' });
     } catch {
       toast({ title: 'Erro', description: 'Não foi possível salvar.', variant: 'destructive' });
@@ -96,11 +108,14 @@ export default function Configuracao() {
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const key = getProfileKey(user?.id);
     const reader = new FileReader();
     reader.onload = () => {
       const next = { ...profile, avatar: String(reader.result || '') };
       setProfile(next);
-      try { localStorage.setItem(PROFILE_KEY, JSON.stringify(next)); } catch {}
+      if (key) {
+        try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+      }
     };
     reader.readAsDataURL(file);
   };
