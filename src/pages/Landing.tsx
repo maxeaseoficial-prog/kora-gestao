@@ -71,9 +71,9 @@ export default function Landing() {
     <div className="min-h-screen bg-black text-white antialiased selection:bg-white selection:text-black">
       {/* Header */}
       <header className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-black/70 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between h-24 md:h-28 px-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoFull.url} alt="KORA" className="h-10 md:h-12 w-auto" />
+            <img src={logoFull.url} alt="KORA" className="h-20 md:h-24 w-auto" />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-white/70">
             <a href="#recursos" className="hover:text-white transition-colors">Recursos</a>
