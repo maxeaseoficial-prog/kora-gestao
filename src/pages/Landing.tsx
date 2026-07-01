@@ -39,6 +39,45 @@ const faqs = [
   { q: 'Posso trocar de plano depois?', a: 'Claro. Você pode mudar do plano mensal para o anual (ou vice-versa) quando quiser.' },
 ];
 
+function MockupCarousel({ slides }: { slides: { src: string; alt: string }[] }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), 4500);
+    return () => clearInterval(id);
+  }, [slides.length]);
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="relative rounded-2xl border border-black/10 bg-gradient-to-br from-black/[0.04] to-black/[0.01] p-2 overflow-hidden">
+        <div className="relative rounded-xl overflow-hidden bg-white aspect-[16/10]">
+          {slides.map((s, i) => (
+            <img
+              key={s.src}
+              src={s.src}
+              alt={s.alt}
+              loading="lazy"
+              className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-700 ease-out ${
+                i === index ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="flex justify-center gap-2 mt-6">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIndex(i)}
+            aria-label={`Ir para slide ${i + 1}`}
+            className={`h-1.5 rounded-full transition-all ${
+              i === index ? 'w-8 bg-black' : 'w-4 bg-black/20 hover:bg-black/40'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Landing() {
   const { user } = useAuth();
   const navigate = useNavigate();
