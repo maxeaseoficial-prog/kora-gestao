@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 const PRICE_MONTHLY = "price_1ToOauCxnlNVkiYcGGCBQmGO";
+const PRICE_ANNUAL = "price_1ToQhwCxnlNVkiYcC7uRxKVw";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -36,6 +37,13 @@ serve(async (req) => {
     }
     if (!email) throw new Error("E-mail não fornecido");
 
+    let plan: "mensal" | "anual" = "mensal";
+    try {
+      const raw = await req.clone().json().catch(() => null);
+      if (raw?.plan === "anual") plan = "anual";
+    } catch {}
+    const price = plan === "anual" ? PRICE_ANNUAL : PRICE_MONTHLY;
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
@@ -47,7 +55,7 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : email,
-      line_items: [{ price: PRICE_MONTHLY, quantity: 1 }],
+      line_items: [{ price, quantity: 1 }],
       mode: "subscription",
       success_url: `${origin}/dashboard?checkout=success`,
       cancel_url: `${origin}/?checkout=cancel`,
