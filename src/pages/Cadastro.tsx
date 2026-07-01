@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { z } from 'zod';
-import logoDark from '@/assets/kora-preta.png.asset.json';
+import logoDark from '@/assets/kora-logo-preta-full.png.asset.json';
 
 const schema = z.object({
   name: z.string().trim().min(2, 'Informe seu nome'),
@@ -81,7 +81,7 @@ export default function Cadastro() {
         <Link to="/comecar" className="flex items-center gap-2 text-black/60 hover:text-black transition-colors text-sm">
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Link>
-        <img src={logoDark.url} alt="KORA" className="h-7 w-auto" />
+        <img src={logoDark.url} alt="KORA" className="h-16 md:h-20 w-auto" />
         <div className="w-16" />
       </header>
       <main className="flex-1 flex items-center justify-center px-6 py-16">
