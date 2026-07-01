@@ -9,7 +9,7 @@ import {
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
-import logoFull from '@/assets/kora-logo-branca-full.png.asset.json';
+import logoFull from '@/assets/kora-logo-outline.png.asset.json';
 import logoMark from '@/assets/kora-branca.png.asset.json';
 
 const features = [
