@@ -22,6 +22,7 @@ import Landing from "@/pages/Landing";
 import Comecar from "@/pages/Comecar";
 import Cadastro from "@/pages/Cadastro";
 import Planos from "@/pages/Planos";
+import Termos from "@/pages/Termos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/comecar" element={<Comecar />} />
               <Route path="/cadastro" element={<Cadastro />} />
               <Route path="/planos" element={<Planos />} />
+              <Route path="/termos" element={<Termos />} />
               <Route path="/auth" element={<Auth />} />
               <Route
                 path="/dashboard"
