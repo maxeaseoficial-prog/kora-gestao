@@ -23,6 +23,7 @@ import Comecar from "@/pages/Comecar";
 import Cadastro from "@/pages/Cadastro";
 import Planos from "@/pages/Planos";
 import Termos from "@/pages/Termos";
+import Privacidade from "@/pages/Privacidade";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/cadastro" element={<Cadastro />} />
               <Route path="/planos" element={<Planos />} />
               <Route path="/termos" element={<Termos />} />
+              <Route path="/privacidade" element={<Privacidade />} />
               <Route path="/auth" element={<Auth />} />
               <Route
                 path="/dashboard"
