@@ -8,7 +8,8 @@ const DEFAULT_COLUMNS: { title: string; order: number }[] = [
   { title: 'Prospectar', order: 0 },
   { title: 'Em Contato', order: 1 },
   { title: 'Reunião Marcada', order: 2 },
-  { title: 'Fechou', order: 3 },
+  { title: 'Ganhou', order: 3 },
+  { title: 'Perdeu', order: 4 },
 ];
 
 export function useCRM() {
