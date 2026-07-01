@@ -1,13 +1,16 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import logoOutline from '@/assets/kora-logo-outline-planos.png.asset.json';
 
 export default function Planos() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const location = useLocation();
+  const stateEmail = (location.state as { email?: string } | null)?.email;
 
   useEffect(() => {
     const html = document.documentElement;
@@ -16,12 +19,30 @@ export default function Planos() {
     return () => { if (!hadDark) html.classList.remove('dark'); };
   }, []);
 
-  const handleCheckout = (plan: 'mensal' | 'anual') => {
-    // TODO: integrar com Stripe Checkout — chamar edge function que cria a Checkout Session
-    toast({
-      title: 'Checkout em configuração',
-      description: `Plano ${plan} selecionado. Aguardando integração com Stripe para redirecionar ao pagamento.`,
-    });
+  const handleCheckout = async (plan: 'mensal' | 'anual') => {
+    if (plan === 'anual') {
+      toast({
+        title: 'Plano Anual em breve',
+        description: 'A opção anual ainda está sendo configurada.',
+      });
+      return;
+    }
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const email = sessionData.session?.user?.email ?? stateEmail;
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: email ? { email } : {},
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de checkout não recebida');
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro ao iniciar checkout';
+      toast({ title: 'Erro no checkout', description: msg, variant: 'destructive' });
+    }
   };
 
   return (
