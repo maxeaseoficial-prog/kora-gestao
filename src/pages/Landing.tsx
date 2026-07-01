@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Kanban, Users, Package, Box, Wallet, TrendingUp, Target,
-  ArrowRight, Check, Sparkles, Menu, X, Mail, Instagram,
+  ArrowRight, Check, Sparkles, Menu, X, Mail, Instagram, Sun, Moon,
 } from 'lucide-react';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
