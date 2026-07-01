@@ -1,64 +1,60 @@
 import { createRoot } from "react-dom/client";
-import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
-// One-time nuke of the previous PWA cache so users see the new Landing.
-// The old service worker had `/` cached as the login page.
-const CACHE_BUST_KEY = "kora-landing-cache-bust-v1";
-async function nukeStaleCaches() {
+const shouldCleanupServiceWorker =
+  "serviceWorker" in navigator &&
+  (window.location.search.includes("sw=off") ||
+    import.meta.env.DEV ||
+    window.self !== window.top ||
+    window.location.hostname.startsWith("id-preview--") ||
+    window.location.hostname.startsWith("preview--") ||
+    window.location.hostname === "lovableproject.com" ||
+    window.location.hostname.endsWith(".lovableproject.com") ||
+    window.location.hostname === "lovableproject-dev.com" ||
+    window.location.hostname.endsWith(".lovableproject-dev.com") ||
+    window.location.hostname === "beta.lovable.dev" ||
+    window.location.hostname.endsWith(".beta.lovable.dev"));
+
+async function cleanupStaleAppShellCache() {
   try {
-    if (localStorage.getItem(CACHE_BUST_KEY) === "1") return false;
     let didWork = false;
     if ("serviceWorker" in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
-      for (const r of regs) {
-        await r.unregister().catch(() => {});
-        didWork = true;
+      for (const registration of regs) {
+        const workerUrl =
+          registration.active?.scriptURL ||
+          registration.waiting?.scriptURL ||
+          registration.installing?.scriptURL ||
+          "";
+        if (workerUrl.endsWith("/sw.js") || workerUrl.endsWith("/service-worker.js")) {
+          await registration.unregister().catch(() => {});
+          didWork = true;
+        }
       }
     }
     if (typeof caches !== "undefined") {
       const keys = await caches.keys();
-      for (const k of keys) {
-        await caches.delete(k).catch(() => {});
-        didWork = true;
+      for (const key of keys) {
+        if (/(^|-)precache-v\d+-|(^|-)runtime-|(^|-)googleAnalytics-/.test(key)) {
+          await caches.delete(key).catch(() => {});
+          didWork = true;
+        }
       }
     }
-    localStorage.setItem(CACHE_BUST_KEY, "1");
     return didWork;
   } catch {
     return false;
   }
 }
 
-nukeStaleCaches().then((didWork) => {
-  if (didWork) {
-    window.location.reload();
-    return;
-  }
-  // Re-register a fresh SW that auto-updates
-  const updateSW = registerSW({
-    immediate: true,
-    onNeedRefresh() {
-      updateSW(true);
-    },
-    onRegisteredSW(_swUrl, registration) {
-      if (registration) {
-        registration.update().catch(() => {});
-        setInterval(() => registration.update().catch(() => {}), 60 * 1000);
-      }
-    },
-  });
-
-  if ("serviceWorker" in navigator) {
-    let reloaded = false;
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (reloaded) return;
-      reloaded = true;
+if (shouldCleanupServiceWorker) {
+  cleanupStaleAppShellCache().then((didWork) => {
+    if (didWork) {
       window.location.reload();
-    });
-  }
-});
+    }
+  });
+}
 
 try {
   if (localStorage.getItem('maxease-theme') === 'dark') {
