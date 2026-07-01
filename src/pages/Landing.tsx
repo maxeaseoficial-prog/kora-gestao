@@ -353,7 +353,7 @@ export default function Landing() {
                 ))}
               </ul>
               <Button
-                onClick={() => navigate('/comecar')}
+                onClick={handleSubscribeMonthly}
                 variant="outline"
                 className="w-full rounded-full h-12 bg-transparent border-white/20 text-white hover:bg-white/5 hover:text-white"
               >
