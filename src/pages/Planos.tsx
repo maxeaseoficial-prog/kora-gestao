@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +8,13 @@ import logoDark from '@/assets/kora-branca.png.asset.json';
 export default function Planos() {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const hadDark = html.classList.contains('dark');
+    html.classList.add('dark');
+    return () => { if (!hadDark) html.classList.remove('dark'); };
+  }, []);
 
   const handleCheckout = (plan: 'mensal' | 'anual') => {
     // TODO: integrar com Stripe Checkout — chamar edge function que cria a Checkout Session
