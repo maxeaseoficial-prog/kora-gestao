@@ -21,6 +21,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
+    // Parse body once
+    let body: any = null;
+    try { body = await req.json(); } catch {}
+
     // Try to get email from authenticated user, otherwise accept from body (guest checkout)
     let email: string | undefined;
     const authHeader = req.headers.get("Authorization");
@@ -29,19 +33,12 @@ serve(async (req) => {
       const { data } = await supabaseClient.auth.getUser(token);
       email = data.user?.email ?? undefined;
     }
-    if (!email) {
-      try {
-        const body = await req.json();
-        if (typeof body?.email === "string") email = body.email.trim();
-      } catch {}
+    if (!email && typeof body?.email === "string") {
+      email = body.email.trim();
     }
     if (!email) throw new Error("E-mail não fornecido");
 
-    let plan: "mensal" | "anual" = "mensal";
-    try {
-      const raw = await req.clone().json().catch(() => null);
-      if (raw?.plan === "anual") plan = "anual";
-    } catch {}
+    const plan: "mensal" | "anual" = body?.plan === "anual" ? "anual" : "mensal";
     const price = plan === "anual" ? PRICE_ANNUAL : PRICE_MONTHLY;
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
