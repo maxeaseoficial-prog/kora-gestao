@@ -32,7 +32,7 @@ const schema = z
     password: strongPassword,
     confirmPassword: z.string(),
   })
-  .refine((d) => d.password === d.confirmPassword, {
+  .refine((d) => d.password.trim() === d.confirmPassword.trim(), {
     path: ['confirmPassword'],
     message: 'As senhas não coincidem.',
   });
@@ -100,7 +100,18 @@ export default function Cadastro() {
   };
 
   const ruleStatus = passwordRules.map(r => ({ ...r, ok: r.test(password) }));
-  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
+  const passwordsMatch =
+    confirmPassword.length > 0 && password.trim() === confirmPassword.trim();
+
+  useEffect(() => {
+    setErrors(prev => {
+      const next = { ...prev };
+      if (next.password && ruleStatus.every(r => r.ok)) delete next.password;
+      if (next.confirmPassword && passwordsMatch) delete next.confirmPassword;
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [password, confirmPassword]);
 
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
