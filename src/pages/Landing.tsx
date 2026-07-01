@@ -39,6 +39,45 @@ const faqs = [
   { q: 'Posso trocar de plano depois?', a: 'Claro. Você pode mudar do plano mensal para o anual (ou vice-versa) quando quiser.' },
 ];
 
+function MockupCarousel({ slides }: { slides: { src: string; alt: string }[] }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), 4500);
+    return () => clearInterval(id);
+  }, [slides.length]);
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="relative rounded-2xl border border-black/10 bg-gradient-to-br from-black/[0.04] to-black/[0.01] p-2 overflow-hidden">
+        <div className="relative rounded-xl overflow-hidden bg-white aspect-[16/10]">
+          {slides.map((s, i) => (
+            <img
+              key={s.src}
+              src={s.src}
+              alt={s.alt}
+              loading="lazy"
+              className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-700 ease-out ${
+                i === index ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="flex justify-center gap-2 mt-6">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIndex(i)}
+            aria-label={`Ir para slide ${i + 1}`}
+            className={`h-1.5 rounded-full transition-all ${
+              i === index ? 'w-8 bg-black' : 'w-4 bg-black/20 hover:bg-black/40'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Landing() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -146,14 +185,22 @@ export default function Landing() {
             </div>
         </div>
 
-        {/* Dashboard mockup below */}
-        <div className="max-w-6xl mx-auto mt-20 px-2">
+        {/* YouTube video placeholder */}
+        <div className="max-w-5xl mx-auto mt-20 px-2">
           <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-2 shadow-2xl shadow-black/50">
-            <div className="rounded-xl overflow-hidden bg-white">
-              <img src={mockupDashboard.url} alt="Dashboard da KORA" className="w-full h-auto block" loading="lazy" />
+            <div className="rounded-xl overflow-hidden bg-black aspect-video">
+              {/* TODO: substituir VIDEO_ID pelo ID do vídeo do YouTube */}
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/VIDEO_ID"
+                title="Apresentação KORA"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
             </div>
-          <div className="absolute -inset-6 -z-10 bg-white/[0.04] blur-3xl rounded-full" />
-        </div>
+            <div className="absolute -inset-6 -z-10 bg-white/[0.04] blur-3xl rounded-full" />
+          </div>
         </div>
       </section>
 
@@ -166,31 +213,24 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Tudo em um só lugar — LIGHT */}
+      {/* Tudo em um só lugar — LIGHT (carrossel automático) */}
       <section className="py-32 px-6 bg-white text-black">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
-              Pare de usar várias ferramentas.
-            </h2>
-            <p className="mt-6 text-lg text-black/60 leading-relaxed">
-              A KORA reúne toda a gestão da sua empresa em um único painel.
-            </p>
-          </div>
-          <div className="relative rounded-2xl border border-black/10 bg-gradient-to-br from-black/[0.04] to-black/[0.01] p-2">
-            <div className="rounded-xl overflow-hidden bg-white">
-              <img src={mockupCRM.url} alt="CRM da KORA" className="w-full h-auto block" loading="lazy" />
-            </div>
-          </div>
+        <div className="max-w-4xl mx-auto text-center mb-14">
+          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
+            Pare de usar várias ferramentas.
+          </h2>
+          <p className="mt-6 text-lg text-black/60 leading-relaxed">
+            A KORA reúne toda a gestão da sua empresa em um único painel.
+          </p>
         </div>
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-6 mt-16">
-          <div className="rounded-2xl border border-black/10 bg-white p-2 overflow-hidden">
-            <img src={mockupProgresso.url} alt="Metas e progresso" className="w-full h-auto block rounded-xl" loading="lazy" />
-          </div>
-          <div className="rounded-2xl border border-black/10 bg-white p-2 overflow-hidden">
-            <img src={mockupOrigem.url} alt="Origem dos clientes" className="w-full h-auto block rounded-xl" loading="lazy" />
-          </div>
-        </div>
+        <MockupCarousel
+          slides={[
+            { src: mockupDashboard.url, alt: 'Dashboard da KORA' },
+            { src: mockupCRM.url, alt: 'CRM da KORA' },
+            { src: mockupProgresso.url, alt: 'Metas e progresso' },
+            { src: mockupOrigem.url, alt: 'Origem dos clientes' },
+          ]}
+        />
       </section>
 
       {/* Recursos — DARK */}
