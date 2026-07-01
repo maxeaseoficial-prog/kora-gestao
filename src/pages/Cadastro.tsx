@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,13 @@ export default function Cadastro() {
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const hadDark = html.classList.contains('dark');
+    html.classList.add('dark');
+    return () => { if (!hadDark) html.classList.remove('dark'); };
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
