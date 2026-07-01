@@ -10,6 +10,10 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
 import logoFull from '@/assets/kora-logo-outline.png.asset.json';
+import mockupDashboard from '@/assets/kora-mockup-dashboard.png.asset.json';
+import mockupCRM from '@/assets/kora-mockup-crm.png.asset.json';
+import mockupProgresso from '@/assets/kora-mockup-progresso.png.asset.json';
+import mockupOrigem from '@/assets/kora-mockup-origem.png.asset.json';
 
 const features = [
   { icon: LayoutDashboard, title: 'Dashboard', desc: 'Visão geral e indicadores em tempo real.' },
@@ -145,9 +149,9 @@ export default function Landing() {
         {/* Dashboard mockup below */}
         <div className="max-w-6xl mx-auto mt-20 px-2">
           <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-2 shadow-2xl shadow-black/50">
-            <div className="rounded-xl overflow-hidden bg-neutral-950 aspect-[16/9] flex items-center justify-center text-white/30 text-sm">
-              [Mockup do Dashboard]
-          </div>
+            <div className="rounded-xl overflow-hidden bg-white">
+              <img src={mockupDashboard.url} alt="Dashboard da KORA" className="w-full h-auto block" loading="lazy" />
+            </div>
           <div className="absolute -inset-6 -z-10 bg-white/[0.04] blur-3xl rounded-full" />
         </div>
         </div>
@@ -174,9 +178,17 @@ export default function Landing() {
             </p>
           </div>
           <div className="relative rounded-2xl border border-black/10 bg-gradient-to-br from-black/[0.04] to-black/[0.01] p-2">
-            <div className="rounded-xl overflow-hidden bg-neutral-100 aspect-[16/10] flex items-center justify-center text-black/40 text-sm">
-              [Imagem do Dashboard]
+            <div className="rounded-xl overflow-hidden bg-white">
+              <img src={mockupCRM.url} alt="CRM da KORA" className="w-full h-auto block" loading="lazy" />
             </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-6 mt-16">
+          <div className="rounded-2xl border border-black/10 bg-white p-2 overflow-hidden">
+            <img src={mockupProgresso.url} alt="Metas e progresso" className="w-full h-auto block rounded-xl" loading="lazy" />
+          </div>
+          <div className="rounded-2xl border border-black/10 bg-white p-2 overflow-hidden">
+            <img src={mockupOrigem.url} alt="Origem dos clientes" className="w-full h-auto block rounded-xl" loading="lazy" />
           </div>
         </div>
       </section>
