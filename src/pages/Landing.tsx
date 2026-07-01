@@ -73,7 +73,7 @@ export default function Landing() {
       <header className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-black/70 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoMark.url} alt="KORA" className="h-7 w-auto" />
+            <img src={logoFull.url} alt="KORA" className="h-10 md:h-12 w-auto" />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-white/70">
             <a href="#recursos" className="hover:text-white transition-colors">Recursos</a>
@@ -115,17 +115,7 @@ export default function Landing() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.08),transparent_60%)]" />
         </div>
 
-        {/* Big logo top */}
-        <div className="max-w-7xl mx-auto flex justify-center pt-6 pb-4 animate-fade-in">
-          <img
-            src={logoFull.url}
-            alt="KORA — Gestão Inteligente"
-            className="w-full max-w-xl h-auto select-none"
-            draggable={false}
-          />
-        </div>
-
-        <div className="max-w-7xl mx-auto text-center animate-fade-in mt-6">
+        <div className="max-w-7xl mx-auto text-center animate-fade-in">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs text-white/70 mb-8">
               <Sparkles className="h-3.5 w-3.5" />
               Gestão empresarial moderna
