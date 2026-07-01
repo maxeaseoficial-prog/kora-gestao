@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import logoDark from '@/assets/kora-branca.png.asset.json';
+import logoOutline from '@/assets/kora-logo-outline-planos.png.asset.json';
 
 export default function Planos() {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export default function Planos() {
         <Link to="/" className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm">
           <ArrowLeft className="h-4 w-4" /> Início
         </Link>
-        <img src={logoDark.url} alt="KORA" className="h-7 w-auto" />
+        <img src={logoOutline.url} alt="KORA" className="h-16 md:h-20 w-auto" />
         <div className="w-16" />
       </header>
       <main className="flex-1 flex items-center justify-center px-6 py-16">
