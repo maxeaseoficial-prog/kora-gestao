@@ -14,6 +14,10 @@ import mockupDashboard from '@/assets/kora-mockup-dashboard.png.asset.json';
 import mockupCRM from '@/assets/kora-mockup-crm.png.asset.json';
 import mockupProgresso from '@/assets/kora-mockup-progresso.png.asset.json';
 import mockupOrigem from '@/assets/kora-mockup-origem.png.asset.json';
+import mockupFaturamento from '@/assets/kora-mockup-faturamento.png.asset.json';
+import mockupDashboardDark from '@/assets/kora-mockup-dashboard-dark.png.asset.json';
+import mockupMetaAnual from '@/assets/kora-mockup-meta-anual.png.asset.json';
+import mockupCrmClaro from '@/assets/kora-mockup-crm-claro.png.asset.json';
 
 const features = [
   { icon: LayoutDashboard, title: 'Dashboard', desc: 'Visão geral e indicadores em tempo real.' },
@@ -229,8 +233,28 @@ export default function Landing() {
             { src: mockupCRM.url, alt: 'CRM da KORA' },
             { src: mockupProgresso.url, alt: 'Metas e progresso' },
             { src: mockupOrigem.url, alt: 'Origem dos clientes' },
+            { src: mockupFaturamento.url, alt: 'Evolução de faturamento e status do CRM' },
+            { src: mockupDashboardDark.url, alt: 'Dashboard KORA em tema escuro' },
+            { src: mockupMetaAnual.url, alt: 'Meta anual e distribuição mensal' },
+            { src: mockupCrmClaro.url, alt: 'CRM em tema claro' },
           ]}
         />
+        <div className="max-w-3xl mx-auto mt-16 flex flex-col items-center text-center">
+          <div className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white p-1 shadow-sm">
+            <span className="inline-flex items-center gap-2 rounded-full bg-black text-white px-4 py-2 text-sm font-medium">
+              <Moon className="h-4 w-4" /> Escuro
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full text-black/60 px-4 py-2 text-sm">
+              <Sun className="h-4 w-4" /> Claro
+            </span>
+          </div>
+          <h3 className="mt-6 text-2xl md:text-3xl font-semibold tracking-tight">
+            Tema claro ou escuro, do seu jeito.
+          </h3>
+          <p className="mt-3 text-black/60 leading-relaxed">
+            Personalize a aparência da KORA para combinar com o seu estilo de trabalho — alterne entre modo claro e escuro com um clique.
+          </p>
+        </div>
       </section>
 
       {/* Recursos — DARK */}
