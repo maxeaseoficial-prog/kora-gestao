@@ -103,6 +103,16 @@ export default function Cadastro() {
   const passwordsMatch =
     confirmPassword.length > 0 && password.trim() === confirmPassword.trim();
 
+  useEffect(() => {
+    setErrors(prev => {
+      const next = { ...prev };
+      if (next.password && ruleStatus.every(r => r.ok)) delete next.password;
+      if (next.confirmPassword && passwordsMatch) delete next.confirmPassword;
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [password, confirmPassword]);
+
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
       <header className="p-6 flex items-center justify-between">
