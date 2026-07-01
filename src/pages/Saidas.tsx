@@ -38,6 +38,31 @@ import { toast } from 'sonner';
 
 const CATEGORIES: ExpenseCategory[] = ['Pagamento', 'Investimento', 'Fornecedor', 'Outros'];
 
+// Extracts the storage path from either a full URL (public or signed) or a raw path.
+function extractReceiptPath(urlOrPath: string): string {
+  if (!urlOrPath) return urlOrPath;
+  if (!urlOrPath.startsWith('http')) return urlOrPath;
+  const marker = '/expense-receipts/';
+  const idx = urlOrPath.indexOf(marker);
+  if (idx === -1) return urlOrPath;
+  const rest = urlOrPath.slice(idx + marker.length);
+  return rest.split('?')[0];
+}
+
+async function openReceipt(urlOrPath: string) {
+  try {
+    const path = extractReceiptPath(urlOrPath);
+    const { data, error } = await supabase.storage
+      .from('expense-receipts')
+      .createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) throw error ?? new Error('Falha ao gerar link');
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+  } catch (err) {
+    console.error(err);
+    toast.error('Não foi possível abrir o comprovante');
+  }
+}
+
 const categoryStyle: Record<ExpenseCategory, string> = {
   Pagamento: 'bg-rose-500/10 text-rose-300 border-rose-500/20',
   Investimento: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
@@ -251,14 +276,13 @@ export default function Saidas() {
                     <span>Pago: {formatDate(e.paymentDate)}</span>
                   </div>
                   {e.receiptUrl && (
-                    <a
-                      href={e.receiptUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => openReceipt(e.receiptUrl!)}
                       className="inline-flex items-center gap-1 text-[11px] text-white/70 hover:text-white underline underline-offset-2"
                     >
                       <FileText className="h-3 w-3" /> Ver comprovante
-                    </a>
+                    </button>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
@@ -356,10 +380,10 @@ export default function Saidas() {
               />
               {form.receiptUrl ? (
                 <div className="mt-1.5 flex items-center justify-between gap-3 p-2.5 rounded-lg border border-white/10 bg-[#0a0a0a]">
-                  <a href={form.receiptUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-xs text-white/80 hover:text-white truncate">
+                  <button type="button" onClick={() => openReceipt(form.receiptUrl!)} className="flex items-center gap-2 text-xs text-white/80 hover:text-white truncate">
                     <FileText className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">Comprovante anexado</span>
-                  </a>
+                  </button>
                   <Button
                     size="icon"
                     variant="ghost"
