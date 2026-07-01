@@ -68,6 +68,8 @@ export default function Configuracao() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPwd, setSavingPwd] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [sendingReset, setSendingReset] = useState(false);
 
   useEffect(() => {
     const key = getProfileKey(user?.id);
@@ -121,6 +123,10 @@ export default function Configuracao() {
   };
 
   const handleChangePassword = async () => {
+    if (!currentPassword) {
+      toast({ title: 'Senha atual obrigatória', description: 'Informe sua senha atual.', variant: 'destructive' });
+      return;
+    }
     if (newPassword.length < 6) {
       toast({ title: 'Senha curta', description: 'Mínimo de 6 caracteres.', variant: 'destructive' });
       return;
@@ -130,14 +136,49 @@ export default function Configuracao() {
       return;
     }
     setSavingPwd(true);
+    // Reautentica com a senha atual antes de alterar
+    const email = user?.email;
+    if (!email) {
+      setSavingPwd(false);
+      toast({ title: 'Erro', description: 'Não foi possível identificar seu e-mail.', variant: 'destructive' });
+      return;
+    }
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+    if (signInError) {
+      setSavingPwd(false);
+      toast({ title: 'Senha atual incorreta', description: 'Verifique sua senha atual e tente novamente.', variant: 'destructive' });
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setSavingPwd(false);
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     } else {
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       toast({ title: 'Senha alterada', description: 'Sua senha foi atualizada com sucesso.' });
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const email = user?.email;
+    if (!email) {
+      toast({ title: 'E-mail não encontrado', description: 'Não foi possível localizar seu e-mail.', variant: 'destructive' });
+      return;
+    }
+    setSendingReset(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    setSendingReset(false);
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'E-mail enviado', description: `Enviamos um link de recuperação para ${email}.` });
     }
   };
 
@@ -258,6 +299,10 @@ export default function Configuracao() {
               <CardDescription>Use uma senha forte com pelo menos 6 caracteres.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="current-pwd">Senha atual</Label>
+                <Input id="current-pwd" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+              </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="new-pwd">Nova senha</Label>
@@ -268,7 +313,16 @@ export default function Configuracao() {
                   <Input id="confirm-pwd" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                 </div>
               </div>
-              <div className="flex justify-end">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="px-0 text-sm"
+                  onClick={handleForgotPassword}
+                  disabled={sendingReset}
+                >
+                  {sendingReset ? 'Enviando...' : 'Esqueci minha senha'}
+                </Button>
                 <Button onClick={handleChangePassword} disabled={savingPwd}>{savingPwd ? 'Salvando...' : 'Alterar senha'}</Button>
               </div>
             </CardContent>
