@@ -45,6 +45,18 @@ export default function Landing() {
     if (user) navigate('/dashboard', { replace: true });
   }, [user, navigate]);
 
+  // Landing is a self-contained dark/light marketing page.
+  // Force the `dark` class on <html> while mounted so the app's
+  // "text-white → foreground" overrides don't kill contrast here.
+  useEffect(() => {
+    const html = document.documentElement;
+    const hadDark = html.classList.contains('dark');
+    html.classList.add('dark');
+    return () => {
+      if (!hadDark) html.classList.remove('dark');
+    };
+  }, []);
+
   useEffect(() => {
     document.title = 'KORA — Gestão inteligente para empresas que querem crescer';
     const setMeta = (name: string, content: string) => {
