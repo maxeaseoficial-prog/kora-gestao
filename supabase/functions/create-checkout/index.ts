@@ -20,24 +20,33 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
+    // Try to get email from authenticated user, otherwise accept from body (guest checkout)
+    let email: string | undefined;
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
-    const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user?.email) throw new Error("User not authenticated");
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data } = await supabaseClient.auth.getUser(token);
+      email = data.user?.email ?? undefined;
+    }
+    if (!email) {
+      try {
+        const body = await req.json();
+        if (typeof body?.email === "string") email = body.email.trim();
+      } catch {}
+    }
+    if (!email) throw new Error("E-mail não fornecido");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email, limit: 1 });
     const customerId = customers.data[0]?.id;
 
     const origin = req.headers.get("origin") || "";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      customer_email: customerId ? undefined : user.email,
+      customer_email: customerId ? undefined : email,
       line_items: [{ price: PRICE_MONTHLY, quantity: 1 }],
       mode: "subscription",
       success_url: `${origin}/dashboard?checkout=success`,
