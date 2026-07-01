@@ -1,9 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { ArrowLeft, UserPlus, LogIn } from 'lucide-react';
 import logoDark from '@/assets/kora-preta.png.asset.json';
 
 export default function Comecar() {
   const navigate = useNavigate();
+  useEffect(() => {
+    const html = document.documentElement;
+    const hadDark = html.classList.contains('dark');
+    html.classList.add('dark');
+    return () => { if (!hadDark) html.classList.remove('dark'); };
+  }, []);
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
       <header className="p-6 flex items-center justify-between">
