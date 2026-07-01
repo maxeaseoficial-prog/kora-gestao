@@ -5,23 +5,47 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Loader2, Check, Circle } from 'lucide-react';
 import { z } from 'zod';
 import logoDark from '@/assets/kora-logo-preta-full.png.asset.json';
 
-const schema = z.object({
-  name: z.string().trim().min(2, 'Informe seu nome'),
-  email: z.string().trim().email('E-mail inválido'),
-  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
-});
+const passwordRules = [
+  { key: 'len', label: 'Mínimo de 8 caracteres', test: (v: string) => v.length >= 8 },
+  { key: 'upper', label: 'Uma letra maiúscula', test: (v: string) => /[A-Z]/.test(v) },
+  { key: 'lower', label: 'Uma letra minúscula', test: (v: string) => /[a-z]/.test(v) },
+  { key: 'num', label: 'Um número', test: (v: string) => /[0-9]/.test(v) },
+  { key: 'special', label: 'Um caractere especial', test: (v: string) => /[^A-Za-z0-9]/.test(v) },
+] as const;
+
+const strongPassword = z
+  .string()
+  .min(8, 'A senha deve ter no mínimo 8 caracteres')
+  .regex(/[A-Z]/, 'Inclua ao menos uma letra maiúscula')
+  .regex(/[a-z]/, 'Inclua ao menos uma letra minúscula')
+  .regex(/[0-9]/, 'Inclua ao menos um número')
+  .regex(/[^A-Za-z0-9]/, 'Inclua ao menos um caractere especial');
+
+const schema = z
+  .object({
+    name: z.string().trim().min(2, 'Informe seu nome'),
+    email: z.string().trim().email('E-mail inválido'),
+    password: strongPassword,
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'As senhas não coincidem.',
+  });
 
 export default function Cadastro() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string }>({});
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -34,7 +58,7 @@ export default function Cadastro() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse({ name, email, password });
+    const parsed = schema.safeParse({ name, email, password, confirmPassword });
     if (!parsed.success) {
       const fe: typeof errors = {};
       parsed.error.errors.forEach(err => {
@@ -74,6 +98,9 @@ export default function Cadastro() {
       setSubmitting(false);
     }
   };
+
+  const ruleStatus = passwordRules.map(r => ({ ...r, ok: r.test(password) }));
+  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
 
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
@@ -117,7 +144,7 @@ export default function Cadastro() {
                 <Input
                   id="password" type={showPass ? 'text' : 'password'}
                   value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Crie uma senha forte"
                   className="bg-white border-black/15 text-black placeholder:text-black/30 h-12 rounded-xl pr-11"
                   disabled={submitting}
                 />
@@ -126,6 +153,46 @@ export default function Cadastro() {
                 </button>
               </div>
               {errors.password && <p className="text-xs text-red-600">{errors.password}</p>}
+              <ul className="mt-3 space-y-1.5">
+                {ruleStatus.map(r => (
+                  <li
+                    key={r.key}
+                    className={`flex items-center gap-2 text-xs transition-colors ${
+                      r.ok ? 'text-black' : 'text-black/40'
+                    }`}
+                  >
+                    {r.ok ? (
+                      <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                    ) : (
+                      <Circle className="h-3 w-3" />
+                    )}
+                    <span>{r.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-black/80">Confirmar senha</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword" type={showConfirm ? 'text' : 'password'}
+                  value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a senha"
+                  className="bg-white border-black/15 text-black placeholder:text-black/30 h-12 rounded-xl pr-11"
+                  disabled={submitting}
+                />
+                <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-black">
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-xs text-red-600">{errors.confirmPassword}</p>
+              )}
+              {!errors.confirmPassword && confirmPassword.length > 0 && (
+                <p className={`text-xs ${passwordsMatch ? 'text-black/60' : 'text-red-600'}`}>
+                  {passwordsMatch ? 'As senhas coincidem.' : 'As senhas não coincidem.'}
+                </p>
+              )}
             </div>
             <Button type="submit" disabled={submitting} className="w-full h-12 rounded-full bg-black text-white hover:bg-black/90">
               {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
