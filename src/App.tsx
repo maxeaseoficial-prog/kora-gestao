@@ -18,6 +18,10 @@ import Orcamentos from "@/pages/Orcamentos";
 import Planejamento from "@/pages/Planejamento";
 import Configuracao from "@/pages/Configuracao";
 import Auth from "@/pages/Auth";
+import Landing from "@/pages/Landing";
+import Comecar from "@/pages/Comecar";
+import Cadastro from "@/pages/Cadastro";
+import Planos from "@/pages/Planos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,9 +35,13 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/comecar" element={<Comecar />} />
+              <Route path="/cadastro" element={<Cadastro />} />
+              <Route path="/planos" element={<Planos />} />
               <Route path="/auth" element={<Auth />} />
               <Route
-                path="/"
+                path="/dashboard"
                 element={
                   <ProtectedRoute>
                     <Layout>
