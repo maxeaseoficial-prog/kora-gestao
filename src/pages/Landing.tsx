@@ -9,7 +9,8 @@ import {
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
-import logoDark from '@/assets/kora-branca.png.asset.json';
+import logoFull from '@/assets/kora-logo-branca-full.png.asset.json';
+import logoMark from '@/assets/kora-branca.png.asset.json';
 
 const features = [
   { icon: LayoutDashboard, title: 'Dashboard', desc: 'Visão geral e indicadores em tempo real.' },
@@ -60,7 +61,7 @@ export default function Landing() {
       <header className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-black/70 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoDark.url} alt="KORA" className="h-7 w-auto" />
+            <img src={logoMark.url} alt="KORA" className="h-7 w-auto" />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-white/70">
             <a href="#recursos" className="hover:text-white transition-colors">Recursos</a>
@@ -96,24 +97,34 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="relative pt-40 pb-24 px-6 overflow-hidden">
+      <section className="relative pt-32 pb-24 px-6 overflow-hidden bg-black text-white">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full bg-white/[0.04] blur-3xl" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.08),transparent_60%)]" />
         </div>
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-          <div className="animate-fade-in">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs text-white/70 mb-8">
+
+        {/* Big logo top */}
+        <div className="max-w-7xl mx-auto flex justify-center pt-6 pb-4 animate-fade-in">
+          <img
+            src={logoFull.url}
+            alt="KORA — Gestão Inteligente"
+            className="w-full max-w-xl h-auto select-none"
+            draggable={false}
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto text-center animate-fade-in mt-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs text-white/70 mb-8">
               <Sparkles className="h-3.5 w-3.5" />
               Gestão empresarial moderna
             </div>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05] max-w-4xl mx-auto">
               Gestão inteligente para empresas que querem crescer.
             </h1>
-            <p className="mt-8 text-lg text-white/60 leading-relaxed max-w-xl">
+          <p className="mt-8 text-lg text-white/70 leading-relaxed max-w-2xl mx-auto">
               Centralize clientes, CRM, serviços, produtos, fluxo de caixa, faturamento e metas em uma única plataforma simples, rápida e intuitiva.
             </p>
-            <div className="mt-10 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap gap-3 justify-center">
               <Button
                 onClick={() => navigate('/comecar')}
                 className="bg-white text-black hover:bg-white/90 rounded-full h-12 px-7 text-base"
@@ -128,49 +139,49 @@ export default function Landing() {
                 <a href="#planos">Ver Planos</a>
               </Button>
             </div>
+        </div>
+
+        {/* Dashboard mockup below */}
+        <div className="max-w-6xl mx-auto mt-20 px-2">
+          <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-2 shadow-2xl shadow-black/50">
+            <div className="rounded-xl overflow-hidden bg-neutral-950 aspect-[16/9] flex items-center justify-center text-white/30 text-sm">
+              [Mockup do Dashboard]
           </div>
-          <div className="relative">
-            {/* Dashboard mockup placeholder — substituir por captura real depois */}
-            <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-2 shadow-2xl shadow-black/50">
-              <div className="rounded-xl overflow-hidden bg-neutral-950 aspect-[16/10] flex items-center justify-center text-white/30 text-sm">
-                [Mockup do Dashboard]
-              </div>
-            </div>
-            <div className="absolute -inset-6 -z-10 bg-white/[0.04] blur-3xl rounded-full" />
-          </div>
+          <div className="absolute -inset-6 -z-10 bg-white/[0.04] blur-3xl rounded-full" />
+        </div>
         </div>
       </section>
 
-      {/* Benefits bar */}
-      <section className="py-10 px-6 border-y border-white/5">
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm text-white/50">
+      {/* Benefits bar — LIGHT */}
+      <section className="py-10 px-6 bg-white text-black border-y border-black/10">
+        <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-x-10 gap-y-3 text-sm text-black/60">
           {benefits.map(b => (
             <span key={b} className="whitespace-nowrap">{b}</span>
           ))}
         </div>
       </section>
 
-      {/* Tudo em um só lugar */}
-      <section className="py-32 px-6">
+      {/* Tudo em um só lugar — LIGHT */}
+      <section className="py-32 px-6 bg-white text-black">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
               Pare de usar várias ferramentas.
             </h2>
-            <p className="mt-6 text-lg text-white/60 leading-relaxed">
+            <p className="mt-6 text-lg text-black/60 leading-relaxed">
               A KORA reúne toda a gestão da sua empresa em um único painel.
             </p>
           </div>
-          <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-2">
-            <div className="rounded-xl overflow-hidden bg-neutral-950 aspect-[16/10] flex items-center justify-center text-white/30 text-sm">
+          <div className="relative rounded-2xl border border-black/10 bg-gradient-to-br from-black/[0.04] to-black/[0.01] p-2">
+            <div className="rounded-xl overflow-hidden bg-neutral-100 aspect-[16/10] flex items-center justify-center text-black/40 text-sm">
               [Imagem do Dashboard]
             </div>
           </div>
         </div>
       </section>
 
-      {/* Recursos */}
-      <section id="recursos" className="py-32 px-6 border-t border-white/5">
+      {/* Recursos — DARK */}
+      <section id="recursos" className="py-32 px-6 bg-black text-white">
         <div className="max-w-7xl mx-auto">
           <div className="max-w-2xl mb-16">
             <p className="text-sm text-white/40 uppercase tracking-widest mb-4">Recursos</p>
@@ -188,18 +199,18 @@ export default function Landing() {
                   <f.icon className="h-5 w-5" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
-                <p className="text-sm text-white/50 leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-white/60 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Como funciona */}
-      <section className="py-32 px-6 border-t border-white/5">
+      {/* Como funciona — LIGHT */}
+      <section className="py-32 px-6 bg-white text-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <p className="text-sm text-white/40 uppercase tracking-widest mb-4">Como funciona</p>
+            <p className="text-sm text-black/40 uppercase tracking-widest mb-4">Como funciona</p>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
               Comece em minutos.
             </h2>
@@ -211,17 +222,17 @@ export default function Landing() {
               'Realize o pagamento com segurança.',
               'Acesse imediatamente a plataforma.',
             ].map((step, i) => (
-              <div key={i} className="relative rounded-2xl border border-white/10 bg-white/[0.02] p-8">
-                <div className="text-5xl font-semibold text-white/10 mb-4">{i + 1}</div>
-                <p className="text-white/80 leading-relaxed">{step}</p>
+              <div key={i} className="relative rounded-2xl border border-black/10 bg-black/[0.02] p-8">
+                <div className="text-5xl font-semibold text-black/15 mb-4">{i + 1}</div>
+                <p className="text-black/80 leading-relaxed">{step}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Planos */}
-      <section id="planos" className="py-32 px-6 border-t border-white/5">
+      {/* Planos — DARK */}
+      <section id="planos" className="py-32 px-6 bg-black text-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-sm text-white/40 uppercase tracking-widest mb-4">Planos</p>
@@ -290,22 +301,22 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="py-32 px-6 border-t border-white/5">
+      {/* FAQ — LIGHT */}
+      <section id="faq" className="py-32 px-6 bg-white text-black">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm text-white/40 uppercase tracking-widest mb-4">FAQ</p>
+            <p className="text-sm text-black/40 uppercase tracking-widest mb-4">FAQ</p>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
               Perguntas frequentes.
             </h2>
           </div>
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((f, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border-white/10">
-                <AccordionTrigger className="text-left text-base hover:no-underline text-white py-6">
+              <AccordionItem key={i} value={`item-${i}`} className="border-black/10">
+                <AccordionTrigger className="text-left text-base hover:no-underline text-black py-6">
                   {f.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-white/60 leading-relaxed pb-6">
+                <AccordionContent className="text-black/60 leading-relaxed pb-6">
                   {f.a}
                 </AccordionContent>
               </AccordionItem>
@@ -314,8 +325,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="py-32 px-6 border-t border-white/5">
+      {/* CTA Final — DARK */}
+      <section className="py-32 px-6 bg-black text-white border-t border-white/5">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight">
             Comece hoje mesmo.
@@ -342,10 +353,10 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-16 px-6">
+      <footer className="border-t border-white/5 py-16 px-6 bg-black text-white">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
           <div>
-            <img src={logoDark.url} alt="KORA" className="h-7 w-auto mb-4" />
+            <img src={logoMark.url} alt="KORA" className="h-7 w-auto mb-4" />
             <p className="text-sm text-white/40">Gestão inteligente para o seu negócio.</p>
           </div>
           <div>
