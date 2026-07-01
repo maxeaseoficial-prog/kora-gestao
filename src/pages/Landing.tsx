@@ -183,6 +183,14 @@ export default function Landing() {
             </div>
           </div>
         </div>
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-6 mt-16">
+          <div className="rounded-2xl border border-black/10 bg-white p-2 overflow-hidden">
+            <img src={mockupProgresso.url} alt="Metas e progresso" className="w-full h-auto block rounded-xl" loading="lazy" />
+          </div>
+          <div className="rounded-2xl border border-black/10 bg-white p-2 overflow-hidden">
+            <img src={mockupOrigem.url} alt="Origem dos clientes" className="w-full h-auto block rounded-xl" loading="lazy" />
+          </div>
+        </div>
       </section>
 
       {/* Recursos — DARK */}
