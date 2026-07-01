@@ -2,6 +2,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   LayoutDashboard, Kanban, Users, Package, Box, Wallet, TrendingUp, Target,
   ArrowRight, Check, Sparkles, Menu, X, Mail, Instagram, Sun, Moon,
