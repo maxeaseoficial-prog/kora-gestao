@@ -384,7 +384,7 @@ export default function Landing() {
             <h4 className="text-sm font-medium mb-4">Legal</h4>
             <ul className="space-y-3 text-sm text-white/50">
               <li><a href="#" className="hover:text-white transition-colors">Política de Privacidade</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
+              <li><Link to="/termos" className="hover:text-white transition-colors">Termos de Uso</Link></li>
             </ul>
           </div>
           <div>
