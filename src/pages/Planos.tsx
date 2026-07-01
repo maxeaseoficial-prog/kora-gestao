@@ -20,18 +20,11 @@ export default function Planos() {
   }, []);
 
   const handleCheckout = async (plan: 'mensal' | 'anual') => {
-    if (plan === 'anual') {
-      toast({
-        title: 'Plano Anual em breve',
-        description: 'A opção anual ainda está sendo configurada.',
-      });
-      return;
-    }
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const email = sessionData.session?.user?.email ?? stateEmail;
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: email ? { email } : {},
+        body: { plan, ...(email ? { email } : {}) },
       });
       if (error) throw error;
       if (data?.url) {

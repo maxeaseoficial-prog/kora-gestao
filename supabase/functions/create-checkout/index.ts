@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 const PRICE_MONTHLY = "price_1ToOauCxnlNVkiYcGGCBQmGO";
+const PRICE_ANNUAL = "price_1ToQhwCxnlNVkiYcC7uRxKVw";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -20,6 +21,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
+    // Parse body once
+    let body: any = null;
+    try { body = await req.json(); } catch {}
+
     // Try to get email from authenticated user, otherwise accept from body (guest checkout)
     let email: string | undefined;
     const authHeader = req.headers.get("Authorization");
@@ -28,13 +33,13 @@ serve(async (req) => {
       const { data } = await supabaseClient.auth.getUser(token);
       email = data.user?.email ?? undefined;
     }
-    if (!email) {
-      try {
-        const body = await req.json();
-        if (typeof body?.email === "string") email = body.email.trim();
-      } catch {}
+    if (!email && typeof body?.email === "string") {
+      email = body.email.trim();
     }
     if (!email) throw new Error("E-mail não fornecido");
+
+    const plan: "mensal" | "anual" = body?.plan === "anual" ? "anual" : "mensal";
+    const price = plan === "anual" ? PRICE_ANNUAL : PRICE_MONTHLY;
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -47,7 +52,7 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : email,
-      line_items: [{ price: PRICE_MONTHLY, quantity: 1 }],
+      line_items: [{ price, quantity: 1 }],
       mode: "subscription",
       success_url: `${origin}/dashboard?checkout=success`,
       cancel_url: `${origin}/?checkout=cancel`,
