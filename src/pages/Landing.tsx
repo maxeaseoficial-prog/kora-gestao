@@ -93,6 +93,23 @@ export default function Landing() {
     if (user) navigate('/dashboard', { replace: true });
   }, [user, navigate]);
 
+  const handleSubscribeMonthly = async () => {
+    if (!user) {
+      sessionStorage.setItem('pendingCheckout', 'monthly');
+      navigate('/comecar');
+      return;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      if (error) throw error;
+      if (data?.url) window.open(data.url, '_blank');
+      else throw new Error('URL de checkout não recebida');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro ao iniciar checkout';
+      toast.error(msg);
+    }
+  };
+
   // Landing is a self-contained dark/light marketing page.
   // Force the `dark` class on <html> while mounted so the app's
   // "text-white → foreground" overrides don't kill contrast here.
