@@ -43,6 +43,22 @@ function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!user) return;
+    const pending = sessionStorage.getItem('pendingCheckout');
+    if (pending !== 'monthly') return;
+    sessionStorage.removeItem('pendingCheckout');
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('create-checkout');
+        if (error) throw error;
+        if (data?.url) window.open(data.url, '_blank');
+      } catch (e) {
+        console.error('checkout error', e);
+      }
+    })();
+  }, [user]);
+
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
