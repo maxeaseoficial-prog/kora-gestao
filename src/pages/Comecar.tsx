@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { ArrowLeft, UserPlus, LogIn } from 'lucide-react';
-import logoDark from '@/assets/kora-preta.png.asset.json';
+import logoDark from '@/assets/kora-logo-preta-full.png.asset.json';
 
 export default function Comecar() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function Comecar() {
         <Link to="/" className="flex items-center gap-2 text-black/60 hover:text-black transition-colors text-sm">
           <ArrowLeft className="h-4 w-4" /> Voltar
         </Link>
-        <img src={logoDark.url} alt="KORA" className="h-7 w-auto" />
+        <img src={logoDark.url} alt="KORA" className="h-16 md:h-20 w-auto" />
         <div className="w-16" />
       </header>
       <main className="flex-1 flex items-center justify-center px-6 py-16">
