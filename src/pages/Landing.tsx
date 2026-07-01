@@ -4,13 +4,12 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Kanban, Users, Package, Box, Wallet, TrendingUp, Target,
-  ArrowRight, Check, Sparkles, Menu, X,
+  ArrowRight, Check, Sparkles, Menu, X, Mail, Instagram,
 } from 'lucide-react';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
 import logoFull from '@/assets/kora-logo-outline.png.asset.json';
-import logoMark from '@/assets/kora-branca.png.asset.json';
 
 const features = [
   { icon: LayoutDashboard, title: 'Dashboard', desc: 'Visão geral e indicadores em tempo real.' },
@@ -358,7 +357,7 @@ export default function Landing() {
       <footer className="border-t border-white/5 py-16 px-6 bg-black text-white">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
           <div>
-            <img src={logoMark.url} alt="KORA" className="h-7 w-auto mb-4" />
+            <img src={logoFull.url} alt="KORA" className="h-12 md:h-14 w-auto mb-4" />
             <p className="text-sm text-white/40">Gestão inteligente para o seu negócio.</p>
           </div>
           <div>
@@ -380,8 +379,12 @@ export default function Landing() {
             <h4 className="text-sm font-medium mb-4">Contato</h4>
             <ul className="space-y-3 text-sm text-white/50">
               <li>
-                <a href="mailto:koragestaointeligente@gmail.com" className="hover:text-white transition-colors break-all">
-                  koragestaointeligente@gmail.com
+                <a
+                  href="mailto:koragestaointeligente@gmail.com"
+                  className="flex items-center gap-2 hover:text-white transition-colors break-all"
+                >
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <span>koragestaointeligente@gmail.com</span>
                 </a>
               </li>
               <li>
@@ -389,9 +392,10 @@ export default function Landing() {
                   href="https://www.instagram.com/koragestao/"
                   target="_blank"
                   rel="noreferrer"
-                  className="hover:text-white transition-colors"
+                  className="flex items-center gap-2 hover:text-white transition-colors"
                 >
-                  @koragestao
+                  <Instagram className="h-4 w-4 shrink-0" />
+                  <span>@koragestao</span>
                 </a>
               </li>
             </ul>
