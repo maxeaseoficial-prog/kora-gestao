@@ -377,9 +377,23 @@ export default function Landing() {
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-medium mb-4">Social</h4>
+            <h4 className="text-sm font-medium mb-4">Contato</h4>
             <ul className="space-y-3 text-sm text-white/50">
-              <li><a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Instagram</a></li>
+              <li>
+                <a href="mailto:koragestaointeligente@gmail.com" className="hover:text-white transition-colors break-all">
+                  koragestaointeligente@gmail.com
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.instagram.com/koragestao/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  @koragestao
+                </a>
+              </li>
             </ul>
           </div>
         </div>
