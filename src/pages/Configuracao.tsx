@@ -26,6 +26,8 @@ import {
   Upload,
 } from 'lucide-react';
 import { Eye, EyeOff } from 'lucide-react';
+import { Instagram, Mail } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 function PasswordInput({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
   const [show, setShow] = useState(false);
