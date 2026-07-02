@@ -15,29 +15,51 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user?.email) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    let body: any = {};
+    try { body = await req.json(); } catch (_) {}
+    const bodyEmail: string | undefined = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : undefined;
+
+    const admin = createClient(supabaseUrl, serviceKey);
+    let user: { id: string; email: string } | null = null;
+
+    if (authHeader) {
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: userData } = await userClient.auth.getUser();
+      if (userData.user?.email) user = { id: userData.user.id, email: userData.user.email };
     }
-    const user = userData.user;
-    const email = user.email!;
+
+    if (!user && bodyEmail) {
+      // Look up by email (paginate defensively)
+      let page = 1;
+      while (page <= 20 && !user) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+        if (error) break;
+        const found = data.users.find((u) => (u.email || '').toLowerCase() === bodyEmail);
+        if (found?.email) user = { id: found.id, email: found.email };
+        if (data.users.length < 200) break;
+        page++;
+      }
+      // Do not reveal whether email exists — always respond ok
+      if (!user) {
+        return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'missing_email' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const email = user.email;
 
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const codeHash = await sha256(code);
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    const admin = createClient(supabaseUrl, serviceKey);
     // Invalidate old unused codes
     await admin.from('password_reset_codes').update({ used: true }).eq('user_id', user.id).eq('used', false);
     const { error: insErr } = await admin.from('password_reset_codes').insert({

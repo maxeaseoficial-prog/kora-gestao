@@ -15,11 +15,8 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
-    const { code, newPassword } = await req.json();
+    const { code, newPassword, email: bodyEmailRaw } = await req.json();
+    const bodyEmail: string | undefined = typeof bodyEmailRaw === 'string' ? bodyEmailRaw.trim().toLowerCase() : undefined;
     if (typeof code !== 'string' || code.length !== 6) {
       return new Response(JSON.stringify({ error: 'invalid_code' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
@@ -33,16 +30,33 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-    const user = userData.user;
-
     const admin = createClient(supabaseUrl, serviceKey);
+    let user: { id: string; email: string } | null = null;
+
+    if (authHeader) {
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: userData } = await userClient.auth.getUser();
+      if (userData.user?.email) user = { id: userData.user.id, email: userData.user.email };
+    }
+
+    if (!user && bodyEmail) {
+      let page = 1;
+      while (page <= 20 && !user) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+        if (error) break;
+        const found = data.users.find((u) => (u.email || '').toLowerCase() === bodyEmail);
+        if (found?.email) user = { id: found.id, email: found.email };
+        if (data.users.length < 200) break;
+        page++;
+      }
+    }
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'invalid_code' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const codeHash = await sha256(code);
 
     const { data: rows, error: qErr } = await admin
