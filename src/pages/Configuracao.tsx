@@ -181,9 +181,7 @@ export default function Configuracao() {
       return;
     }
     setSendingReset(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth`,
-    });
+    const { error } = await supabase.functions.invoke('send-recovery-otp');
     setSendingReset(false);
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
@@ -202,13 +200,11 @@ export default function Configuracao() {
       return;
     }
     setVerifyingOtp(true);
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otpCode,
-      type: 'recovery',
+    const { data, error } = await supabase.functions.invoke('verify-recovery-otp', {
+      body: { code: otpCode },
     });
     setVerifyingOtp(false);
-    if (error) {
+    if (error || !data?.ok) {
       toast({ title: 'Código incorreto', description: 'Verifique o código e tente novamente.', variant: 'destructive' });
       return;
     }
@@ -227,9 +223,11 @@ export default function Configuracao() {
       return;
     }
     setResettingPwd(true);
-    const { error } = await supabase.auth.updateUser({ password: resetNewPassword });
+    const { data, error } = await supabase.functions.invoke('verify-recovery-otp', {
+      body: { code: otpCode, newPassword: resetNewPassword },
+    });
     setResettingPwd(false);
-    if (error) {
+    if (error || !data?.ok) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
       return;
     }
