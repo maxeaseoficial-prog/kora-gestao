@@ -20,7 +20,10 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
-type ColorKey = 'blue' | 'yellow' | 'red' | 'green' | 'gray';
+type ColorKey =
+  | 'blue' | 'sky' | 'cyan' | 'teal' | 'emerald' | 'green' | 'lime'
+  | 'yellow' | 'amber' | 'orange' | 'red' | 'rose' | 'pink' | 'fuchsia'
+  | 'purple' | 'violet' | 'indigo' | 'slate' | 'gray';
 
 type ColumnTheme = {
   dot: string;
@@ -35,74 +38,49 @@ type ColumnTheme = {
   temperature?: 'Frio' | 'Morno' | 'Quente' | 'Parabéns!';
 };
 
+// Full Tailwind class strings so JIT preserves them at build time.
 const COLOR_THEMES: Record<ColorKey, ColumnTheme> = {
-  blue: {
-    dot: 'bg-blue-500',
-    headerBg: 'bg-blue-500/10',
-    headerText: 'text-blue-600 dark:text-blue-400',
-    columnBg: 'bg-blue-500/5',
-    border: 'border-blue-500/30',
-    cardBg: 'bg-blue-500/10',
-    cardBorder: 'border-blue-500/40',
-    badgeBg: 'bg-blue-500/20',
-    badgeText: 'text-blue-700 dark:text-blue-300',
-    temperature: 'Frio',
-  },
-  yellow: {
-    dot: 'bg-yellow-500',
-    headerBg: 'bg-yellow-500/10',
-    headerText: 'text-yellow-700 dark:text-yellow-400',
-    columnBg: 'bg-yellow-500/5',
-    border: 'border-yellow-500/30',
-    cardBg: 'bg-yellow-500/10',
-    cardBorder: 'border-yellow-500/40',
-    badgeBg: 'bg-yellow-500/20',
-    badgeText: 'text-yellow-800 dark:text-yellow-300',
-    temperature: 'Morno',
-  },
-  red: {
-    dot: 'bg-red-500',
-    headerBg: 'bg-red-500/10',
-    headerText: 'text-red-600 dark:text-red-400',
-    columnBg: 'bg-red-500/5',
-    border: 'border-red-500/30',
-    cardBg: 'bg-red-500/10',
-    cardBorder: 'border-red-500/40',
-    badgeBg: 'bg-red-500/20',
-    badgeText: 'text-red-700 dark:text-red-300',
-    temperature: 'Quente',
-  },
-  green: {
-    dot: 'bg-green-500',
-    headerBg: 'bg-green-500/10',
-    headerText: 'text-green-600 dark:text-green-400',
-    columnBg: 'bg-green-500/5',
-    border: 'border-green-500/30',
-    cardBg: 'bg-green-500/10',
-    cardBorder: 'border-green-500/40',
-    badgeBg: 'bg-green-500/20',
-    badgeText: 'text-green-700 dark:text-green-300',
-    temperature: 'Parabéns!',
-  },
-  gray: {
-    dot: 'bg-muted-foreground',
-    headerBg: 'bg-secondary',
-    headerText: 'text-foreground',
-    columnBg: 'bg-secondary/50',
-    border: 'border-border',
-    cardBg: 'bg-card',
-    cardBorder: 'border-border',
-    badgeBg: 'bg-secondary',
-    badgeText: 'text-muted-foreground',
-  },
+  blue:     { dot: 'bg-blue-500',     headerBg: 'bg-blue-500/10',     headerText: 'text-blue-600 dark:text-blue-400',       columnBg: 'bg-blue-500/5',     border: 'border-blue-500/30',     cardBg: 'bg-blue-500/10',     cardBorder: 'border-blue-500/40',     badgeBg: 'bg-blue-500/20',     badgeText: 'text-blue-700 dark:text-blue-300',       temperature: 'Frio' },
+  sky:      { dot: 'bg-sky-500',      headerBg: 'bg-sky-500/10',      headerText: 'text-sky-600 dark:text-sky-400',         columnBg: 'bg-sky-500/5',      border: 'border-sky-500/30',      cardBg: 'bg-sky-500/10',      cardBorder: 'border-sky-500/40',      badgeBg: 'bg-sky-500/20',      badgeText: 'text-sky-700 dark:text-sky-300',         temperature: 'Frio' },
+  cyan:     { dot: 'bg-cyan-500',     headerBg: 'bg-cyan-500/10',     headerText: 'text-cyan-600 dark:text-cyan-400',       columnBg: 'bg-cyan-500/5',     border: 'border-cyan-500/30',     cardBg: 'bg-cyan-500/10',     cardBorder: 'border-cyan-500/40',     badgeBg: 'bg-cyan-500/20',     badgeText: 'text-cyan-700 dark:text-cyan-300',       temperature: 'Frio' },
+  teal:     { dot: 'bg-teal-500',     headerBg: 'bg-teal-500/10',     headerText: 'text-teal-600 dark:text-teal-400',       columnBg: 'bg-teal-500/5',     border: 'border-teal-500/30',     cardBg: 'bg-teal-500/10',     cardBorder: 'border-teal-500/40',     badgeBg: 'bg-teal-500/20',     badgeText: 'text-teal-700 dark:text-teal-300' },
+  emerald:  { dot: 'bg-emerald-500',  headerBg: 'bg-emerald-500/10',  headerText: 'text-emerald-600 dark:text-emerald-400', columnBg: 'bg-emerald-500/5',  border: 'border-emerald-500/30',  cardBg: 'bg-emerald-500/10',  cardBorder: 'border-emerald-500/40',  badgeBg: 'bg-emerald-500/20',  badgeText: 'text-emerald-700 dark:text-emerald-300', temperature: 'Parabéns!' },
+  green:    { dot: 'bg-green-500',    headerBg: 'bg-green-500/10',    headerText: 'text-green-600 dark:text-green-400',     columnBg: 'bg-green-500/5',    border: 'border-green-500/30',    cardBg: 'bg-green-500/10',    cardBorder: 'border-green-500/40',    badgeBg: 'bg-green-500/20',    badgeText: 'text-green-700 dark:text-green-300',     temperature: 'Parabéns!' },
+  lime:     { dot: 'bg-lime-500',     headerBg: 'bg-lime-500/10',     headerText: 'text-lime-600 dark:text-lime-400',       columnBg: 'bg-lime-500/5',     border: 'border-lime-500/30',     cardBg: 'bg-lime-500/10',     cardBorder: 'border-lime-500/40',     badgeBg: 'bg-lime-500/20',     badgeText: 'text-lime-700 dark:text-lime-300' },
+  yellow:   { dot: 'bg-yellow-500',   headerBg: 'bg-yellow-500/10',   headerText: 'text-yellow-700 dark:text-yellow-400',   columnBg: 'bg-yellow-500/5',   border: 'border-yellow-500/30',   cardBg: 'bg-yellow-500/10',   cardBorder: 'border-yellow-500/40',   badgeBg: 'bg-yellow-500/20',   badgeText: 'text-yellow-800 dark:text-yellow-300',   temperature: 'Morno' },
+  amber:    { dot: 'bg-amber-500',    headerBg: 'bg-amber-500/10',    headerText: 'text-amber-700 dark:text-amber-400',     columnBg: 'bg-amber-500/5',    border: 'border-amber-500/30',    cardBg: 'bg-amber-500/10',    cardBorder: 'border-amber-500/40',    badgeBg: 'bg-amber-500/20',    badgeText: 'text-amber-800 dark:text-amber-300',     temperature: 'Morno' },
+  orange:   { dot: 'bg-orange-500',   headerBg: 'bg-orange-500/10',   headerText: 'text-orange-600 dark:text-orange-400',   columnBg: 'bg-orange-500/5',   border: 'border-orange-500/30',   cardBg: 'bg-orange-500/10',   cardBorder: 'border-orange-500/40',   badgeBg: 'bg-orange-500/20',   badgeText: 'text-orange-700 dark:text-orange-300',   temperature: 'Morno' },
+  red:      { dot: 'bg-red-500',      headerBg: 'bg-red-500/10',      headerText: 'text-red-600 dark:text-red-400',         columnBg: 'bg-red-500/5',      border: 'border-red-500/30',      cardBg: 'bg-red-500/10',      cardBorder: 'border-red-500/40',      badgeBg: 'bg-red-500/20',      badgeText: 'text-red-700 dark:text-red-300',         temperature: 'Quente' },
+  rose:     { dot: 'bg-rose-500',     headerBg: 'bg-rose-500/10',     headerText: 'text-rose-600 dark:text-rose-400',       columnBg: 'bg-rose-500/5',     border: 'border-rose-500/30',     cardBg: 'bg-rose-500/10',     cardBorder: 'border-rose-500/40',     badgeBg: 'bg-rose-500/20',     badgeText: 'text-rose-700 dark:text-rose-300',       temperature: 'Quente' },
+  pink:     { dot: 'bg-pink-500',     headerBg: 'bg-pink-500/10',     headerText: 'text-pink-600 dark:text-pink-400',       columnBg: 'bg-pink-500/5',     border: 'border-pink-500/30',     cardBg: 'bg-pink-500/10',     cardBorder: 'border-pink-500/40',     badgeBg: 'bg-pink-500/20',     badgeText: 'text-pink-700 dark:text-pink-300' },
+  fuchsia:  { dot: 'bg-fuchsia-500',  headerBg: 'bg-fuchsia-500/10',  headerText: 'text-fuchsia-600 dark:text-fuchsia-400', columnBg: 'bg-fuchsia-500/5',  border: 'border-fuchsia-500/30',  cardBg: 'bg-fuchsia-500/10',  cardBorder: 'border-fuchsia-500/40',  badgeBg: 'bg-fuchsia-500/20',  badgeText: 'text-fuchsia-700 dark:text-fuchsia-300' },
+  purple:   { dot: 'bg-purple-500',   headerBg: 'bg-purple-500/10',   headerText: 'text-purple-600 dark:text-purple-400',   columnBg: 'bg-purple-500/5',   border: 'border-purple-500/30',   cardBg: 'bg-purple-500/10',   cardBorder: 'border-purple-500/40',   badgeBg: 'bg-purple-500/20',   badgeText: 'text-purple-700 dark:text-purple-300' },
+  violet:   { dot: 'bg-violet-500',   headerBg: 'bg-violet-500/10',   headerText: 'text-violet-600 dark:text-violet-400',   columnBg: 'bg-violet-500/5',   border: 'border-violet-500/30',   cardBg: 'bg-violet-500/10',   cardBorder: 'border-violet-500/40',   badgeBg: 'bg-violet-500/20',   badgeText: 'text-violet-700 dark:text-violet-300' },
+  indigo:   { dot: 'bg-indigo-500',   headerBg: 'bg-indigo-500/10',   headerText: 'text-indigo-600 dark:text-indigo-400',   columnBg: 'bg-indigo-500/5',   border: 'border-indigo-500/30',   cardBg: 'bg-indigo-500/10',   cardBorder: 'border-indigo-500/40',   badgeBg: 'bg-indigo-500/20',   badgeText: 'text-indigo-700 dark:text-indigo-300',   temperature: 'Frio' },
+  slate:    { dot: 'bg-slate-500',    headerBg: 'bg-slate-500/10',    headerText: 'text-slate-600 dark:text-slate-300',     columnBg: 'bg-slate-500/5',    border: 'border-slate-500/30',    cardBg: 'bg-slate-500/10',    cardBorder: 'border-slate-500/40',    badgeBg: 'bg-slate-500/20',    badgeText: 'text-slate-700 dark:text-slate-300' },
+  gray:     { dot: 'bg-muted-foreground', headerBg: 'bg-secondary', headerText: 'text-foreground', columnBg: 'bg-secondary/50', border: 'border-border', cardBg: 'bg-card', cardBorder: 'border-border', badgeBg: 'bg-secondary', badgeText: 'text-muted-foreground' },
 };
 
 const COLOR_OPTIONS: { key: ColorKey; label: string; swatch: string }[] = [
-  { key: 'blue', label: 'Azul', swatch: 'bg-blue-500' },
-  { key: 'yellow', label: 'Amarelo', swatch: 'bg-yellow-500' },
-  { key: 'red', label: 'Vermelho', swatch: 'bg-red-500' },
-  { key: 'green', label: 'Verde', swatch: 'bg-green-500' },
-  { key: 'gray', label: 'Cinza', swatch: 'bg-muted-foreground' },
+  { key: 'blue',    label: 'Azul',      swatch: 'bg-blue-500' },
+  { key: 'sky',     label: 'Céu',       swatch: 'bg-sky-500' },
+  { key: 'cyan',    label: 'Ciano',     swatch: 'bg-cyan-500' },
+  { key: 'teal',    label: 'Turquesa',  swatch: 'bg-teal-500' },
+  { key: 'emerald', label: 'Esmeralda', swatch: 'bg-emerald-500' },
+  { key: 'green',   label: 'Verde',     swatch: 'bg-green-500' },
+  { key: 'lime',    label: 'Lima',      swatch: 'bg-lime-500' },
+  { key: 'yellow',  label: 'Amarelo',   swatch: 'bg-yellow-500' },
+  { key: 'amber',   label: 'Âmbar',     swatch: 'bg-amber-500' },
+  { key: 'orange',  label: 'Laranja',   swatch: 'bg-orange-500' },
+  { key: 'red',     label: 'Vermelho',  swatch: 'bg-red-500' },
+  { key: 'rose',    label: 'Rosa',      swatch: 'bg-rose-500' },
+  { key: 'pink',    label: 'Pink',      swatch: 'bg-pink-500' },
+  { key: 'fuchsia', label: 'Fúcsia',    swatch: 'bg-fuchsia-500' },
+  { key: 'purple',  label: 'Roxo',      swatch: 'bg-purple-500' },
+  { key: 'violet',  label: 'Violeta',   swatch: 'bg-violet-500' },
+  { key: 'indigo',  label: 'Índigo',    swatch: 'bg-indigo-500' },
+  { key: 'slate',   label: 'Ardósia',   swatch: 'bg-slate-500' },
+  { key: 'gray',    label: 'Cinza',     swatch: 'bg-muted-foreground' },
 ];
 
 function inferColorFromTitle(title: string): ColorKey {
@@ -116,9 +94,7 @@ function inferColorFromTitle(title: string): ColorKey {
 
 function resolveColor(column: CRMColumn): ColorKey {
   const c = (column.color || '').toLowerCase();
-  if (c === 'blue' || c === 'yellow' || c === 'red' || c === 'green' || c === 'gray') {
-    return c as ColorKey;
-  }
+  if (c in COLOR_THEMES) return c as ColorKey;
   return inferColorFromTitle(column.title);
 }
 
