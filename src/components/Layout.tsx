@@ -151,7 +151,7 @@ export function Layout({ children }: LayoutProps) {
             </Button>
             {!collapsed && (
               <p className="text-xs text-muted-foreground text-center">
-                © 2025 Kora
+                © 2026 Kora
               </p>
             )}
           </div>
