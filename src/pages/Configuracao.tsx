@@ -522,14 +522,14 @@ export default function Configuracao() {
                   <div className="text-xs text-muted-foreground">Tutorial completo da plataforma</div>
                 </div>
               </button>
-              <a href="mailto:suporte@kora.com?subject=Reportar%20problema" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
+              <a href="mailto:koragestaointeligente@gmail.com?subject=Reportar%20problema" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
                 <Bug className="h-5 w-5" />
                 <div>
                   <div className="font-medium text-sm">Reportar problema</div>
                   <div className="text-xs text-muted-foreground">Encontrou um bug?</div>
                 </div>
               </a>
-              <a href="mailto:suporte@kora.com?subject=Solicitar%20funcionalidade" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
+              <a href="mailto:koragestaointeligente@gmail.com?subject=Solicitar%20funcionalidade" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
                 <Sparkles className="h-5 w-5" />
                 <div>
                   <div className="font-medium text-sm">Solicitar funcionalidade</div>
