@@ -84,6 +84,11 @@ export function useCRM() {
         serviceType: c.service_type || '',
         columnId: c.column_id,
         order: c.card_order,
+        role: (c as any).role || '',
+        company: (c as any).company || '',
+        revenue: (c as any).revenue ?? null,
+        city: (c as any).city || '',
+        notes: (c as any).notes || '',
       }));
 
       setCrmCardsState(mappedCards);
@@ -195,6 +200,11 @@ export function useCRM() {
           service_type: card.serviceType,
           column_id: card.columnId,
           card_order: card.order,
+          role: card.role || null,
+          company: card.company || null,
+          revenue: card.revenue ?? null,
+          city: card.city || null,
+          notes: card.notes || null,
         });
         if (error) throw error;
       }
@@ -221,6 +231,11 @@ export function useCRM() {
               service_type: card.serviceType,
               column_id: card.columnId,
               card_order: card.order,
+              role: card.role || null,
+              company: card.company || null,
+              revenue: card.revenue ?? null,
+              city: card.city || null,
+              notes: card.notes || null,
             })
             .eq('id', card.id)
             .eq('user_id', user.id);
