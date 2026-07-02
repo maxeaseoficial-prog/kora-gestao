@@ -44,6 +44,7 @@ export interface CRMColumn {
   id: string;
   title: string;
   order: number;
+  color?: string;
 }
 
 export interface FinanceEntry {
