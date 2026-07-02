@@ -112,6 +112,9 @@ export default function Configuracao() {
   const [renewalDate, setRenewalDate] = useState<string>('—');
   const [planLoading, setPlanLoading] = useState(false);
 
+  // Central de ajuda
+  const [helpOpen, setHelpOpen] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
