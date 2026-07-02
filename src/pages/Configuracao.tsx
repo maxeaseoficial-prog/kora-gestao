@@ -548,6 +548,152 @@ export default function Configuracao() {
         </TabsContent>
       </Tabs>
 
+      {/* Dialog: Central de Ajuda */}
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] p-0">
+          <DialogHeader className="px-6 pt-6">
+            <DialogTitle>Central de Ajuda — Kora Gestão Inteligente</DialogTitle>
+            <DialogDescription>
+              Tutorial completo da plataforma. Aprenda passo a passo como usar cada área do sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[65vh] px-6 pb-6">
+            <div className="space-y-6 text-sm leading-relaxed">
+              <section>
+                <h3 className="font-semibold text-base mb-2">1. Primeiros passos</h3>
+                <p className="text-muted-foreground mb-2">
+                  A Kora é uma plataforma de gestão inteligente para o seu negócio. Para começar:
+                </p>
+                <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
+                  <li>Faça seu cadastro em <span className="font-medium text-foreground">Criar conta</span>, informando nome, e-mail e senha forte (mínimo 8 caracteres, letras maiúsculas/minúsculas, número e caractere especial).</li>
+                  <li>Confirme sua senha no campo <span className="font-medium text-foreground">Repetir senha</span>.</li>
+                  <li>Escolha o plano desejado (mensal ou anual) e finalize o pagamento via Stripe.</li>
+                  <li>Pronto! Você já pode entrar na plataforma com seu e-mail e senha.</li>
+                </ol>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">2. Dashboard</h3>
+                <p className="text-muted-foreground">
+                  Tela inicial com visão geral do seu negócio: faturamento do mês, saídas, saldo, comparativo com meses anteriores e indicadores rápidos. Use como painel de controle diário.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">3. CRM</h3>
+                <p className="text-muted-foreground mb-2">
+                  Kanban de vendas com as colunas padrão: <span className="font-medium text-foreground">Prospectar → Em contato → Reunião Marcada → Ganhou / Perdeu</span>.
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  <li>Adicione um lead clicando no botão <span className="font-medium text-foreground">+</span> em cada coluna.</li>
+                  <li>Arraste o card entre colunas conforme a negociação avança.</li>
+                  <li>Quando marcar como <span className="font-medium text-foreground">Ganhou</span>, o lead vira cliente automaticamente.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">4. Clientes</h3>
+                <p className="text-muted-foreground">
+                  Cadastro completo dos seus clientes: nome, contato, endereço, foto, histórico de compras e observações. Cada cliente cadastrado aparece disponível para vincular a lançamentos no Caixa.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">5. Serviços e Produtos</h3>
+                <p className="text-muted-foreground">
+                  Cadastre tudo o que você vende. Informe nome, valor, categoria e (para produtos) imagem. Esses itens ficam disponíveis para adicionar em vendas rápidas no Caixa.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">6. Caixa (Entradas)</h3>
+                <p className="text-muted-foreground mb-2">
+                  Registro de tudo que entra financeiramente. Para lançar uma entrada:
+                </p>
+                <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
+                  <li>Clique em <span className="font-medium text-foreground">Nova entrada</span>.</li>
+                  <li>Selecione o cliente (opcional), o serviço/produto e o valor.</li>
+                  <li>Escolha a forma de pagamento e a data do recebimento.</li>
+                  <li>Se for recorrente (mensalidade), marque a opção e defina a periodicidade.</li>
+                  <li>Salve. O lançamento aparece no Caixa e é somado no Dashboard.</li>
+                </ol>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">7. Saídas</h3>
+                <p className="text-muted-foreground mb-2">
+                  Registro de despesas e custos:
+                </p>
+                <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
+                  <li>Clique em <span className="font-medium text-foreground">Nova saída</span>.</li>
+                  <li>Informe descrição, categoria, valor, data e forma de pagamento.</li>
+                  <li>Anexe o comprovante (opcional) para manter o histórico organizado.</li>
+                  <li>Para editar, clique no lançamento; para excluir, use o ícone de lixeira.</li>
+                </ol>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">8. Planejamento e Metas</h3>
+                <p className="text-muted-foreground">
+                  Defina metas de faturamento mensais e anuais. A plataforma compara sua evolução real com a meta e mostra o percentual alcançado.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">9. Compras</h3>
+                <p className="text-muted-foreground">
+                  Gere e organize orçamentos e pedidos de compra. Registre fornecedor, itens, valores e status (pendente, aprovado, recebido).
+                </p>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">10. Configuração</h3>
+                <p className="text-muted-foreground">
+                  Ajuste dados da sua conta, foto de perfil, tema (claro/escuro), senha e visualize seu plano atual e data de renovação. Se esqueceu a senha, use <span className="font-medium text-foreground">Esqueci minha senha</span> para receber um código no seu e-mail.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="font-semibold text-base mb-2">11. Dicas rápidas</h3>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  <li>Alterne o tema claro/escuro no menu superior a qualquer momento.</li>
+                  <li>Todos os seus dados são privados e vinculados apenas à sua conta.</li>
+                  <li>Faça lançamentos diariamente para relatórios mais precisos.</li>
+                </ul>
+              </section>
+
+              <section className="pt-4 border-t border-border">
+                <h3 className="font-semibold text-base mb-3">Fale com a Kora</h3>
+                <div className="space-y-2">
+                  <a
+                    href="mailto:koragestaointeligente@gmail.com"
+                    className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent transition"
+                  >
+                    <Mail className="h-5 w-5" />
+                    <div>
+                      <div className="font-medium text-sm">E-mail</div>
+                      <div className="text-xs text-muted-foreground">koragestaointeligente@gmail.com</div>
+                    </div>
+                  </a>
+                  <a
+                    href="https://instagram.com/koragestao"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent transition"
+                  >
+                    <Instagram className="h-5 w-5" />
+                    <div>
+                      <div className="font-medium text-sm">Instagram</div>
+                      <div className="text-xs text-muted-foreground">@koragestao</div>
+                    </div>
+                  </a>
+                </div>
+              </section>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog: código OTP */}
       <Dialog
         open={recoveryStep === 'code'}
