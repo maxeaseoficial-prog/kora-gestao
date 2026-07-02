@@ -46,39 +46,39 @@ const faqs = [
 ];
 
 function MockupCarousel({ slides }: { slides: { src: string; alt: string }[] }) {
-  const [index, setIndex] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), 4500);
-    return () => clearInterval(id);
-  }, [slides.length]);
+  const loop = [...slides, ...slides];
+  const duration = Math.max(30, slides.length * 6);
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="relative rounded-2xl border border-black/10 bg-gradient-to-br from-black/[0.04] to-black/[0.01] p-2 overflow-hidden">
-        <div className="relative rounded-xl overflow-hidden bg-white aspect-[16/10]">
-          {slides.map((s, i) => (
-            <img
-              key={s.src}
-              src={s.src}
-              alt={s.alt}
-              loading="lazy"
-              className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-700 ease-out ${
-                i === index ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
+    <div className="max-w-6xl mx-auto">
+      <style>{`@keyframes kora-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }`}</style>
+      <div
+        className="relative overflow-hidden"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 6%, black 94%, transparent)',
+        }}
+      >
+        <div
+          className="flex w-max gap-6"
+          style={{ animation: `kora-marquee ${duration}s linear infinite` }}
+        >
+          {loop.map((s, i) => (
+            <div
+              key={i}
+              className="shrink-0 rounded-2xl border border-black/10 bg-gradient-to-br from-black/[0.04] to-black/[0.01] p-2 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)]"
+            >
+              <div className="rounded-xl overflow-hidden bg-white w-[85vw] sm:w-[520px] md:w-[640px] lg:w-[760px] aspect-[16/10]">
+                <img
+                  src={s.src}
+                  alt={s.alt}
+                  loading="lazy"
+                  className="w-full h-full object-contain"
+                  draggable={false}
+                />
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-      <div className="flex justify-center gap-2 mt-6">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setIndex(i)}
-            aria-label={`Ir para slide ${i + 1}`}
-            className={`h-1.5 rounded-full transition-all ${
-              i === index ? 'w-8 bg-black' : 'w-4 bg-black/20 hover:bg-black/40'
-            }`}
-          />
-        ))}
       </div>
     </div>
   );
