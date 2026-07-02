@@ -52,11 +52,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       <div className="relative min-h-screen">
         <div
           aria-hidden
-          className="absolute inset-0 overflow-hidden pointer-events-none select-none blur-md scale-105 opacity-60"
+          className="absolute inset-0 overflow-hidden pointer-events-none select-none blur-[2px] scale-[1.01] opacity-95"
         >
           {children}
         </div>
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm px-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/20 px-6">
           <div className="max-w-md w-full text-center space-y-6 border border-border rounded-2xl p-10 bg-card shadow-2xl">
             <div className="mx-auto h-14 w-14 rounded-full bg-muted flex items-center justify-center">
               <Lock className="h-6 w-6 text-foreground" />
