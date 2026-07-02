@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const LOGO_URL =
   "https://kora-gestao.lovable.app/__l5e/assets-v1/6951d7bd-1569-49ce-be69-270c613efcf4/kora-email-logo.png";
-const APP_URL = "https://kora-gestao.lovable.app";
+const APP_URL = "https://www.koragestaointeligente.com.br";
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
 
 const brl = (n: number) =>
