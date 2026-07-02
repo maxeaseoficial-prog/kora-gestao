@@ -55,6 +55,7 @@ export function useCRM() {
           id: c.id,
           title: c.title,
           order: c.column_order,
+          color: (c as any).color || undefined,
         }));
         setCrmColumnsState(mappedInserted);
       } else {
@@ -62,6 +63,7 @@ export function useCRM() {
           id: c.id,
           title: c.title,
           order: c.column_order,
+          color: (c as any).color || undefined,
         }));
         setCrmColumnsState(mappedColumns);
       }
@@ -130,7 +132,8 @@ export function useCRM() {
           user_id: user.id,
           title: column.title,
           column_order: column.order,
-        });
+          color: column.color || null,
+        } as any);
         if (error) throw error;
       }
 
@@ -151,7 +154,8 @@ export function useCRM() {
             .update({
               title: column.title,
               column_order: column.order,
-            })
+              color: column.color || null,
+            } as any)
             .eq('id', column.id)
             .eq('user_id', user.id);
           if (error) throw error;
