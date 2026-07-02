@@ -49,29 +49,37 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!subscribed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-6">
-        <div className="max-w-md w-full text-center space-y-6 border border-border rounded-2xl p-10 bg-card">
-          <div className="mx-auto h-14 w-14 rounded-full bg-muted flex items-center justify-center">
-            <Lock className="h-6 w-6 text-foreground" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-semibold text-foreground">Assinatura necessária</h1>
-            <p className="text-sm text-muted-foreground">
-              Para acessar a plataforma KORA, você precisa de um plano ativo.
-              Escolha abaixo o plano ideal para continuar utilizando o sistema.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Button onClick={() => navigate('/planos')} className="w-full h-11 rounded-full">
-              Escolher plano
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }}
-              className="w-full h-11 rounded-full"
-            >
-              Sair
-            </Button>
+      <div className="relative min-h-screen">
+        <div
+          aria-hidden
+          className="absolute inset-0 overflow-hidden pointer-events-none select-none blur-md scale-105 opacity-60"
+        >
+          {children}
+        </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm px-6">
+          <div className="max-w-md w-full text-center space-y-6 border border-border rounded-2xl p-10 bg-card shadow-2xl">
+            <div className="mx-auto h-14 w-14 rounded-full bg-muted flex items-center justify-center">
+              <Lock className="h-6 w-6 text-foreground" />
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-2xl font-semibold text-foreground">Assinatura necessária</h1>
+              <p className="text-sm text-muted-foreground">
+                Para acessar a plataforma KORA, você precisa de um plano ativo.
+                Escolha abaixo o plano ideal para continuar utilizando o sistema.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => navigate('/planos')} className="w-full h-11 rounded-full">
+                Escolher plano
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }}
+                className="w-full h-11 rounded-full"
+              >
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       </div>
