@@ -511,13 +511,17 @@ export default function Configuracao() {
               <CardDescription>Precisa de ajuda? Estamos aqui.</CardDescription>
             </CardHeader>
             <CardContent className="grid sm:grid-cols-2 gap-3">
-              <a href="mailto:suporte@kora.com?subject=Central%20de%20ajuda" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
+              <button
+                type="button"
+                onClick={() => setHelpOpen(true)}
+                className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition text-left"
+              >
                 <HelpCircle className="h-5 w-5" />
                 <div>
                   <div className="font-medium text-sm">Central de ajuda</div>
-                  <div className="text-xs text-muted-foreground">Tire suas dúvidas</div>
+                  <div className="text-xs text-muted-foreground">Tutorial completo da plataforma</div>
                 </div>
-              </a>
+              </button>
               <a href="mailto:suporte@kora.com?subject=Reportar%20problema" className="flex items-center gap-3 rounded-lg border border-border p-4 hover:bg-accent transition">
                 <Bug className="h-5 w-5" />
                 <div>
