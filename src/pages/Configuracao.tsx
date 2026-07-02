@@ -25,6 +25,30 @@ import {
   Info,
   Upload,
 } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+
+function PasswordInput({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="pr-10"
+      />
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        aria-label={show ? 'Ocultar senha' : 'Mostrar senha'}
+      >
+        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  );
+}
 
 const PROFILE_KEY_LEGACY = 'maxease-profile';
 const PROFILE_KEY_PREFIX = 'maxease-profile:';
@@ -357,16 +381,16 @@ export default function Configuracao() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="current-pwd">Senha atual</Label>
-                <Input id="current-pwd" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                <PasswordInput id="current-pwd" value={currentPassword} onChange={setCurrentPassword} />
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="new-pwd">Nova senha</Label>
-                  <Input id="new-pwd" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                  <PasswordInput id="new-pwd" value={newPassword} onChange={setNewPassword} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-pwd">Confirmar senha</Label>
-                  <Input id="confirm-pwd" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                  <PasswordInput id="confirm-pwd" value={confirmPassword} onChange={setConfirmPassword} />
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -521,11 +545,11 @@ export default function Configuracao() {
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="reset-new-pwd">Nova senha</Label>
-              <Input id="reset-new-pwd" type="password" value={resetNewPassword} onChange={(e) => setResetNewPassword(e.target.value)} />
+              <PasswordInput id="reset-new-pwd" value={resetNewPassword} onChange={setResetNewPassword} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="reset-confirm-pwd">Repetir senha</Label>
-              <Input id="reset-confirm-pwd" type="password" value={resetConfirmPassword} onChange={(e) => setResetConfirmPassword(e.target.value)} />
+              <PasswordInput id="reset-confirm-pwd" value={resetConfirmPassword} onChange={setResetConfirmPassword} />
             </div>
           </div>
           <DialogFooter>
