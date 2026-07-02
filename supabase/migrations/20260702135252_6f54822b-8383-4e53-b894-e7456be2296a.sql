@@ -1,0 +1,1 @@
+ALTER TABLE public.crm_columns ADD COLUMN IF NOT EXISTS color text;
