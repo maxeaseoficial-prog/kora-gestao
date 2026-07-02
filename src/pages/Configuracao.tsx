@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -70,6 +72,14 @@ export default function Configuracao() {
   const [savingPwd, setSavingPwd] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [sendingReset, setSendingReset] = useState(false);
+
+  // Fluxo de recuperação por código (OTP)
+  const [recoveryStep, setRecoveryStep] = useState<'idle' | 'code' | 'newPassword'>('idle');
+  const [otpCode, setOtpCode] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [resettingPwd, setResettingPwd] = useState(false);
 
   useEffect(() => {
     const key = getProfileKey(user?.id);
@@ -178,8 +188,56 @@ export default function Configuracao() {
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'E-mail enviado', description: `Enviamos um link de recuperação para ${email}.` });
+      setOtpCode('');
+      setRecoveryStep('code');
+      toast({ title: 'Código enviado', description: `Enviamos um código de 6 dígitos para ${email}.` });
     }
+  };
+
+  const handleVerifyOtp = async () => {
+    const email = user?.email;
+    if (!email) return;
+    if (otpCode.length !== 6) {
+      toast({ title: 'Código inválido', description: 'Digite os 6 dígitos.', variant: 'destructive' });
+      return;
+    }
+    setVerifyingOtp(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: otpCode,
+      type: 'recovery',
+    });
+    setVerifyingOtp(false);
+    if (error) {
+      toast({ title: 'Código incorreto', description: 'Verifique o código e tente novamente.', variant: 'destructive' });
+      return;
+    }
+    setResetNewPassword('');
+    setResetConfirmPassword('');
+    setRecoveryStep('newPassword');
+  };
+
+  const handleResetPassword = async () => {
+    if (resetNewPassword.length < 6) {
+      toast({ title: 'Senha curta', description: 'Mínimo de 6 caracteres.', variant: 'destructive' });
+      return;
+    }
+    if (resetNewPassword !== resetConfirmPassword) {
+      toast({ title: 'Senhas diferentes', description: 'As senhas não coincidem.', variant: 'destructive' });
+      return;
+    }
+    setResettingPwd(true);
+    const { error } = await supabase.auth.updateUser({ password: resetNewPassword });
+    setResettingPwd(false);
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setRecoveryStep('idle');
+    setOtpCode('');
+    setResetNewPassword('');
+    setResetConfirmPassword('');
+    toast({ title: 'Senha alterada', description: 'Sua senha foi atualizada com sucesso.' });
   };
 
   const accountCreatedAt = user?.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '—';
@@ -416,6 +474,69 @@ export default function Configuracao() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog: código OTP */}
+      <Dialog
+        open={recoveryStep === 'code'}
+        onOpenChange={(o) => { if (!o) setRecoveryStep('idle'); }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Digite o código</DialogTitle>
+            <DialogDescription>
+              Enviamos um código de 6 dígitos para {user?.email}. Insira-o abaixo para continuar.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={handleForgotPassword} disabled={sendingReset}>
+              {sendingReset ? 'Reenviando...' : 'Reenviar código'}
+            </Button>
+            <Button onClick={handleVerifyOtp} disabled={verifyingOtp || otpCode.length !== 6}>
+              {verifyingOtp ? 'Verificando...' : 'Verificar código'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: nova senha */}
+      <Dialog
+        open={recoveryStep === 'newPassword'}
+        onOpenChange={(o) => { if (!o) setRecoveryStep('idle'); }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Definir nova senha</DialogTitle>
+            <DialogDescription>Escolha uma senha com pelo menos 6 caracteres.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="reset-new-pwd">Nova senha</Label>
+              <Input id="reset-new-pwd" type="password" value={resetNewPassword} onChange={(e) => setResetNewPassword(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reset-confirm-pwd">Repetir senha</Label>
+              <Input id="reset-confirm-pwd" type="password" value={resetConfirmPassword} onChange={(e) => setResetConfirmPassword(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleResetPassword} disabled={resettingPwd}>
+              {resettingPwd ? 'Alterando...' : 'Alterar senha'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
