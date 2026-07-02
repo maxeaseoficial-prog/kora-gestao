@@ -13,13 +13,13 @@ import {
 } from '@/components/ui/accordion';
 import logoFull from '@/assets/kora-logo-outline.png.asset.json';
 import mockupDashboard from '@/assets/kora-mockup-dashboard.png.asset.json';
-import mockupCRM from '@/assets/kora-mockup-crm.png.asset.json';
+import mockupCRM from '@/assets/kora-mockup-crm-v2.png.asset.json';
 import mockupProgresso from '@/assets/kora-mockup-progresso.png.asset.json';
 import mockupOrigem from '@/assets/kora-mockup-origem.png.asset.json';
 import mockupFaturamento from '@/assets/kora-mockup-faturamento.png.asset.json';
 import mockupDashboardDark from '@/assets/kora-mockup-dashboard-dark.png.asset.json';
 import mockupMetaAnual from '@/assets/kora-mockup-meta-anual.png.asset.json';
-import mockupCrmClaro from '@/assets/kora-mockup-crm-claro.png.asset.json';
+import mockupCrmClaro from '@/assets/kora-mockup-crm-v2.png.asset.json';
 
 const features = [
   { icon: LayoutDashboard, title: 'Dashboard', desc: 'Visão geral e indicadores em tempo real.' },
