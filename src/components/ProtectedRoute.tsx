@@ -20,11 +20,20 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     async function check() {
       if (!user) { setChecking(false); return; }
       setChecking(true);
+      // If returning from Stripe, retry a few times to avoid a race with
+      // Stripe's subscription indexing (usually <2s).
+      const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
+      const attempts = justPaid ? 6 : 1;
+      const delayMs = 1500;
       try {
-        const { data, error } = await supabase.functions.invoke('check-subscription');
-        if (cancelled) return;
-        if (error) setSubscribed(false);
-        else setSubscribed(Boolean(data?.subscribed || data?.lifetime));
+        let ok = false;
+        for (let i = 0; i < attempts; i++) {
+          const { data, error } = await supabase.functions.invoke('check-subscription');
+          if (cancelled) return;
+          if (!error && (data?.subscribed || data?.lifetime)) { ok = true; break; }
+          if (i < attempts - 1) await new Promise(r => setTimeout(r, delayMs));
+        }
+        if (!cancelled) setSubscribed(ok);
       } catch {
         if (!cancelled) setSubscribed(false);
       } finally {
