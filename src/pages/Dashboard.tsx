@@ -561,11 +561,12 @@ function Dashboard() {
             <span className="text-xs text-[#a1a1a1] block mb-2 flex items-center gap-1.5">
               <TrendingUp className="w-3 h-3" /> Lucro Atual
             </span>
-            <div className={`dash-heading text-xl font-bold mb-1 ${(totalMonth - monthExpenses) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {formatCurrency(totalMonth - monthExpenses)}
+            <div className={`dash-heading text-xl font-bold mb-1 ${currentProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {formatCurrency(currentProfit)}
             </div>
-            <div className="text-[10px] text-[#666]">
-              {hideNumbers ? '•••' : `Despesas ${formatShortCurrency(monthExpenses)}`}
+            <div className="text-[10px] text-[#666] space-y-0.5">
+              <div>{hideNumbers ? '•••' : `Despesas ${formatShortCurrency(monthExpenses)}`}</div>
+              <div>{hideNumbers ? '•••' : `Custo produtos ${formatShortCurrency(productCostsMonth)}`}</div>
             </div>
           </div>
 
