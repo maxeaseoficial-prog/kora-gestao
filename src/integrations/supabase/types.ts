@@ -208,6 +208,7 @@ export type Database = {
       }
       crm_columns: {
         Row: {
+          color: string | null
           column_order: number
           created_at: string
           id: string
@@ -215,6 +216,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          color?: string | null
           column_order?: number
           created_at?: string
           id?: string
@@ -222,6 +224,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          color?: string | null
           column_order?: number
           created_at?: string
           id?: string
