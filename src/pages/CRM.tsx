@@ -20,6 +20,76 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
+type ColumnTheme = {
+  dot: string;
+  headerBg: string;
+  headerText: string;
+  columnBg: string;
+  border: string;
+};
+
+const DEFAULT_THEME: ColumnTheme = {
+  dot: 'bg-muted-foreground',
+  headerBg: 'bg-secondary',
+  headerText: 'text-foreground',
+  columnBg: 'bg-secondary/50',
+  border: 'border-border',
+};
+
+function getColumnTheme(title: string): ColumnTheme {
+  const t = title.trim().toLowerCase();
+  if (t.includes('prospect')) {
+    return {
+      dot: 'bg-blue-500',
+      headerBg: 'bg-blue-500/10',
+      headerText: 'text-blue-600 dark:text-blue-400',
+      columnBg: 'bg-blue-500/5',
+      border: 'border-blue-500/30',
+    };
+  }
+  if (t.includes('contato')) {
+    return {
+      dot: 'bg-yellow-500',
+      headerBg: 'bg-yellow-500/10',
+      headerText: 'text-yellow-700 dark:text-yellow-400',
+      columnBg: 'bg-yellow-500/5',
+      border: 'border-yellow-500/30',
+    };
+  }
+  if (t.includes('reuni')) {
+    return {
+      dot: 'bg-red-500',
+      headerBg: 'bg-red-500/10',
+      headerText: 'text-red-600 dark:text-red-400',
+      columnBg: 'bg-red-500/5',
+      border: 'border-red-500/30',
+    };
+  }
+  if (t.includes('ganh')) {
+    return {
+      dot: 'bg-green-500',
+      headerBg: 'bg-green-500/10',
+      headerText: 'text-green-600 dark:text-green-400',
+      columnBg: 'bg-green-500/5',
+      border: 'border-green-500/30',
+    };
+  }
+  return DEFAULT_THEME;
+}
+
+const EMPTY_CARD = {
+  clientName: '',
+  description: '',
+  email: '',
+  phone: '',
+  serviceType: '',
+  role: '',
+  company: '',
+  revenue: '' as string,
+  city: '',
+  notes: '',
+};
+
 function CRM() {
   const { crmColumns, setCrmColumns, crmCards, setCrmCards } = useApp();
   const [isAddingColumn, setIsAddingColumn] = useState(false);
@@ -27,13 +97,7 @@ function CRM() {
   const [editingCard, setEditingCard] = useState<CRMCard | null>(null);
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [addingCardToColumn, setAddingCardToColumn] = useState<string | null>(null);
-  const [newCard, setNewCard] = useState({
-    clientName: '',
-    description: '',
-    email: '',
-    phone: '',
-    serviceType: '',
-  });
+  const [newCard, setNewCard] = useState({ ...EMPTY_CARD });
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -92,24 +156,30 @@ function CRM() {
     ));
   };
 
-  const addCard = (columnId: string) => {
+  const addCard = () => {
+    if (!addingCardToColumn) return;
     if (!newCard.clientName.trim()) return;
+
+    const revenueNum = newCard.revenue !== '' ? Number(newCard.revenue) : null;
 
     const card: CRMCard = {
       id: crypto.randomUUID(),
-      ...newCard,
-      columnId,
-      order: crmCards.filter(c => c.columnId === columnId).length,
+      clientName: newCard.clientName,
+      description: newCard.description,
+      email: newCard.email,
+      phone: newCard.phone,
+      serviceType: newCard.serviceType,
+      role: newCard.role,
+      company: newCard.company,
+      revenue: Number.isFinite(revenueNum as number) ? (revenueNum as number) : null,
+      city: newCard.city,
+      notes: newCard.notes,
+      columnId: addingCardToColumn,
+      order: crmCards.filter(c => c.columnId === addingCardToColumn).length,
     };
 
     setCrmCards([...crmCards, card]);
-    setNewCard({
-      clientName: '',
-      description: '',
-      email: '',
-      phone: '',
-      serviceType: '',
-    });
+    setNewCard({ ...EMPTY_CARD });
     setAddingCardToColumn(null);
   };
 
@@ -137,14 +207,23 @@ function CRM() {
     <div className="h-[calc(100vh-8rem)] overflow-hidden">
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-4 h-full overflow-x-auto pb-4">
-          {crmColumns.sort((a, b) => a.order - b.order).map((column) => (
+          {crmColumns.sort((a, b) => a.order - b.order).map((column) => {
+            const theme = getColumnTheme(column.title);
+            return (
             <div
               key={column.id}
-              className="flex-shrink-0 w-72 bg-secondary/50 rounded-xl flex flex-col animate-fade-in"
+              className={cn(
+                "flex-shrink-0 w-72 rounded-xl flex flex-col animate-fade-in border",
+                theme.columnBg,
+                theme.border
+              )}
             >
               {/* Column Header */}
-              <div className="p-3 border-b border-border flex items-center justify-between">
-                <h3 className="font-semibold text-sm">{column.title}</h3>
+              <div className={cn("p-3 border-b flex items-center justify-between rounded-t-xl", theme.headerBg, theme.border)}>
+                <div className="flex items-center gap-2">
+                  <span className={cn("h-2.5 w-2.5 rounded-full", theme.dot)} />
+                  <h3 className={cn("font-semibold text-sm", theme.headerText)}>{column.title}</h3>
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -227,61 +306,20 @@ function CRM() {
                 )}
               </Droppable>
 
-              {/* Add Card */}
-              {addingCardToColumn === column.id ? (
-                <div className="p-2 border-t border-border space-y-2">
-                  <Input
-                    placeholder="Nome do cliente"
-                    value={newCard.clientName}
-                    onChange={(e) => setNewCard({ ...newCard, clientName: e.target.value })}
-                    autoFocus
-                  />
-                  <Textarea
-                    placeholder="Descrição"
-                    value={newCard.description}
-                    onChange={(e) => setNewCard({ ...newCard, description: e.target.value })}
-                    className="min-h-[60px]"
-                  />
-                  <Input
-                    placeholder="E-mail"
-                    type="email"
-                    value={newCard.email}
-                    onChange={(e) => setNewCard({ ...newCard, email: e.target.value })}
-                  />
-                  <Input
-                    placeholder="Telefone"
-                    value={newCard.phone}
-                    onChange={(e) => setNewCard({ ...newCard, phone: e.target.value })}
-                  />
-                  <Input
-                    placeholder="Tipo de serviço"
-                    value={newCard.serviceType}
-                    onChange={(e) => setNewCard({ ...newCard, serviceType: e.target.value })}
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => addCard(column.id)} className="flex-1">
-                      Adicionar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setAddingCardToColumn(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setAddingCardToColumn(column.id)}
-                  className="p-3 border-t border-border text-sm text-muted-foreground hover:bg-accent transition-colors flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Adicionar cartão
-                </button>
-              )}
+              {/* Add Card Button */}
+              <button
+                onClick={() => {
+                  setNewCard({ ...EMPTY_CARD });
+                  setAddingCardToColumn(column.id);
+                }}
+                className={cn("p-3 border-t text-sm text-muted-foreground hover:bg-accent transition-colors flex items-center gap-2 rounded-b-xl", theme.border)}
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar cartão
+              </button>
             </div>
-          ))}
+            );
+          })}
 
           {/* Add Column */}
           {isAddingColumn ? (
@@ -318,27 +356,44 @@ function CRM() {
         </div>
       </DragDropContext>
 
-      {/* Edit Card Dialog */}
-      <Dialog open={isCardDialogOpen} onOpenChange={setIsCardDialogOpen}>
-        <DialogContent>
+      {/* Add Card Dialog */}
+      <Dialog
+        open={addingCardToColumn !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAddingCardToColumn(null);
+            setNewCard({ ...EMPTY_CARD });
+          }
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Cartão</DialogTitle>
+            <DialogTitle>Novo Lead</DialogTitle>
           </DialogHeader>
-          {editingCard && (
-            <div className="space-y-4 pt-4">
-              <div>
-                <label className="text-sm font-medium">Nome do Cliente</label>
+          <div className="space-y-4 pt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="text-sm font-medium">Nome *</label>
                 <Input
-                  value={editingCard.clientName}
-                  onChange={(e) => setEditingCard({ ...editingCard, clientName: e.target.value })}
+                  value={newCard.clientName}
+                  onChange={(e) => setNewCard({ ...newCard, clientName: e.target.value })}
+                  className="mt-1"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Cargo</label>
+                <Input
+                  value={newCard.role}
+                  onChange={(e) => setNewCard({ ...newCard, role: e.target.value })}
                   className="mt-1"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Descrição</label>
-                <Textarea
-                  value={editingCard.description}
-                  onChange={(e) => setEditingCard({ ...editingCard, description: e.target.value })}
+                <label className="text-sm font-medium">Empresa</label>
+                <Input
+                  value={newCard.company}
+                  onChange={(e) => setNewCard({ ...newCard, company: e.target.value })}
                   className="mt-1"
                 />
               </div>
@@ -346,26 +401,162 @@ function CRM() {
                 <label className="text-sm font-medium">E-mail</label>
                 <Input
                   type="email"
-                  value={editingCard.email || ''}
-                  onChange={(e) => setEditingCard({ ...editingCard, email: e.target.value })}
+                  value={newCard.email}
+                  onChange={(e) => setNewCard({ ...newCard, email: e.target.value })}
                   className="mt-1"
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Telefone</label>
                 <Input
-                  value={editingCard.phone || ''}
-                  onChange={(e) => setEditingCard({ ...editingCard, phone: e.target.value })}
+                  value={newCard.phone}
+                  onChange={(e) => setNewCard({ ...newCard, phone: e.target.value })}
                   className="mt-1"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Tipo de Serviço</label>
+                <label className="text-sm font-medium">Faturamento</label>
                 <Input
-                  value={editingCard.serviceType}
-                  onChange={(e) => setEditingCard({ ...editingCard, serviceType: e.target.value })}
+                  type="number"
+                  step="0.01"
+                  value={newCard.revenue}
+                  onChange={(e) => setNewCard({ ...newCard, revenue: e.target.value })}
                   className="mt-1"
                 />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Cidade</label>
+                <Input
+                  value={newCard.city}
+                  onChange={(e) => setNewCard({ ...newCard, city: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium">Tipo de serviço</label>
+                <Input
+                  value={newCard.serviceType}
+                  onChange={(e) => setNewCard({ ...newCard, serviceType: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium">Descrição</label>
+                <Textarea
+                  value={newCard.description}
+                  onChange={(e) => setNewCard({ ...newCard, description: e.target.value })}
+                  className="mt-1 min-h-[60px]"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium">Observações</label>
+                <Textarea
+                  value={newCard.notes}
+                  onChange={(e) => setNewCard({ ...newCard, notes: e.target.value })}
+                  className="mt-1 min-h-[60px]"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button onClick={addCard} className="flex-1">Adicionar</Button>
+              <Button variant="ghost" onClick={() => setAddingCardToColumn(null)}>Cancelar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Card Dialog */}
+      <Dialog open={isCardDialogOpen} onOpenChange={setIsCardDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Lead</DialogTitle>
+          </DialogHeader>
+          {editingCard && (
+            <div className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="text-sm font-medium">Nome</label>
+                  <Input
+                    value={editingCard.clientName}
+                    onChange={(e) => setEditingCard({ ...editingCard, clientName: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Cargo</label>
+                  <Input
+                    value={editingCard.role || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, role: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Empresa</label>
+                  <Input
+                    value={editingCard.company || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, company: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">E-mail</label>
+                  <Input
+                    type="email"
+                    value={editingCard.email || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, email: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Telefone</label>
+                  <Input
+                    value={editingCard.phone || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, phone: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Faturamento</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editingCard.revenue ?? ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, revenue: e.target.value === '' ? null : Number(e.target.value) })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Cidade</label>
+                  <Input
+                    value={editingCard.city || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, city: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium">Tipo de serviço</label>
+                  <Input
+                    value={editingCard.serviceType}
+                    onChange={(e) => setEditingCard({ ...editingCard, serviceType: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium">Descrição</label>
+                  <Textarea
+                    value={editingCard.description}
+                    onChange={(e) => setEditingCard({ ...editingCard, description: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium">Observações</label>
+                  <Textarea
+                    value={editingCard.notes || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, notes: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
               </div>
               <div className="flex gap-2 pt-4">
                 <Button onClick={updateCard} className="flex-1">

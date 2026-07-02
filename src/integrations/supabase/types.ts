@@ -155,37 +155,52 @@ export type Database = {
       crm_cards: {
         Row: {
           card_order: number
+          city: string | null
           client_name: string
           column_id: string
+          company: string | null
           created_at: string
           description: string | null
           email: string | null
           id: string
+          notes: string | null
           phone: string | null
+          revenue: number | null
+          role: string | null
           service_type: string | null
           user_id: string
         }
         Insert: {
           card_order?: number
+          city?: string | null
           client_name: string
           column_id: string
+          company?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
           id?: string
+          notes?: string | null
           phone?: string | null
+          revenue?: number | null
+          role?: string | null
           service_type?: string | null
           user_id: string
         }
         Update: {
           card_order?: number
+          city?: string | null
           client_name?: string
           column_id?: string
+          company?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
           id?: string
+          notes?: string | null
           phone?: string | null
+          revenue?: number | null
+          role?: string | null
           service_type?: string | null
           user_id?: string
         }
