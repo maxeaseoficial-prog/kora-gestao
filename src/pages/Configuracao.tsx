@@ -228,7 +228,7 @@ export default function Configuracao() {
     });
     setResettingPwd(false);
     if (error || !data?.ok) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro', description: error?.message || 'Não foi possível atualizar a senha.', variant: 'destructive' });
       return;
     }
     setRecoveryStep('idle');
