@@ -370,7 +370,7 @@ async function sendResend(to: string, subject: string, html: string) {
       "X-Connection-Api-Key": resendKey,
     },
     body: JSON.stringify({
-      from: "KORA <onboarding@resend.dev>",
+      from: "KORA <relatorio@koragestaointeligente.com.br>",
       to: [to],
       subject,
       html,
