@@ -33,6 +33,11 @@ export interface CRMCard {
   serviceType: string;
   columnId: string;
   order: number;
+  role?: string;
+  company?: string;
+  revenue?: number | null;
+  city?: string;
+  notes?: string;
 }
 
 export interface CRMColumn {
