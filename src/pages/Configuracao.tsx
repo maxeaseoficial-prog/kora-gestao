@@ -486,14 +486,14 @@ export default function Configuracao() {
               </div>
               <div className="flex justify-between border-b border-border pb-2">
                 <span className="text-muted-foreground">Plano contratado</span>
-                <span className="font-medium">—</span>
+                <span className="font-medium">{planLoading ? 'Carregando...' : planName}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Data de renovação</span>
-                <span className="font-medium">—</span>
+                <span className="font-medium">{planLoading ? 'Carregando...' : renewalDate}</span>
               </div>
               <Separator className="my-2" />
-              <p className="text-xs text-muted-foreground">As informações de plano e renovação serão exibidas após a integração com o sistema de cobrança.</p>
+              <p className="text-xs text-muted-foreground">Dados sincronizados com o Stripe.</p>
             </CardContent>
           </Card>
         </TabsContent>
