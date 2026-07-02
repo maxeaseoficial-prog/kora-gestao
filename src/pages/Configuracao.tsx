@@ -105,6 +105,48 @@ export default function Configuracao() {
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
   const [resettingPwd, setResettingPwd] = useState(false);
 
+  // Assinatura
+  const [planName, setPlanName] = useState<string>('—');
+  const [renewalDate, setRenewalDate] = useState<string>('—');
+  const [planLoading, setPlanLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      setPlanLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('check-subscription');
+        if (cancelled) return;
+        if (error || !data) {
+          setPlanName('—');
+          setRenewalDate('—');
+          return;
+        }
+        if (data.lifetime) {
+          setPlanName('Plano Vitalício');
+          setRenewalDate('∞');
+        } else if (data.subscribed) {
+          setPlanName(data.plan_name || 'Plano Ativo');
+          setRenewalDate(
+            data.subscription_end
+              ? new Date(data.subscription_end).toLocaleDateString('pt-BR')
+              : '—'
+          );
+        } else {
+          setPlanName('Sem plano ativo');
+          setRenewalDate('—');
+        }
+      } catch {
+        setPlanName('—');
+        setRenewalDate('—');
+      } finally {
+        if (!cancelled) setPlanLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
   useEffect(() => {
     const key = getProfileKey(user?.id);
     if (!key) {
@@ -444,14 +486,14 @@ export default function Configuracao() {
               </div>
               <div className="flex justify-between border-b border-border pb-2">
                 <span className="text-muted-foreground">Plano contratado</span>
-                <span className="font-medium">—</span>
+                <span className="font-medium">{planLoading ? 'Carregando...' : planName}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Data de renovação</span>
-                <span className="font-medium">—</span>
+                <span className="font-medium">{planLoading ? 'Carregando...' : renewalDate}</span>
               </div>
               <Separator className="my-2" />
-              <p className="text-xs text-muted-foreground">As informações de plano e renovação serão exibidas após a integração com o sistema de cobrança.</p>
+              <p className="text-xs text-muted-foreground">Dados sincronizados com o Stripe.</p>
             </CardContent>
           </Card>
         </TabsContent>
