@@ -90,8 +90,8 @@ export default function Cadastro() {
         });
         return;
       }
-      // Signout to prevent auto-login into system before checkout
-      await supabase.auth.signOut();
+      // Keep the session so the user returns logged in after Stripe checkout.
+      // ProtectedRoute already blocks the system until an active subscription exists.
       toast({ title: 'Conta criada!', description: 'Escolha seu plano para começar.' });
       navigate('/planos', { state: { email, name } });
     } finally {
