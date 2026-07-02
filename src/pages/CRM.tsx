@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, Building2, MapPin } from 'lucide-react';
+import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { CRMCard, CRMColumn } from '@/types';
 import { Button } from '@/components/ui/button';
