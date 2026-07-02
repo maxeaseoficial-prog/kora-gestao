@@ -1,0 +1,1 @@
+CREATE POLICY "Deny all client access" ON public.password_reset_codes FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
