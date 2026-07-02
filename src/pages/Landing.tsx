@@ -46,7 +46,6 @@ const faqs = [
 ];
 
 function MockupCarousel({ slides }: { slides: { src: string; alt: string }[] }) {
-function MockupCarousel({ slides }: { slides: { src: string; alt: string }[] }) {
   const loop = [...slides, ...slides];
   const duration = Math.max(30, slides.length * 6);
   return (
