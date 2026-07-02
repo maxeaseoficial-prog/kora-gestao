@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X } from 'lucide-react';
+import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { CRMCard, CRMColumn } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -20,61 +20,110 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
+type ColorKey = 'blue' | 'yellow' | 'red' | 'green' | 'gray';
+
 type ColumnTheme = {
   dot: string;
   headerBg: string;
   headerText: string;
   columnBg: string;
   border: string;
+  cardBg: string;
+  cardBorder: string;
+  badgeBg: string;
+  badgeText: string;
+  temperature?: 'Frio' | 'Morno' | 'Quente' | 'Parabéns!';
 };
 
-const DEFAULT_THEME: ColumnTheme = {
-  dot: 'bg-muted-foreground',
-  headerBg: 'bg-secondary',
-  headerText: 'text-foreground',
-  columnBg: 'bg-secondary/50',
-  border: 'border-border',
+const COLOR_THEMES: Record<ColorKey, ColumnTheme> = {
+  blue: {
+    dot: 'bg-blue-500',
+    headerBg: 'bg-blue-500/10',
+    headerText: 'text-blue-600 dark:text-blue-400',
+    columnBg: 'bg-blue-500/5',
+    border: 'border-blue-500/30',
+    cardBg: 'bg-blue-500/10',
+    cardBorder: 'border-blue-500/40',
+    badgeBg: 'bg-blue-500/20',
+    badgeText: 'text-blue-700 dark:text-blue-300',
+    temperature: 'Frio',
+  },
+  yellow: {
+    dot: 'bg-yellow-500',
+    headerBg: 'bg-yellow-500/10',
+    headerText: 'text-yellow-700 dark:text-yellow-400',
+    columnBg: 'bg-yellow-500/5',
+    border: 'border-yellow-500/30',
+    cardBg: 'bg-yellow-500/10',
+    cardBorder: 'border-yellow-500/40',
+    badgeBg: 'bg-yellow-500/20',
+    badgeText: 'text-yellow-800 dark:text-yellow-300',
+    temperature: 'Morno',
+  },
+  red: {
+    dot: 'bg-red-500',
+    headerBg: 'bg-red-500/10',
+    headerText: 'text-red-600 dark:text-red-400',
+    columnBg: 'bg-red-500/5',
+    border: 'border-red-500/30',
+    cardBg: 'bg-red-500/10',
+    cardBorder: 'border-red-500/40',
+    badgeBg: 'bg-red-500/20',
+    badgeText: 'text-red-700 dark:text-red-300',
+    temperature: 'Quente',
+  },
+  green: {
+    dot: 'bg-green-500',
+    headerBg: 'bg-green-500/10',
+    headerText: 'text-green-600 dark:text-green-400',
+    columnBg: 'bg-green-500/5',
+    border: 'border-green-500/30',
+    cardBg: 'bg-green-500/10',
+    cardBorder: 'border-green-500/40',
+    badgeBg: 'bg-green-500/20',
+    badgeText: 'text-green-700 dark:text-green-300',
+    temperature: 'Parabéns!',
+  },
+  gray: {
+    dot: 'bg-muted-foreground',
+    headerBg: 'bg-secondary',
+    headerText: 'text-foreground',
+    columnBg: 'bg-secondary/50',
+    border: 'border-border',
+    cardBg: 'bg-card',
+    cardBorder: 'border-border',
+    badgeBg: 'bg-secondary',
+    badgeText: 'text-muted-foreground',
+  },
 };
 
-function getColumnTheme(title: string): ColumnTheme {
+const COLOR_OPTIONS: { key: ColorKey; label: string; swatch: string }[] = [
+  { key: 'blue', label: 'Azul', swatch: 'bg-blue-500' },
+  { key: 'yellow', label: 'Amarelo', swatch: 'bg-yellow-500' },
+  { key: 'red', label: 'Vermelho', swatch: 'bg-red-500' },
+  { key: 'green', label: 'Verde', swatch: 'bg-green-500' },
+  { key: 'gray', label: 'Cinza', swatch: 'bg-muted-foreground' },
+];
+
+function inferColorFromTitle(title: string): ColorKey {
   const t = title.trim().toLowerCase();
-  if (t.includes('prospect')) {
-    return {
-      dot: 'bg-blue-500',
-      headerBg: 'bg-blue-500/10',
-      headerText: 'text-blue-600 dark:text-blue-400',
-      columnBg: 'bg-blue-500/5',
-      border: 'border-blue-500/30',
-    };
+  if (t.includes('prospect')) return 'blue';
+  if (t.includes('contato')) return 'yellow';
+  if (t.includes('reuni')) return 'red';
+  if (t.includes('ganh')) return 'green';
+  return 'gray';
+}
+
+function resolveColor(column: CRMColumn): ColorKey {
+  const c = (column.color || '').toLowerCase();
+  if (c === 'blue' || c === 'yellow' || c === 'red' || c === 'green' || c === 'gray') {
+    return c as ColorKey;
   }
-  if (t.includes('contato')) {
-    return {
-      dot: 'bg-yellow-500',
-      headerBg: 'bg-yellow-500/10',
-      headerText: 'text-yellow-700 dark:text-yellow-400',
-      columnBg: 'bg-yellow-500/5',
-      border: 'border-yellow-500/30',
-    };
-  }
-  if (t.includes('reuni')) {
-    return {
-      dot: 'bg-red-500',
-      headerBg: 'bg-red-500/10',
-      headerText: 'text-red-600 dark:text-red-400',
-      columnBg: 'bg-red-500/5',
-      border: 'border-red-500/30',
-    };
-  }
-  if (t.includes('ganh')) {
-    return {
-      dot: 'bg-green-500',
-      headerBg: 'bg-green-500/10',
-      headerText: 'text-green-600 dark:text-green-400',
-      columnBg: 'bg-green-500/5',
-      border: 'border-green-500/30',
-    };
-  }
-  return DEFAULT_THEME;
+  return inferColorFromTitle(column.title);
+}
+
+function getColumnTheme(column: CRMColumn): ColumnTheme {
+  return COLOR_THEMES[resolveColor(column)];
 }
 
 const EMPTY_CARD = {
@@ -94,6 +143,7 @@ function CRM() {
   const { crmColumns, setCrmColumns, crmCards, setCrmCards } = useApp();
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
+  const [newColumnColor, setNewColumnColor] = useState<ColorKey>('gray');
   const [editingCard, setEditingCard] = useState<CRMCard | null>(null);
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [addingCardToColumn, setAddingCardToColumn] = useState<string | null>(null);
@@ -138,10 +188,12 @@ function CRM() {
       id: crypto.randomUUID(),
       title: newColumnTitle,
       order: crmColumns.length,
+      color: newColumnColor,
     };
     
     setCrmColumns([...crmColumns, newColumn]);
     setNewColumnTitle('');
+    setNewColumnColor('gray');
     setIsAddingColumn(false);
   };
 
@@ -208,7 +260,7 @@ function CRM() {
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-4 h-full overflow-x-auto pb-4">
           {crmColumns.sort((a, b) => a.order - b.order).map((column) => {
-            const theme = getColumnTheme(column.title);
+            const theme = getColumnTheme(column);
             return (
             <div
               key={column.id}
@@ -274,11 +326,28 @@ function CRM() {
                               {...provided.dragHandleProps}
                               onClick={() => openEditDialog(card)}
                               className={cn(
-                                "p-3 bg-card rounded-lg border border-border cursor-pointer hover:shadow-md transition-all",
+                                "p-3 rounded-lg border cursor-pointer hover:shadow-md transition-all",
+                                theme.cardBg,
+                                theme.cardBorder,
                                 snapshot.isDragging && "shadow-lg rotate-2"
                               )}
                             >
-                              <h4 className="font-medium text-sm">{card.clientName}</h4>
+                              <div className="flex items-start justify-between gap-2">
+                                <h4 className="font-medium text-sm">{card.clientName}</h4>
+                                {theme.temperature && (
+                                  <span className={cn(
+                                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap",
+                                    theme.badgeBg,
+                                    theme.badgeText
+                                  )}>
+                                    {theme.temperature === 'Parabéns!' && <PartyPopper className="h-3 w-3" />}
+                                    {theme.temperature}
+                                  </span>
+                                )}
+                              </div>
+                              {card.company && (
+                                <p className="text-xs text-muted-foreground mt-0.5">{card.company}</p>
+                              )}
                               {card.description && (
                                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                   {card.description}
@@ -323,7 +392,7 @@ function CRM() {
 
           {/* Add Column */}
           {isAddingColumn ? (
-            <div className="flex-shrink-0 w-72 bg-secondary/50 rounded-xl p-3 space-y-2 animate-fade-in">
+            <div className="flex-shrink-0 w-72 bg-secondary/50 rounded-xl p-3 space-y-3 animate-fade-in">
               <Input
                 placeholder="Nome da coluna"
                 value={newColumnTitle}
@@ -331,6 +400,26 @@ function CRM() {
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && addColumn()}
               />
+              <div>
+                <p className="text-xs text-muted-foreground mb-1.5">Cor da coluna</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {COLOR_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setNewColumnColor(opt.key)}
+                      title={opt.label}
+                      className={cn(
+                        "h-7 w-7 rounded-full border-2 transition-transform",
+                        opt.swatch,
+                        newColumnColor === opt.key
+                          ? "border-foreground scale-110"
+                          : "border-transparent hover:scale-105"
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={addColumn} className="flex-1">
                   Adicionar
@@ -338,7 +427,7 @@ function CRM() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setIsAddingColumn(false)}
+                  onClick={() => { setIsAddingColumn(false); setNewColumnColor('gray'); }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
