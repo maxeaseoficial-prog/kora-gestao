@@ -158,6 +158,7 @@ export default function Cadastro() {
                   placeholder="Crie uma senha forte"
                   className="bg-white border-black/15 text-black placeholder:text-black/30 h-12 rounded-xl pr-11"
                   disabled={submitting}
+                  autoComplete="new-password"
                 />
                 <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-black">
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -191,6 +192,7 @@ export default function Cadastro() {
                   placeholder="Repita a senha"
                   className="bg-white border-black/15 text-black placeholder:text-black/30 h-12 rounded-xl pr-11"
                   disabled={submitting}
+                  autoComplete="new-password"
                 />
                 <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-black">
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
