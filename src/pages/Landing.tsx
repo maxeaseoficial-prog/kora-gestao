@@ -212,10 +212,9 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto mt-20 px-2">
           <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-2 shadow-2xl shadow-black/50">
             <div className="rounded-xl overflow-hidden bg-black aspect-video">
-              {/* TODO: substituir VIDEO_ID pelo ID do vídeo do YouTube */}
               <iframe
                 className="w-full h-full"
-                src="https://www.youtube.com/embed/VIDEO_ID"
+                src="https://www.youtube.com/embed/sGpVVAReHsM"
                 title="Apresentação KORA"
                 loading="lazy"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
