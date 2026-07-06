@@ -57,6 +57,7 @@ serve(async (req) => {
       success_url: `${origin}/dashboard?checkout=success`,
       cancel_url: `${origin}/?checkout=cancel`,
       locale: "pt-BR",
+      allow_promotion_codes: true,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
