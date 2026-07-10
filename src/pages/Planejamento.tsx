@@ -398,6 +398,22 @@ function AnnualTab({ year, plan, finances, clients }: any) {
             </div>
           </div>
           <DialogFooter>
+            {annual > 0 && (
+              <Button
+                variant="destructive"
+                className="mr-auto"
+                onClick={async () => {
+                  if (!confirm('Excluir a meta anual e zerar todos os meses de ' + year + '?')) return;
+                  const db: any = supabase;
+                  if (plan.annual?.id) await db.from('annual_goals').delete().eq('id', plan.annual.id);
+                  await db.from('monthly_goals').delete().eq('user_id', user!.id).eq('year', year);
+                  await plan.logEvent('annual_goal_deleted', `Meta anual ${year} excluída`);
+                  await plan.reload();
+                  toast.success('Meta anual excluída');
+                  setOpen(false);
+                }}
+              >Excluir meta</Button>
+            )}
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={async () => {
               const v = Number(goalValue);
