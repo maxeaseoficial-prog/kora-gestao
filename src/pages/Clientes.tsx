@@ -102,6 +102,7 @@ function Clientes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState<FormState>(buildInitialState('empresa'));
+  const [formErrors, setFormErrors] = useState<{ name?: boolean; company?: boolean }>({});
 
   useEffect(() => {
     const prefill = (location.state as any)?.prefillClient;
@@ -257,8 +258,15 @@ function Clientes() {
   };
 
   const handleSave = () => {
-    if (!formData.name.trim()) return;
-    if (formData.clientType === 'empresa' && !(formData.company || '').trim()) return;
+    const errors: { name?: boolean; company?: boolean } = {};
+    if (!formData.name.trim()) errors.name = true;
+    if (formData.clientType === 'empresa' && !(formData.company || '').trim()) errors.company = true;
+    if (errors.name || errors.company) {
+      setFormErrors(errors);
+      toast.error('Preencha os campos obrigatórios destacados em vermelho.');
+      return;
+    }
+    setFormErrors({});
 
     const payload: FormState = {
       ...formData,
