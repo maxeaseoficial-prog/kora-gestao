@@ -686,21 +686,37 @@ function Clientes() {
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Dados pessoais</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium">{isPessoa ? 'Nome' : 'Nome do responsável'}</label>
+                  <label className={cn("text-sm font-medium", formErrors.name && "text-destructive")}>
+                    {isPessoa ? 'Nome' : 'Nome do responsável'} <span className="text-destructive">*</span>
+                  </label>
                   <Input
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1"
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      if (formErrors.name) setFormErrors((p) => ({ ...p, name: false }));
+                    }}
+                    className={cn("mt-1", formErrors.name && "border-destructive focus-visible:ring-destructive")}
                   />
+                  {formErrors.name && (
+                    <p className="text-xs text-destructive mt-1">Este campo é obrigatório</p>
+                  )}
                 </div>
                 {!isPessoa && (
                   <div>
-                    <label className="text-sm font-medium">Nome da empresa</label>
+                    <label className={cn("text-sm font-medium", formErrors.company && "text-destructive")}>
+                      Nome da empresa <span className="text-destructive">*</span>
+                    </label>
                     <Input
                       value={formData.company || ''}
-                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                      className="mt-1"
+                      onChange={(e) => {
+                        setFormData({ ...formData, company: e.target.value });
+                        if (formErrors.company) setFormErrors((p) => ({ ...p, company: false }));
+                      }}
+                      className={cn("mt-1", formErrors.company && "border-destructive focus-visible:ring-destructive")}
                     />
+                    {formErrors.company && (
+                      <p className="text-xs text-destructive mt-1">Este campo é obrigatório</p>
+                    )}
                   </div>
                 )}
                 <div>
