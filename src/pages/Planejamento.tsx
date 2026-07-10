@@ -406,7 +406,8 @@ function AnnualTab({ year, plan, finances, clients }: any) {
                   if (!confirm('Excluir a meta anual e zerar todos os meses de ' + year + '?')) return;
                   const db: any = supabase;
                   if (plan.annual?.id) await db.from('annual_goals').delete().eq('id', plan.annual.id);
-                  await db.from('monthly_goals').delete().eq('user_id', user!.id).eq('year', year);
+                  const { data: { user: u } } = await supabase.auth.getUser();
+                  if (u) await db.from('monthly_goals').delete().eq('user_id', u.id).eq('year', year);
                   await plan.logEvent('annual_goal_deleted', `Meta anual ${year} excluída`);
                   await plan.reload();
                   toast.success('Meta anual excluída');
