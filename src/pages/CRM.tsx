@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
@@ -117,6 +118,7 @@ const EMPTY_CARD = {
 
 function CRM() {
   const { crmColumns, setCrmColumns, crmCards, setCrmCards } = useApp();
+  const navigate = useNavigate();
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [newColumnColor, setNewColumnColor] = useState<ColorKey>('gray');
@@ -155,6 +157,28 @@ function CRM() {
     const otherCards = newCards.filter(c => c.columnId !== destination.droppableId);
     
     setCrmCards([...otherCards, ...reorderedDestCards]);
+
+    // Se moveu para uma coluna "Ganhou", abre o cadastro de cliente com dados pré-preenchidos
+    const destColumn = crmColumns.find(c => c.id === destination.droppableId);
+    const sourceColumn = crmColumns.find(c => c.id === source.droppableId);
+    const isGanhou = destColumn && destColumn.title.trim().toLowerCase().includes('ganh');
+    const wasGanhou = sourceColumn && sourceColumn.title.trim().toLowerCase().includes('ganh');
+    if (isGanhou && !wasGanhou) {
+      navigate('/clientes', {
+        state: {
+          prefillClient: {
+            clientType: card.company ? 'empresa' : 'pessoa',
+            name: card.clientName || '',
+            company: card.company || '',
+            email: card.email || '',
+            phone: card.phone || '',
+            serviceType: card.serviceType || '',
+            notes: card.notes || '',
+            city: card.city || '',
+          },
+        },
+      });
+    }
   };
 
   const addColumn = () => {

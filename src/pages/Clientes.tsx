@@ -1,4 +1,5 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -84,6 +85,8 @@ const SALES_CHANNELS = [
 function Clientes() {
   const { clients, setClients } = useApp();
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,6 +102,24 @@ function Clientes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState<FormState>(buildInitialState('empresa'));
+
+  useEffect(() => {
+    const prefill = (location.state as any)?.prefillClient;
+    if (!prefill) return;
+    const type: ClientType = prefill.clientType === 'pessoa' ? 'pessoa' : 'empresa';
+    setEditingClient(null);
+    setFormData({
+      ...buildInitialState(type),
+      name: prefill.name || '',
+      company: prefill.company || '',
+      serviceType: prefill.serviceType || '',
+      email: prefill.email || '',
+      phone: prefill.phone || '',
+    });
+    setIsDialogOpen(true);
+    // limpa o state para não reabrir ao navegar
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.state, location.pathname, navigate]);
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
