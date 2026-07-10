@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LIFETIME_EMAILS = new Set(["maxeaseoficial@gmail.com", "supremacy830@gmail.com"]);
+const LIFETIME_EMAILS = new Set(["maxeaseoficial@gmail.com", "supremacy830@gmail.com", "leonardo.froese@gmail.com"]);
 const PRICE_MONTHLY = "price_1ToOauCxnlNVkiYcGGCBQmGO";
 const PRICE_ANNUAL = "price_1ToQhwCxnlNVkiYcC7uRxKVw";
 
