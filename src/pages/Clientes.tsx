@@ -878,7 +878,7 @@ function Clientes() {
                   <label className="text-sm font-medium">Valor</label>
                   <Input
                     type="number"
-                    value={formData.monthlyValue}
+                    value={formData.monthlyValue === 0 ? '' : formData.monthlyValue}
                     onChange={(e) => setFormData({ ...formData, monthlyValue: parseFloat(e.target.value) || 0 })}
                     className="mt-1"
                   />
@@ -890,7 +890,7 @@ function Clientes() {
                       type="number"
                       min={1}
                       max={31}
-                      value={formData.contractDay}
+                      value={formData.contractDay === 0 ? '' : formData.contractDay}
                       onChange={(e) => setFormData({ ...formData, contractDay: parseInt(e.target.value) || 1 })}
                       className="mt-1"
                     />
@@ -1124,7 +1124,7 @@ function Clientes() {
               <label className="text-sm font-medium">Preço (R$)</label>
               <Input
                 type="number"
-                value={newServicePrice}
+                value={newServicePrice === 0 ? '' : newServicePrice}
                 onChange={(e) => setNewServicePrice(parseFloat(e.target.value) || 0)}
                 className="mt-1"
               />
