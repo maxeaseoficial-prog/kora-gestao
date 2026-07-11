@@ -53,6 +53,24 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const { signOut, user } = useAuth();
 
+  const greetingName = (() => {
+    try {
+      if (user?.id) {
+        const raw = localStorage.getItem(`maxease-profile:${user.id}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const n = (parsed?.name || '').trim();
+          if (n) return n.split(/\s+/)[0];
+        }
+      }
+    } catch {}
+    const email = user?.email || '';
+    const localPart = email.split('@')[0] || '';
+    if (!localPart) return '';
+    const first = localPart.split(/[._-]/)[0] || localPart;
+    return first.charAt(0).toUpperCase() + first.slice(1);
+  })();
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_COLLAPSED, collapsed ? '1' : '0');
