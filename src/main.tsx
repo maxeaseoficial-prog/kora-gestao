@@ -49,7 +49,7 @@ async function cleanupStaleAppShellCache() {
 }
 
 if (shouldCleanupServiceWorker) {
-  cleanupStaleAppShellCache().then((didWork) => {
+  cleanupStaleAppShellCache().then(() => {
     // Não force reload: isso derruba janelas/modais abertos quando o usuário volta para a aba.
   });
 }
