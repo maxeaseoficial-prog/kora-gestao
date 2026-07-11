@@ -40,9 +40,29 @@ type GEvent = {
   end: { dateTime?: string; date?: string };
   htmlLink?: string;
   _local?: boolean;
+  color?: string;
 };
 
 type ViewMode = 'month' | 'week' | 'day';
+
+const HOUR_HEIGHT = 48; // px per hour in week/day time grid
+const SNAP_MIN = 15;    // snap drag to 15 minutes
+
+const EVENT_COLORS: { key: string; label: string; dot: string; chip: string }[] = [
+  { key: 'neutral', label: 'Cinza',   dot: 'bg-neutral-500', chip: 'bg-neutral-500/15 hover:bg-neutral-500/25 border-l-2 border-neutral-500 text-foreground' },
+  { key: 'blue',    label: 'Azul',    dot: 'bg-blue-500',    chip: 'bg-blue-500/15 hover:bg-blue-500/25 border-l-2 border-blue-500 text-foreground' },
+  { key: 'green',   label: 'Verde',   dot: 'bg-emerald-500', chip: 'bg-emerald-500/15 hover:bg-emerald-500/25 border-l-2 border-emerald-500 text-foreground' },
+  { key: 'red',     label: 'Vermelho',dot: 'bg-red-500',     chip: 'bg-red-500/15 hover:bg-red-500/25 border-l-2 border-red-500 text-foreground' },
+  { key: 'amber',   label: 'Âmbar',   dot: 'bg-amber-500',   chip: 'bg-amber-500/15 hover:bg-amber-500/25 border-l-2 border-amber-500 text-foreground' },
+  { key: 'purple',  label: 'Roxo',    dot: 'bg-violet-500',  chip: 'bg-violet-500/15 hover:bg-violet-500/25 border-l-2 border-violet-500 text-foreground' },
+];
+
+function colorChip(key?: string) {
+  return (EVENT_COLORS.find((c) => c.key === key) || EVENT_COLORS[0]).chip;
+}
+function colorDot(key?: string) {
+  return (EVENT_COLORS.find((c) => c.key === key) || EVENT_COLORS[0]).dot;
+}
 
 const REDIRECT_PATH = '/agenda';
 const SCOPES = [
