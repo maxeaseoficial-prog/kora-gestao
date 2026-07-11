@@ -510,10 +510,21 @@ export default function Agenda() {
           />
         )}
         {view === 'week' && (
-          <WeekGrid days={days} eventsByDay={eventsByDay} onSelectEvent={setSelectedEvent} />
+          <TimeGrid
+            days={days}
+            eventsByDay={eventsByDay}
+            onSelectEvent={setSelectedEvent}
+            onCreateRange={(date, startTime, endTime) => openNewEvent({ date, startTime, endTime })}
+          />
         )}
         {view === 'day' && (
-          <DayList day={cursor} events={eventsByDay.get(format(cursor, 'yyyy-MM-dd')) || []} onSelectEvent={setSelectedEvent} />
+          <TimeGrid
+            days={[cursor]}
+            eventsByDay={eventsByDay}
+            onSelectEvent={setSelectedEvent}
+            onCreateRange={(date, startTime, endTime) => openNewEvent({ date, startTime, endTime })}
+            singleDay
+          />
         )}
       </div>
 
