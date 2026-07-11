@@ -10,8 +10,7 @@ import { Layout } from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import CRM from "@/pages/CRM";
 import Clientes from "@/pages/Clientes";
-import Caixa from "@/pages/Caixa";
-import Saidas from "@/pages/Saidas";
+import CaixaUnificada from "@/pages/CaixaUnificada";
 import Servicos from "@/pages/Servicos";
 import Produtos from "@/pages/Produtos";
 import Orcamentos from "@/pages/Orcamentos";
@@ -79,7 +78,7 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Layout>
-                      <Caixa />
+                      <CaixaUnificada />
                     </Layout>
                   </ProtectedRoute>
                 }
@@ -89,7 +88,7 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Layout>
-                      <Saidas />
+                      <CaixaUnificada />
                     </Layout>
                   </ProtectedRoute>
                 }
