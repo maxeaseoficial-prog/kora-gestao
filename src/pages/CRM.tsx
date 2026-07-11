@@ -154,6 +154,7 @@ function CRM() {
   const [newCard, setNewCard] = useState(
     restoredDialog.current?.type === 'add' ? restoredDialog.current.draft : { ...EMPTY_CARD },
   );
+  const [newCardErrors, setNewCardErrors] = useState<{ clientName?: boolean }>({});
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const panState = useRef<{ active: boolean; startX: number; startY: number; scrollLeft: number; scrollTop: number; moved: boolean }>({
@@ -307,7 +308,11 @@ function CRM() {
 
   const addCard = () => {
     if (!addingCardToColumn) return;
-    if (!newCard.clientName.trim()) return;
+    if (!newCard.clientName.trim()) {
+      setNewCardErrors({ clientName: true });
+      return;
+    }
+    setNewCardErrors({});
 
     const revenueNum = newCard.revenue !== '' ? Number(newCard.revenue) : null;
 
@@ -579,10 +584,16 @@ function CRM() {
                 <label className="text-sm font-medium">Nome *</label>
                 <Input
                   value={newCard.clientName}
-                  onChange={(e) => setNewCard({ ...newCard, clientName: e.target.value })}
-                  className="mt-1"
+                  onChange={(e) => {
+                    setNewCard({ ...newCard, clientName: e.target.value });
+                    if (e.target.value.trim()) setNewCardErrors((p) => ({ ...p, clientName: false }));
+                  }}
+                  className={`mt-1 ${newCardErrors.clientName ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                   autoFocus
                 />
+                {newCardErrors.clientName && (
+                  <p className="text-xs text-red-500 mt-1">Preencha o nome</p>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium">Cargo</label>
