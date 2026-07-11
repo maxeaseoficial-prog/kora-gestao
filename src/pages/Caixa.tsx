@@ -450,52 +450,11 @@ export function Caixa() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {!editingEntry && dialogStep === 'form' && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => setDialogStep('type')}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              )}
-              {editingEntry
-                ? 'Editar Lançamento'
-                : dialogStep === 'type'
-                ? 'Qual tipo de lançamento deseja realizar?'
-                : entryKind === 'produto'
-                ? 'Lançamento de Produto'
-                : 'Lançamento de Serviço'}
+              {editingEntry ? 'Editar Lançamento' : 'Novo Lançamento'}
             </DialogTitle>
           </DialogHeader>
 
-          {!editingEntry && dialogStep === 'type' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-              <button
-                type="button"
-                onClick={() => selectEntryKind('produto')}
-                className="group flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-8 hover:bg-secondary/60 hover:border-foreground/40 transition-all"
-              >
-                <Package className="h-12 w-12 text-foreground" />
-                <div className="text-center">
-                  <div className="font-semibold text-lg">Produto</div>
-                  <div className="text-sm text-muted-foreground">Registrar uma venda de produto</div>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => selectEntryKind('servico')}
-                className="group flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-8 hover:bg-secondary/60 hover:border-foreground/40 transition-all"
-              >
-                <Wrench className="h-12 w-12 text-foreground" />
-                <div className="text-center">
-                  <div className="font-semibold text-lg">Serviço</div>
-                  <div className="text-sm text-muted-foreground">Registrar uma venda de serviço</div>
-                </div>
-              </button>
-            </div>
-          ) : (
+          {(
             <div className="space-y-6 pt-2">
               {/* Section 1: Cliente */}
               <section className="space-y-3">
