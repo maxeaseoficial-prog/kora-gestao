@@ -637,7 +637,7 @@ function MonthGrid({
                 <button
                   key={ev.id}
                   onClick={() => onSelectEvent(ev)}
-                  className="text-left text-[11px] leading-tight truncate rounded px-1.5 py-0.5 bg-primary/10 hover:bg-primary/20 text-foreground"
+                  className={cn('text-left text-[11px] leading-tight truncate rounded px-1.5 py-0.5', colorChip(ev.color))}
                 >
                   {ev.start.dateTime && (
                     <span className="font-medium mr-1">
