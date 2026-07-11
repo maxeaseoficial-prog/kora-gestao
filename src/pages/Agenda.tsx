@@ -111,6 +111,7 @@ export default function Agenda() {
     startTime: '09:00',
     endTime: '10:00',
     allDay: false,
+    color: 'neutral',
   });
 
   // On mount: check status + handle OAuth callback
@@ -219,20 +220,22 @@ export default function Agenda() {
         ? { date: format(parseISO(r.ends_at), 'yyyy-MM-dd') }
         : { dateTime: r.ends_at },
       _local: true,
+      color: r.color || 'neutral',
     }));
     setLocalEvents(mapped);
   }
 
-  function openNewEvent(prefillDate?: Date) {
+  function openNewEvent(prefill?: { date?: Date; startTime?: string; endTime?: string; allDay?: boolean }) {
     setEditingLocalId(null);
     setForm({
       title: '',
       description: '',
       location: '',
-      date: format(prefillDate || cursor, 'yyyy-MM-dd'),
-      startTime: '09:00',
-      endTime: '10:00',
-      allDay: false,
+      date: format(prefill?.date || cursor, 'yyyy-MM-dd'),
+      startTime: prefill?.startTime || '09:00',
+      endTime: prefill?.endTime || '10:00',
+      allDay: !!prefill?.allDay,
+      color: 'neutral',
     });
     setShowNewEvent(true);
   }
@@ -253,6 +256,7 @@ export default function Agenda() {
       startTime: format(s, 'HH:mm'),
       endTime: format(e, 'HH:mm'),
       allDay: !!ev.start.date,
+      color: ev.color || 'neutral',
     });
     setSelectedEvent(null);
     setShowNewEvent(true);
@@ -280,6 +284,7 @@ export default function Agenda() {
       starts_at: starts,
       ends_at: ends,
       all_day: form.allDay,
+      color: form.color || 'neutral',
     };
     let error;
     if (editingLocalId) {
