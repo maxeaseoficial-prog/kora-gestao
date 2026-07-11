@@ -83,7 +83,7 @@ const SALES_CHANNELS = [
 ];
 
 function Clientes() {
-  const { clients, setClients } = useApp();
+  const { clients, setClients, finances, setFinances } = useApp();
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
