@@ -149,7 +149,7 @@ export function PriceHistorySection({
               <Label className="text-xs">Novo preço de custo</Label>
               <Input
                 type="number" step="0.01" min="0"
-                value={newCostPrice}
+                value={newCostPrice === 0 ? '' : newCostPrice}
                 onChange={(e) => setNewCostPrice(parseFloat(e.target.value) || 0)}
               />
             </div>
@@ -157,7 +157,7 @@ export function PriceHistorySection({
               <Label className="text-xs">Novo preço de venda</Label>
               <Input
                 type="number" step="0.01" min="0"
-                value={newSalePrice}
+                value={newSalePrice === 0 ? '' : newSalePrice}
                 onChange={(e) => setNewSalePrice(parseFloat(e.target.value) || 0)}
               />
             </div>
@@ -167,7 +167,7 @@ export function PriceHistorySection({
             <Label className="text-xs">Novo preço ({currency})</Label>
             <Input
               type="number" step="0.01" min="0"
-              value={newPrice}
+              value={newPrice === 0 ? '' : newPrice}
               onChange={(e) => setNewPrice(parseFloat(e.target.value) || 0)}
             />
           </div>

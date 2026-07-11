@@ -620,7 +620,7 @@ export function Caixa() {
                     <label className="text-sm font-medium">Valor</label>
                     <Input
                       type="number"
-                      value={formData.value}
+                      value={formData.value === 0 ? '' : formData.value}
                       onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) || 0 })}
                       className="mt-1"
                     />

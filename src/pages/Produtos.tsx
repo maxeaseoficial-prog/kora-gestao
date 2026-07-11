@@ -313,7 +313,7 @@ export default function Produtos() {
                 <Label>Preço de custo</Label>
                 <Input
                   type="number" step="0.01" min="0"
-                  value={form.costPrice}
+                  value={form.costPrice === 0 ? '' : form.costPrice}
                   onChange={(e) => setForm({ ...form, costPrice: parseFloat(e.target.value) || 0 })}
                 />
               </div>
@@ -321,7 +321,7 @@ export default function Produtos() {
                 <Label>Preço de venda</Label>
                 <Input
                   type="number" step="0.01" min="0"
-                  value={form.salePrice}
+                  value={form.salePrice === 0 ? '' : form.salePrice}
                   onChange={(e) => setForm({ ...form, salePrice: parseFloat(e.target.value) || 0 })}
                 />
               </div>
