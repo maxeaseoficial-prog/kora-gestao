@@ -103,6 +103,55 @@ function Clientes() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState<FormState>(buildInitialState('empresa'));
   const [formErrors, setFormErrors] = useState<{ name?: boolean; company?: boolean }>({});
+  const [services, setServices] = useState<{ id: string; name: string }[]>([]);
+  const [isNewServiceOpen, setIsNewServiceOpen] = useState(false);
+  const [newServiceName, setNewServiceName] = useState('');
+  const [newServicePrice, setNewServicePrice] = useState<number>(0);
+  const [savingNewService, setSavingNewService] = useState(false);
+
+  const fetchServices = async () => {
+    const { data, error } = await supabase
+      .from('services')
+      .select('id, name')
+      .order('name');
+    if (!error) setServices((data as any) || []);
+  };
+
+  useEffect(() => {
+    if (user) fetchServices();
+  }, [user]);
+
+  const handleCreateService = async () => {
+    if (!newServiceName.trim() || !user) {
+      toast.error('Informe o nome do serviço');
+      return;
+    }
+    setSavingNewService(true);
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .insert({
+          name: newServiceName.trim(),
+          price: newServicePrice || 0,
+          currency: 'BRL',
+          user_id: user.id,
+        })
+        .select('id, name')
+        .single();
+      if (error) throw error;
+      await fetchServices();
+      setFormData((prev) => ({ ...prev, serviceType: data!.name }));
+      toast.success('Serviço cadastrado');
+      setIsNewServiceOpen(false);
+      setNewServiceName('');
+      setNewServicePrice(0);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao cadastrar serviço');
+    } finally {
+      setSavingNewService(false);
+    }
+  };
 
   useEffect(() => {
     const prefill = (location.state as any)?.prefillClient;
