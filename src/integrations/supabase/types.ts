@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_local_events: {
+        Row: {
+          all_day: boolean
+          created_at: string
+          description: string | null
+          ends_at: string
+          id: string
+          location: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          all_day?: boolean
+          created_at?: string
+          description?: string | null
+          ends_at: string
+          id?: string
+          location?: string | null
+          starts_at: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          all_day?: boolean
+          created_at?: string
+          description?: string | null
+          ends_at?: string
+          id?: string
+          location?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       annual_goals: {
         Row: {
           created_at: string
