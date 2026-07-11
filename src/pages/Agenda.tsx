@@ -18,10 +18,15 @@ import {
   subWeeks,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Loader2, Link2, LinkIcon, LogOut, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Link2, LinkIcon, LogOut, Calendar as CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -34,6 +39,7 @@ type GEvent = {
   start: { dateTime?: string; date?: string };
   end: { dateTime?: string; date?: string };
   htmlLink?: string;
+  _local?: boolean;
 };
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -65,12 +71,27 @@ export default function Agenda() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [connected, setConnected] = useState<boolean | null>(null);
   const [googleEmail, setGoogleEmail] = useState<string | null>(null);
+  const [useLocal, setUseLocal] = useState<boolean>(() => {
+    return localStorage.getItem('agenda_use_local') === '1';
+  });
   const [view, setView] = useState<ViewMode>('month');
   const [cursor, setCursor] = useState(new Date());
   const [events, setEvents] = useState<GEvent[]>([]);
+  const [localEvents, setLocalEvents] = useState<GEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<GEvent | null>(null);
+  const [showNewEvent, setShowNewEvent] = useState(false);
+  const [editingLocalId, setEditingLocalId] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    title: '',
+    description: '',
+    location: '',
+    date: format(new Date(), 'yyyy-MM-dd'),
+    startTime: '09:00',
+    endTime: '10:00',
+    allDay: false,
+  });
 
   // On mount: check status + handle OAuth callback
   useEffect(() => {
@@ -150,6 +171,127 @@ export default function Agenda() {
     toast.success('Google Agenda desconectada');
   }
 
+  function enableLocalMode() {
+    setUseLocal(true);
+    localStorage.setItem('agenda_use_local', '1');
+  }
+
+  async function fetchLocalEvents() {
+    const { data, error } = await (supabase as any)
+      .from('agenda_local_events')
+      .select('*')
+      .gte('starts_at', rangeStart.toISOString())
+      .lte('starts_at', addDays(rangeEnd, 1).toISOString())
+      .order('starts_at');
+    if (error) {
+      console.error(error);
+      return;
+    }
+    const mapped: GEvent[] = (data || []).map((r: any) => ({
+      id: 'local:' + r.id,
+      summary: r.title,
+      description: r.description || undefined,
+      location: r.location || undefined,
+      start: r.all_day
+        ? { date: format(parseISO(r.starts_at), 'yyyy-MM-dd') }
+        : { dateTime: r.starts_at },
+      end: r.all_day
+        ? { date: format(parseISO(r.ends_at), 'yyyy-MM-dd') }
+        : { dateTime: r.ends_at },
+      _local: true,
+    }));
+    setLocalEvents(mapped);
+  }
+
+  function openNewEvent(prefillDate?: Date) {
+    setEditingLocalId(null);
+    setForm({
+      title: '',
+      description: '',
+      location: '',
+      date: format(prefillDate || cursor, 'yyyy-MM-dd'),
+      startTime: '09:00',
+      endTime: '10:00',
+      allDay: false,
+    });
+    setShowNewEvent(true);
+  }
+
+  function openEditEvent(ev: GEvent) {
+    if (!ev._local) return;
+    const id = ev.id.replace(/^local:/, '');
+    const startStr = ev.start.dateTime || (ev.start.date ? ev.start.date + 'T09:00' : '');
+    const endStr = ev.end.dateTime || (ev.end.date ? ev.end.date + 'T10:00' : '');
+    const s = parseISO(startStr);
+    const e = parseISO(endStr);
+    setEditingLocalId(id);
+    setForm({
+      title: ev.summary || '',
+      description: ev.description || '',
+      location: ev.location || '',
+      date: format(s, 'yyyy-MM-dd'),
+      startTime: format(s, 'HH:mm'),
+      endTime: format(e, 'HH:mm'),
+      allDay: !!ev.start.date,
+    });
+    setSelectedEvent(null);
+    setShowNewEvent(true);
+  }
+
+  async function saveLocalEvent() {
+    if (!form.title.trim()) {
+      toast.error('Informe o título');
+      return;
+    }
+    const { data: userRes } = await supabase.auth.getUser();
+    const uid = userRes.user?.id;
+    if (!uid) return;
+    const starts = form.allDay
+      ? new Date(form.date + 'T00:00:00').toISOString()
+      : new Date(form.date + 'T' + form.startTime + ':00').toISOString();
+    const ends = form.allDay
+      ? new Date(form.date + 'T23:59:59').toISOString()
+      : new Date(form.date + 'T' + form.endTime + ':00').toISOString();
+    const payload = {
+      user_id: uid,
+      title: form.title.trim(),
+      description: form.description.trim() || null,
+      location: form.location.trim() || null,
+      starts_at: starts,
+      ends_at: ends,
+      all_day: form.allDay,
+    };
+    let error;
+    if (editingLocalId) {
+      ({ error } = await (supabase as any)
+        .from('agenda_local_events')
+        .update(payload)
+        .eq('id', editingLocalId));
+    } else {
+      ({ error } = await (supabase as any).from('agenda_local_events').insert(payload));
+    }
+    if (error) {
+      toast.error('Erro ao salvar evento');
+      return;
+    }
+    toast.success(editingLocalId ? 'Evento atualizado' : 'Evento criado');
+    setShowNewEvent(false);
+    fetchLocalEvents();
+  }
+
+  async function deleteLocalEvent(ev: GEvent) {
+    if (!ev._local) return;
+    const id = ev.id.replace(/^local:/, '');
+    const { error } = await (supabase as any).from('agenda_local_events').delete().eq('id', id);
+    if (error) {
+      toast.error('Erro ao excluir');
+      return;
+    }
+    setSelectedEvent(null);
+    fetchLocalEvents();
+    toast.success('Evento excluído');
+  }
+
   // Compute visible range
   const { rangeStart, rangeEnd, days } = useMemo(() => {
     if (view === 'month') {
@@ -203,9 +345,18 @@ export default function Agenda() {
     };
   }, [connected, rangeStart.getTime(), rangeEnd.getTime()]);
 
+  // Fetch local events whenever visible range changes
+  useEffect(() => {
+    if (connected === null) return;
+    fetchLocalEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangeStart.getTime(), rangeEnd.getTime(), connected, useLocal]);
+
+  const allEvents = useMemo(() => [...events, ...localEvents], [events, localEvents]);
+
   const eventsByDay = useMemo(() => {
     const map = new Map<string, GEvent[]>();
-    for (const ev of events) {
+    for (const ev of allEvents) {
       const startStr = ev.start.dateTime || ev.start.date;
       if (!startStr) continue;
       const d = ev.start.date ? parseISO(ev.start.date + 'T00:00:00') : parseISO(startStr);
@@ -214,7 +365,7 @@ export default function Agenda() {
       map.get(key)!.push(ev);
     }
     return map;
-  }, [events]);
+  }, [allEvents]);
 
   function goPrev() {
     if (view === 'month') setCursor(subMonths(cursor, 1));
@@ -245,21 +396,28 @@ export default function Agenda() {
     );
   }
 
-  if (!connected) {
+  if (!connected && !useLocal) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
         <Card className="max-w-md w-full p-8 text-center space-y-4">
           <div className="mx-auto w-14 h-14 rounded-full bg-muted flex items-center justify-center">
             <CalendarIcon className="h-7 w-7" />
           </div>
-          <h2 className="text-xl font-semibold">Conecte sua Google Agenda</h2>
+          <h2 className="text-xl font-semibold">Sua Agenda</h2>
           <p className="text-sm text-muted-foreground">
-            Visualize e organize todos os seus compromissos direto no Kora.
+            Conecte-se ao Google Agenda para ver seus compromissos, ou use a agenda interna do Kora sem integração.
           </p>
           <Button onClick={handleConnect} className="w-full gap-2">
             <Link2 className="h-4 w-4" />
             Conectar Google Agenda
           </Button>
+          <Button variant="outline" onClick={enableLocalMode} className="w-full gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            Usar sem conectar
+          </Button>
+          <p className="text-xs text-muted-foreground pt-2">
+            Você pode conectar o Google mais tarde a qualquer momento.
+          </p>
         </Card>
       </div>
     );
@@ -292,14 +450,27 @@ export default function Agenda() {
               <TabsTrigger value="day">Dia</TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground border rounded-md px-2 py-1">
-            <LinkIcon className="h-3 w-3" />
-            {googleEmail || 'Google conectado'}
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleDisconnect} className="gap-1">
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Desconectar</span>
+          <Button size="sm" onClick={() => openNewEvent()} className="gap-1">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Novo evento</span>
           </Button>
+          {connected ? (
+            <>
+              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground border rounded-md px-2 py-1">
+                <LinkIcon className="h-3 w-3" />
+                {googleEmail || 'Google conectado'}
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleDisconnect} className="gap-1">
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Desconectar</span>
+              </Button>
+            </>
+          ) : (
+            <Button variant="outline" size="sm" onClick={handleConnect} className="gap-1">
+              <Link2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Conectar Google</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -322,8 +493,61 @@ export default function Agenda() {
       </div>
 
       {selectedEvent && (
-        <EventDialog event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+        <EventDialog
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onEdit={() => openEditEvent(selectedEvent)}
+          onDelete={() => deleteLocalEvent(selectedEvent)}
+        />
       )}
+
+      <Dialog open={showNewEvent} onOpenChange={setShowNewEvent}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingLocalId ? 'Editar evento' : 'Novo evento'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Título</Label>
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Reunião com cliente" />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="allday">Dia inteiro</Label>
+              <Switch id="allday" checked={form.allDay} onCheckedChange={(v) => setForm({ ...form, allDay: v })} />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-3 sm:col-span-1">
+                <Label>Data</Label>
+                <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+              </div>
+              {!form.allDay && (
+                <>
+                  <div>
+                    <Label>Início</Label>
+                    <Input type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Fim</Label>
+                    <Input type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
+                  </div>
+                </>
+              )}
+            </div>
+            <div>
+              <Label>Local</Label>
+              <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Opcional" />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Opcional" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewEvent(false)}>Cancelar</Button>
+            <Button onClick={saveLocalEvent}>{editingLocalId ? 'Salvar' : 'Criar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -523,7 +747,7 @@ function DayList({
 }
 
 /* -------- Event dialog -------- */
-function EventDialog({ event, onClose }: { event: GEvent; onClose: () => void }) {
+function EventDialog({ event, onClose, onEdit, onDelete }: { event: GEvent; onClose: () => void; onEdit: () => void; onDelete: () => void }) {
   const start = event.start.dateTime || event.start.date;
   const end = event.end.dateTime || event.end.date;
   return (
@@ -545,6 +769,15 @@ function EventDialog({ event, onClose }: { event: GEvent; onClose: () => void })
           <p className="text-sm whitespace-pre-wrap text-muted-foreground">{event.description}</p>
         )}
         <div className="flex justify-end gap-2 pt-2">
+          {event._local && (
+            <>
+              <Button variant="outline" size="sm" onClick={onDelete} className="gap-1">
+                <Trash2 className="h-4 w-4" />
+                Excluir
+              </Button>
+              <Button variant="outline" size="sm" onClick={onEdit}>Editar</Button>
+            </>
+          )}
           {event.htmlLink && (
             <a href={event.htmlLink} target="_blank" rel="noreferrer">
               <Button variant="outline" size="sm">Abrir no Google</Button>
