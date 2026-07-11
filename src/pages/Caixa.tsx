@@ -507,7 +507,26 @@ export function Caixa() {
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     2. {entryKind === 'produto' ? 'Produto' : 'Serviço'}
                   </h3>
-                  <div className="flex gap-1 rounded-md border border-border p-1">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {!editingEntry && (
+                      <div className="flex gap-1 rounded-md border border-border p-1">
+                        <button
+                          type="button"
+                          onClick={() => selectEntryKind('servico')}
+                          className={`px-3 py-1 text-xs rounded flex items-center gap-1 ${entryKind === 'servico' ? 'bg-foreground text-background' : 'text-muted-foreground'}`}
+                        >
+                          <Wrench className="h-3 w-3" /> Serviço
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => selectEntryKind('produto')}
+                          className={`px-3 py-1 text-xs rounded flex items-center gap-1 ${entryKind === 'produto' ? 'bg-foreground text-background' : 'text-muted-foreground'}`}
+                        >
+                          <Package className="h-3 w-3" /> Produto
+                        </button>
+                      </div>
+                    )}
+                    <div className="flex gap-1 rounded-md border border-border p-1">
                     <button
                       type="button"
                       onClick={() => setItemMode('cadastrado')}
@@ -522,6 +541,7 @@ export function Caixa() {
                     >
                       Manual
                     </button>
+                    </div>
                   </div>
                 </div>
 
