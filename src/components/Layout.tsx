@@ -13,7 +13,6 @@ import {
   ShoppingCart,
   Target,
   Box,
-  TrendingDown,
   ChevronLeft,
   ChevronRight,
   Settings
@@ -35,7 +34,6 @@ const navigation = [
   { name: 'Serviços', href: '/servicos', icon: Package },
   { name: 'Produtos', href: '/produtos', icon: Box },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
-  { name: 'Saídas', href: '/saidas', icon: TrendingDown },
   { name: 'Planejamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Compras', href: '/orcamentos', icon: ShoppingCart },
   { name: 'Configuração', href: '/configuracao', icon: Settings },
