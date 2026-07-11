@@ -226,7 +226,7 @@ export function Caixa() {
       productId: '',
     });
     setEditingEntry(null);
-    setDialogStep('type');
+    setDialogStep('form');
     setEntryKind('servico');
     setClientMode('cadastrado');
     setItemMode('cadastrado');
@@ -259,9 +259,7 @@ export function Caixa() {
   const selectEntryKind = (kind: 'produto' | 'servico') => {
     setEntryKind(kind);
     setItemMode('cadastrado');
-    setClientMode('cadastrado');
-    setFormData((prev) => ({ ...prev, serviceId: '', productId: '' }));
-    setDialogStep('form');
+    setFormData((prev) => ({ ...prev, serviceId: '', productId: '', type: kind === 'produto' ? '' : 'Mensalidade', value: 0, description: '' }));
   };
 
   const handleSave = () => {
