@@ -83,7 +83,7 @@ const SALES_CHANNELS = [
 ];
 
 function Clientes() {
-  const { clients, setClients } = useApp();
+  const { clients, setClients, finances, setFinances } = useApp();
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -332,6 +332,20 @@ function Clientes() {
         createdAt: new Date(),
       };
       setClients([...clients, newClient]);
+
+      // Se cliente pontual com valor, lança automaticamente no caixa
+      if (payload.recurrence === 'pontual' && Number(payload.monthlyValue) > 0) {
+        const newFinance = {
+          id: crypto.randomUUID(),
+          clientId: newClient.id,
+          clientName: newClient.name,
+          value: Number(payload.monthlyValue),
+          date: payload.entryDate || new Date(),
+          type: payload.serviceType || 'Serviço',
+          description: payload.serviceType || '',
+        };
+        setFinances([...finances, newFinance]);
+      }
     }
 
     setIsDialogOpen(false);
