@@ -136,7 +136,7 @@ function CRM() {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
     // Don't start panning if the click is on a draggable card or interactive control
-    if (target.closest('[data-rbd-draggable-id]') || target.closest('button, a, input, textarea, [role="menuitem"]')) {
+    if (target.closest('[data-rfd-draggable-id], [data-rbd-draggable-id], [data-rfd-drag-handle-draggable-id]') || target.closest('button, a, input, textarea, [role="menuitem"]')) {
       return;
     }
     const el = scrollRef.current;
