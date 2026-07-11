@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   addDays,
@@ -317,6 +317,37 @@ export default function Agenda() {
     toast.success('Evento excluído');
   }
 
+  async function moveLocalEvent(ev: GEvent, newDate: Date, newStartMinutes: number) {
+    if (!ev._local || !ev.start.dateTime || !ev.end.dateTime) return;
+    const id = ev.id.replace(/^local:/, '');
+    const s = parseISO(ev.start.dateTime);
+    const e = parseISO(ev.end.dateTime);
+    const durationMs = e.getTime() - s.getTime();
+    const hh = Math.floor(newStartMinutes / 60);
+    const mm = newStartMinutes % 60;
+    const newStart = new Date(newDate);
+    newStart.setHours(hh, mm, 0, 0);
+    const newEnd = new Date(newStart.getTime() + durationMs);
+    // Optimistic update
+    setLocalEvents((prev) =>
+      prev.map((x) =>
+        x.id === ev.id
+          ? { ...x, start: { dateTime: newStart.toISOString() }, end: { dateTime: newEnd.toISOString() } }
+          : x,
+      ),
+    );
+    const { error } = await (supabase as any)
+      .from('agenda_local_events')
+      .update({ starts_at: newStart.toISOString(), ends_at: newEnd.toISOString() })
+      .eq('id', id);
+    if (error) {
+      toast.error('Erro ao mover evento');
+      fetchLocalEvents();
+      return;
+    }
+    toast.success('Evento movido');
+  }
+
   // Compute visible range
   const { rangeStart, rangeEnd, days } = useMemo(() => {
     if (view === 'month') {
@@ -515,6 +546,7 @@ export default function Agenda() {
             eventsByDay={eventsByDay}
             onSelectEvent={setSelectedEvent}
             onCreateRange={(date, startTime, endTime) => openNewEvent({ date, startTime, endTime })}
+            onMoveEvent={moveLocalEvent}
           />
         )}
         {view === 'day' && (
@@ -523,6 +555,7 @@ export default function Agenda() {
             eventsByDay={eventsByDay}
             onSelectEvent={setSelectedEvent}
             onCreateRange={(date, startTime, endTime) => openNewEvent({ date, startTime, endTime })}
+            onMoveEvent={moveLocalEvent}
             singleDay
           />
         )}
