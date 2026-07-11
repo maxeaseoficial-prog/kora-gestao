@@ -186,15 +186,16 @@ export function Layout({ children }: LayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="flex-1 flex items-center justify-between">
-            <h1 className="text-lg font-semibold ml-2 lg:ml-0">
-              {navigation.find(n => n.href === location.pathname)?.name || 
-               (location.pathname.startsWith('/projetos') ? 'Projetos' : 'Dashboard')}
-            </h1>
-            {greetingName && (
-              <span className="text-xl md:text-2xl font-semibold text-foreground ml-4">
-                Olá, <span className="text-primary">{greetingName}</span>
-              </span>
+          <div className="flex-1 flex items-center">
+            {location.pathname === '/dashboard' && greetingName ? (
+              <h1 className="ml-2 lg:ml-0 text-xl md:text-2xl font-light tracking-tight text-foreground font-sans">
+                Olá, <span className="font-bold">{greetingName}</span>
+              </h1>
+            ) : (
+              <h1 className="text-lg font-semibold ml-2 lg:ml-0">
+                {navigation.find(n => n.href === location.pathname)?.name ||
+                 (location.pathname.startsWith('/projetos') ? 'Projetos' : 'Dashboard')}
+              </h1>
             )}
           </div>
         </header>
