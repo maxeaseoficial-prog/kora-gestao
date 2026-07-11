@@ -10,7 +10,7 @@ import {
   LogOut,
   Brain,
   Package,
-  ShoppingCart,
+  CalendarDays,
   Target,
   Box,
   ChevronLeft,
@@ -35,7 +35,7 @@ const navigation = [
   { name: 'Produtos', href: '/produtos', icon: Box },
   { name: 'Caixa', href: '/caixa', icon: Wallet },
   { name: 'Planejamento e Metas', href: '/faturamento', icon: Target },
-  { name: 'Compras', href: '/orcamentos', icon: ShoppingCart },
+  { name: 'Agenda', href: '/agenda', icon: CalendarDays },
   { name: 'Configuração', href: '/configuracao', icon: Settings },
 ];
 
