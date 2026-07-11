@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper } from 'lucide-react';
@@ -126,6 +126,53 @@ function CRM() {
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [addingCardToColumn, setAddingCardToColumn] = useState<string | null>(null);
   const [newCard, setNewCard] = useState({ ...EMPTY_CARD });
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const panState = useRef<{ active: boolean; startX: number; startY: number; scrollLeft: number; scrollTop: number; moved: boolean }>({
+    active: false, startX: 0, startY: 0, scrollLeft: 0, scrollTop: 0, moved: false,
+  });
+
+  const onPanMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    // Don't start panning if the click is on a draggable card or interactive control
+    if (target.closest('[data-rbd-draggable-id]') || target.closest('button, a, input, textarea, [role="menuitem"]')) {
+      return;
+    }
+    const el = scrollRef.current;
+    if (!el) return;
+    panState.current = {
+      active: true,
+      startX: e.pageX,
+      startY: e.pageY,
+      scrollLeft: el.scrollLeft,
+      scrollTop: el.scrollTop,
+      moved: false,
+    };
+    el.style.cursor = 'grabbing';
+    el.style.userSelect = 'none';
+  };
+
+  const onPanMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const s = panState.current;
+    if (!s.active) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const dx = e.pageX - s.startX;
+    const dy = e.pageY - s.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) s.moved = true;
+    el.scrollLeft = s.scrollLeft - dx;
+    el.scrollTop = s.scrollTop - dy;
+  };
+
+  const endPan = () => {
+    const el = scrollRef.current;
+    if (el) {
+      el.style.cursor = '';
+      el.style.userSelect = '';
+    }
+    panState.current.active = false;
+  };
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -258,7 +305,14 @@ function CRM() {
   return (
     <div className="h-[calc(100vh-8rem)] overflow-hidden">
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 h-full overflow-x-auto pb-4">
+        <div
+          ref={scrollRef}
+          onMouseDown={onPanMouseDown}
+          onMouseMove={onPanMouseMove}
+          onMouseUp={endPan}
+          onMouseLeave={endPan}
+          className="flex gap-4 h-full overflow-x-auto pb-4 cursor-grab"
+        >
           {crmColumns.sort((a, b) => a.order - b.order).map((column) => {
             const theme = getColumnTheme(column);
             return (
