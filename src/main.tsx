@@ -50,9 +50,7 @@ async function cleanupStaleAppShellCache() {
 
 if (shouldCleanupServiceWorker) {
   cleanupStaleAppShellCache().then((didWork) => {
-    if (didWork) {
-      window.location.reload();
-    }
+    // Não force reload: isso derruba janelas/modais abertos quando o usuário volta para a aba.
   });
 }
 
