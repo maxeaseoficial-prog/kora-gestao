@@ -316,7 +316,7 @@ export function Servicos() {
                 <label className="text-sm font-medium">Preço</label>
                 <Input
                   type="number"
-                  value={formData.price}
+                  value={formData.price === 0 ? '' : formData.price}
                   onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                   placeholder="0,00"
                   className="mt-1"
