@@ -226,7 +226,7 @@ export function Caixa() {
       productId: '',
     });
     setEditingEntry(null);
-    setDialogStep('type');
+    setDialogStep('form');
     setEntryKind('servico');
     setClientMode('cadastrado');
     setItemMode('cadastrado');
@@ -259,9 +259,7 @@ export function Caixa() {
   const selectEntryKind = (kind: 'produto' | 'servico') => {
     setEntryKind(kind);
     setItemMode('cadastrado');
-    setClientMode('cadastrado');
-    setFormData((prev) => ({ ...prev, serviceId: '', productId: '' }));
-    setDialogStep('form');
+    setFormData((prev) => ({ ...prev, serviceId: '', productId: '', type: kind === 'produto' ? '' : 'Mensalidade', value: 0, description: '' }));
   };
 
   const handleSave = () => {
@@ -452,52 +450,11 @@ export function Caixa() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {!editingEntry && dialogStep === 'form' && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => setDialogStep('type')}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              )}
-              {editingEntry
-                ? 'Editar Lançamento'
-                : dialogStep === 'type'
-                ? 'Qual tipo de lançamento deseja realizar?'
-                : entryKind === 'produto'
-                ? 'Lançamento de Produto'
-                : 'Lançamento de Serviço'}
+              {editingEntry ? 'Editar Lançamento' : 'Novo Lançamento'}
             </DialogTitle>
           </DialogHeader>
 
-          {!editingEntry && dialogStep === 'type' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-              <button
-                type="button"
-                onClick={() => selectEntryKind('produto')}
-                className="group flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-8 hover:bg-secondary/60 hover:border-foreground/40 transition-all"
-              >
-                <Package className="h-12 w-12 text-foreground" />
-                <div className="text-center">
-                  <div className="font-semibold text-lg">Produto</div>
-                  <div className="text-sm text-muted-foreground">Registrar uma venda de produto</div>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => selectEntryKind('servico')}
-                className="group flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-8 hover:bg-secondary/60 hover:border-foreground/40 transition-all"
-              >
-                <Wrench className="h-12 w-12 text-foreground" />
-                <div className="text-center">
-                  <div className="font-semibold text-lg">Serviço</div>
-                  <div className="text-sm text-muted-foreground">Registrar uma venda de serviço</div>
-                </div>
-              </button>
-            </div>
-          ) : (
+          {(
             <div className="space-y-6 pt-2">
               {/* Section 1: Cliente */}
               <section className="space-y-3">
@@ -550,7 +507,26 @@ export function Caixa() {
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     2. {entryKind === 'produto' ? 'Produto' : 'Serviço'}
                   </h3>
-                  <div className="flex gap-1 rounded-md border border-border p-1">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {!editingEntry && (
+                      <div className="flex gap-1 rounded-md border border-border p-1">
+                        <button
+                          type="button"
+                          onClick={() => selectEntryKind('servico')}
+                          className={`px-3 py-1 text-xs rounded flex items-center gap-1 ${entryKind === 'servico' ? 'bg-foreground text-background' : 'text-muted-foreground'}`}
+                        >
+                          <Wrench className="h-3 w-3" /> Serviço
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => selectEntryKind('produto')}
+                          className={`px-3 py-1 text-xs rounded flex items-center gap-1 ${entryKind === 'produto' ? 'bg-foreground text-background' : 'text-muted-foreground'}`}
+                        >
+                          <Package className="h-3 w-3" /> Produto
+                        </button>
+                      </div>
+                    )}
+                    <div className="flex gap-1 rounded-md border border-border p-1">
                     <button
                       type="button"
                       onClick={() => setItemMode('cadastrado')}
@@ -565,6 +541,7 @@ export function Caixa() {
                     >
                       Manual
                     </button>
+                    </div>
                   </div>
                 </div>
 
