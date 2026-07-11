@@ -173,6 +173,11 @@ export function Layout({ children }: LayoutProps) {
               {navigation.find(n => n.href === location.pathname)?.name || 
                (location.pathname.startsWith('/projetos') ? 'Projetos' : 'Dashboard')}
             </h1>
+            {greetingName && (
+              <span className="text-xl md:text-2xl font-semibold text-foreground ml-4">
+                Olá, <span className="text-primary">{greetingName}</span>
+              </span>
+            )}
           </div>
         </header>
 
