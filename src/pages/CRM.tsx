@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper } from 'lucide-react';
@@ -116,21 +116,71 @@ const EMPTY_CARD = {
   notes: '',
 };
 
+const CRM_OPEN_DIALOG_KEY = 'kora-crm-open-dialog';
+
+type CrmOpenDialogState =
+  | { type: 'add'; columnId: string; draft: typeof EMPTY_CARD }
+  | { type: 'edit'; card: CRMCard };
+
+function readOpenDialogState(): CrmOpenDialogState | null {
+  try {
+    const raw = sessionStorage.getItem(CRM_OPEN_DIALOG_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearOpenDialogState() {
+  try {
+    sessionStorage.removeItem(CRM_OPEN_DIALOG_KEY);
+  } catch {}
+}
+
 function CRM() {
   const { crmColumns, setCrmColumns, crmCards, setCrmCards } = useApp();
   const navigate = useNavigate();
+  const restoredDialog = useRef<CrmOpenDialogState | null>(readOpenDialogState());
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [newColumnColor, setNewColumnColor] = useState<ColorKey>('gray');
-  const [editingCard, setEditingCard] = useState<CRMCard | null>(null);
-  const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
-  const [addingCardToColumn, setAddingCardToColumn] = useState<string | null>(null);
-  const [newCard, setNewCard] = useState({ ...EMPTY_CARD });
+  const [editingCard, setEditingCard] = useState<CRMCard | null>(
+    restoredDialog.current?.type === 'edit' ? restoredDialog.current.card : null,
+  );
+  const [isCardDialogOpen, setIsCardDialogOpen] = useState(restoredDialog.current?.type === 'edit');
+  const [addingCardToColumn, setAddingCardToColumn] = useState<string | null>(
+    restoredDialog.current?.type === 'add' ? restoredDialog.current.columnId : null,
+  );
+  const [newCard, setNewCard] = useState(
+    restoredDialog.current?.type === 'add' ? restoredDialog.current.draft : { ...EMPTY_CARD },
+  );
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const panState = useRef<{ active: boolean; startX: number; startY: number; scrollLeft: number; scrollTop: number; moved: boolean }>({
     active: false, startX: 0, startY: 0, scrollLeft: 0, scrollTop: 0, moved: false,
   });
+
+  useEffect(() => {
+    try {
+      if (addingCardToColumn) {
+        sessionStorage.setItem(
+          CRM_OPEN_DIALOG_KEY,
+          JSON.stringify({ type: 'add', columnId: addingCardToColumn, draft: newCard }),
+        );
+        return;
+      }
+
+      if (isCardDialogOpen && editingCard) {
+        sessionStorage.setItem(
+          CRM_OPEN_DIALOG_KEY,
+          JSON.stringify({ type: 'edit', card: editingCard }),
+        );
+        return;
+      }
+
+      clearOpenDialogState();
+    } catch {}
+  }, [addingCardToColumn, newCard, isCardDialogOpen, editingCard]);
 
   const onPanMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -280,6 +330,7 @@ function CRM() {
     setCrmCards([...crmCards, card]);
     setNewCard({ ...EMPTY_CARD });
     setAddingCardToColumn(null);
+    clearOpenDialogState();
   };
 
   const updateCard = () => {
@@ -290,11 +341,14 @@ function CRM() {
     ));
     setEditingCard(null);
     setIsCardDialogOpen(false);
+    clearOpenDialogState();
   };
 
   const deleteCard = (cardId: string) => {
     setCrmCards(crmCards.filter(c => c.id !== cardId));
     setIsCardDialogOpen(false);
+    setEditingCard(null);
+    clearOpenDialogState();
   };
 
   const openEditDialog = (card: CRMCard) => {
@@ -506,6 +560,7 @@ function CRM() {
           if (!open) {
             setAddingCardToColumn(null);
             setNewCard({ ...EMPTY_CARD });
+            clearOpenDialogState();
           }
         }}
       >
@@ -607,14 +662,31 @@ function CRM() {
             </div>
             <div className="flex gap-2 pt-2">
               <Button onClick={addCard} className="flex-1">Adicionar</Button>
-              <Button variant="ghost" onClick={() => setAddingCardToColumn(null)}>Cancelar</Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setAddingCardToColumn(null);
+                  clearOpenDialogState();
+                }}
+              >
+                Cancelar
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Edit Card Dialog */}
-      <Dialog open={isCardDialogOpen} onOpenChange={setIsCardDialogOpen}>
+      <Dialog
+        open={isCardDialogOpen}
+        onOpenChange={(open) => {
+          setIsCardDialogOpen(open);
+          if (!open) {
+            setEditingCard(null);
+            clearOpenDialogState();
+          }
+        }}
+      >
         <DialogContent
           className="max-h-[90vh] overflow-y-auto"
           onInteractOutside={(e) => e.preventDefault()}
