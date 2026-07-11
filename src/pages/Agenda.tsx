@@ -121,12 +121,19 @@ export default function Agenda() {
   }
 
   async function handleConnect() {
-    const clientId = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID as string | undefined;
-    if (!clientId) {
-      toast.error('Client ID do Google não configurado no ambiente do app');
-      return;
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+        body: { action: 'config' },
+      });
+      if (error || !data?.client_id) {
+        toast.error('Client ID do Google não configurado');
+        return;
+      }
+      window.location.href = buildGoogleAuthUrl(data.client_id);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao iniciar conexão');
     }
-    window.location.href = buildGoogleAuthUrl(clientId);
   }
 
   async function handleDisconnect() {

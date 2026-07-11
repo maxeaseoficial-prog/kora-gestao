@@ -16,6 +16,7 @@ import Produtos from "@/pages/Produtos";
 import Orcamentos from "@/pages/Orcamentos";
 import Planejamento from "@/pages/Planejamento";
 import Configuracao from "@/pages/Configuracao";
+import Agenda from "@/pages/Agenda";
 import Auth from "@/pages/Auth";
 import Landing from "@/pages/Landing";
 import Comecar from "@/pages/Comecar";
@@ -119,6 +120,16 @@ const App = () => (
                   <ProtectedRoute>
                     <Layout>
                       <Orcamentos />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/agenda"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Agenda />
                     </Layout>
                   </ProtectedRoute>
                 }

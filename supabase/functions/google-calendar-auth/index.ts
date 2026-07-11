@@ -39,6 +39,10 @@ Deno.serve(async (req) => {
       return json({ connected: !!data, google_email: data?.google_email ?? null });
     }
 
+    if (action === 'config') {
+      return json({ client_id: Deno.env.get('GOOGLE_OAUTH_CLIENT_ID') || null });
+    }
+
     if (action === 'disconnect') {
       await admin.from('google_calendar_tokens').delete().eq('user_id', userId);
       return json({ ok: true });
