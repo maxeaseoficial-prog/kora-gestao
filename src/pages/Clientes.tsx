@@ -1101,6 +1101,45 @@ function Clientes() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isNewServiceOpen} onOpenChange={setIsNewServiceOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cadastrar novo serviço</DialogTitle>
+            <DialogDescription>
+              O serviço ficará disponível também na aba de Serviços.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Nome do serviço</label>
+              <Input
+                value={newServiceName}
+                onChange={(e) => setNewServiceName(e.target.value)}
+                className="mt-1"
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Preço (R$)</label>
+              <Input
+                type="number"
+                value={newServicePrice}
+                onChange={(e) => setNewServicePrice(parseFloat(e.target.value) || 0)}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex gap-2 justify-end pt-2">
+              <Button variant="outline" onClick={() => setIsNewServiceOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateService} disabled={savingNewService}>
+                {savingNewService ? 'Salvando...' : 'Cadastrar'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
