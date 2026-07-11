@@ -830,11 +830,34 @@ function Clientes() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Tipo de serviço</label>
-                  <Input
-                    value={formData.serviceType}
-                    onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
-                    className="mt-1"
-                  />
+                  <Select
+                    value={formData.serviceType || undefined}
+                    onValueChange={(value) => {
+                      if (value === '__new__') {
+                        setIsNewServiceOpen(true);
+                        return;
+                      }
+                      setFormData({ ...formData, serviceType: value });
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Selecione um serviço" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map((s) => (
+                        <SelectItem key={s.id} value={s.name}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                      {formData.serviceType &&
+                        !services.some((s) => s.name === formData.serviceType) && (
+                          <SelectItem value={formData.serviceType}>
+                            {formData.serviceType}
+                          </SelectItem>
+                        )}
+                      <SelectItem value="__new__">+ Cadastrar novo serviço</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Recorrência</label>
