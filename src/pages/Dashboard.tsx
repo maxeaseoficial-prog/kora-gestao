@@ -385,14 +385,7 @@ function Dashboard() {
               <Wallet className="h-5 w-5 text-white" />
             </div>
             <div>
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <h1 className="dash-heading text-xl font-bold">Dashboard</h1>
-                {greetingName && (
-                  <span className="text-sm text-muted-foreground">
-                    Olá, <span className="font-medium text-foreground">{greetingName}</span>
-                  </span>
-                )}
-              </div>
+              <h1 className="dash-heading text-xl font-bold">Dashboard</h1>
               <p className="text-xs text-[#a1a1a1]">
                 {monthFull[selectedMonth]} {selectedYear}
               </p>
