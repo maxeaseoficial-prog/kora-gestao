@@ -1,0 +1,1 @@
+ALTER TABLE public.agenda_local_events ADD COLUMN IF NOT EXISTS color text NOT NULL DEFAULT 'neutral';

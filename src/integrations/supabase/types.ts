@@ -17,6 +17,7 @@ export type Database = {
       agenda_local_events: {
         Row: {
           all_day: boolean
+          color: string
           created_at: string
           description: string | null
           ends_at: string
@@ -29,6 +30,7 @@ export type Database = {
         }
         Insert: {
           all_day?: boolean
+          color?: string
           created_at?: string
           description?: string | null
           ends_at: string
@@ -41,6 +43,7 @@ export type Database = {
         }
         Update: {
           all_day?: boolean
+          color?: string
           created_at?: string
           description?: string | null
           ends_at?: string
