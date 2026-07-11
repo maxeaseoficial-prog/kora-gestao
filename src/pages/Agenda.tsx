@@ -577,6 +577,25 @@ export default function Agenda() {
               <Label>Descrição</Label>
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Opcional" />
             </div>
+            <div>
+              <Label>Cor</Label>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {EVENT_COLORS.map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => setForm({ ...form, color: c.key })}
+                    className={cn(
+                      'h-7 w-7 rounded-full flex items-center justify-center transition',
+                      c.dot,
+                      form.color === c.key ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground' : 'opacity-70 hover:opacity-100',
+                    )}
+                    title={c.label}
+                    aria-label={c.label}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewEvent(false)}>Cancelar</Button>
