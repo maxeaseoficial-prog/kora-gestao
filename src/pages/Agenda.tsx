@@ -718,17 +718,31 @@ function TimeGrid({
   eventsByDay,
   onSelectEvent,
   onCreateRange,
+  onMoveEvent,
   singleDay,
 }: {
   days: Date[];
   eventsByDay: Map<string, GEvent[]>;
   onSelectEvent: (e: GEvent) => void;
   onCreateRange: (date: Date, startTime: string, endTime: string) => void;
+  onMoveEvent?: (ev: GEvent, newDate: Date, newStartMinutes: number) => void;
   singleDay?: boolean;
 }) {
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const today = new Date();
   const [drag, setDrag] = useState<{ dayIndex: number; startY: number; currentY: number } | null>(null);
+  const [moveDrag, setMoveDrag] = useState<{
+    ev: GEvent;
+    originDayIndex: number;
+    originStartMin: number;
+    durationMin: number;
+    pointerStartX: number;
+    pointerStartY: number;
+    dayIndex: number;
+    startMin: number;
+    moved: boolean;
+  } | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
 
   function yToMinutes(y: number) {
     const raw = (y / HOUR_HEIGHT) * 60;
@@ -762,6 +776,65 @@ function TimeGrid({
     const day = days[drag.dayIndex];
     setDrag(null);
     onCreateRange(day, minutesToLabel(startMin), minutesToLabel(endMin));
+  }
+
+  // Global mouse tracking for moving events across columns
+  useEffect(() => {
+    if (!moveDrag) return;
+    function onMove(e: MouseEvent) {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const rect = grid.getBoundingClientRect();
+      const relX = e.clientX - rect.left - 60; // subtract hours column width
+      const colWidth = (rect.width - 60) / days.length;
+      const dayIndex = Math.max(0, Math.min(days.length - 1, Math.floor(relX / colWidth)));
+      const relY = e.clientY - rect.top;
+      const startMin = yToMinutes(relY - (moveDrag.pointerStartY - (moveDrag.originStartMin / 60) * HOUR_HEIGHT));
+      const moved =
+        moveDrag.moved ||
+        Math.abs(e.clientX - moveDrag.pointerStartX) > 3 ||
+        Math.abs(e.clientY - moveDrag.pointerStartY) > 3;
+      setMoveDrag({ ...moveDrag, dayIndex, startMin, moved });
+    }
+    function onUp() {
+      if (moveDrag.moved && onMoveEvent) {
+        const newDay = days[moveDrag.dayIndex];
+        const same =
+          moveDrag.dayIndex === moveDrag.originDayIndex &&
+          moveDrag.startMin === moveDrag.originStartMin;
+        if (!same) onMoveEvent(moveDrag.ev, newDay, moveDrag.startMin);
+      } else {
+        onSelectEvent(moveDrag.ev);
+      }
+      setMoveDrag(null);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [moveDrag, days, onMoveEvent, onSelectEvent]);
+
+  function startMoveEvent(e: React.MouseEvent, ev: GEvent, dayIndex: number, startMin: number, durationMin: number) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!ev._local || !onMoveEvent) {
+      // Non-draggable: treat as click
+      onSelectEvent(ev);
+      return;
+    }
+    setMoveDrag({
+      ev,
+      originDayIndex: dayIndex,
+      originStartMin: startMin,
+      durationMin,
+      pointerStartX: e.clientX,
+      pointerStartY: e.clientY,
+      dayIndex,
+      startMin,
+      moved: false,
+    });
   }
 
   // Collect all-day events across the visible range
@@ -819,7 +892,7 @@ function TimeGrid({
 
       {/* Scrollable body: hours column + day columns */}
       <div className="flex-1 overflow-y-auto">
-        <div className={cn('grid relative', gridColsClass)} style={{ height: HOUR_HEIGHT * 24 }}>
+        <div ref={gridRef} className={cn('grid relative', gridColsClass)} style={{ height: HOUR_HEIGHT * 24 }}>
           {/* Hours labels */}
           <div className="relative border-r">
             {hours.map((h) => (
@@ -881,28 +954,54 @@ function TimeGrid({
                   const e = ev.end.dateTime ? parseISO(ev.end.dateTime) : new Date(s.getTime() + 30 * 60 * 1000);
                   const startMin = s.getHours() * 60 + s.getMinutes();
                   const endMin = Math.max(startMin + 15, e.getHours() * 60 + e.getMinutes() + (e.getDate() !== s.getDate() ? 24 * 60 : 0));
-                  const top = (startMin / 60) * HOUR_HEIGHT;
-                  const height = Math.max(18, ((endMin - startMin) / 60) * HOUR_HEIGHT - 2);
+                  const durationMin = endMin - startMin;
+                  const isMoving = moveDrag?.ev.id === ev.id && moveDrag.moved;
+                  const effectiveStartMin = isMoving ? moveDrag!.startMin : startMin;
+                  const hiddenBecauseMovedAway = isMoving && moveDrag!.dayIndex !== dayIdx;
+                  const top = (effectiveStartMin / 60) * HOUR_HEIGHT;
+                  const height = Math.max(18, (durationMin / 60) * HOUR_HEIGHT - 2);
+                  if (hiddenBecauseMovedAway) return null;
                   return (
-                    <button
+                    <div
                       key={ev.id}
                       data-event
-                      onClick={(evt) => { evt.stopPropagation(); onSelectEvent(ev); }}
-                      onMouseDown={(evt) => evt.stopPropagation()}
+                      role="button"
+                      onMouseDown={(evt) => startMoveEvent(evt, ev, dayIdx, startMin, durationMin)}
                       className={cn(
-                        'absolute left-1 right-1 rounded px-1.5 py-0.5 text-left text-[11px] overflow-hidden z-10',
+                        'absolute left-1 right-1 rounded px-1.5 py-0.5 text-left text-[11px] overflow-hidden z-10 cursor-grab active:cursor-grabbing',
                         colorChip(ev.color),
+                        isMoving && 'opacity-80 shadow-lg ring-1 ring-primary/50',
                       )}
                       style={{ top, height }}
                     >
                       <div className="font-medium truncate">
-                        {format(s, 'HH:mm')}
-                        {ev.end.dateTime && ' – ' + format(e, 'HH:mm')}
+                        {isMoving
+                          ? `${minutesToLabel(effectiveStartMin)} – ${minutesToLabel(effectiveStartMin + durationMin)}`
+                          : `${format(s, 'HH:mm')}${ev.end.dateTime ? ' – ' + format(e, 'HH:mm') : ''}`}
                       </div>
                       <div className="truncate">{ev.summary || '(sem título)'}</div>
-                    </button>
+                    </div>
                   );
                 })}
+
+                {/* Ghost preview when moving to another column */}
+                {moveDrag?.moved && moveDrag.dayIndex === dayIdx && moveDrag.originDayIndex !== dayIdx && (
+                  <div
+                    className={cn(
+                      'absolute left-1 right-1 rounded px-1.5 py-0.5 text-[11px] overflow-hidden z-20 pointer-events-none opacity-80 shadow-lg ring-1 ring-primary/50',
+                      colorChip(moveDrag.ev.color),
+                    )}
+                    style={{
+                      top: (moveDrag.startMin / 60) * HOUR_HEIGHT,
+                      height: Math.max(18, (moveDrag.durationMin / 60) * HOUR_HEIGHT - 2),
+                    }}
+                  >
+                    <div className="font-medium truncate">
+                      {minutesToLabel(moveDrag.startMin)} – {minutesToLabel(moveDrag.startMin + moveDrag.durationMin)}
+                    </div>
+                    <div className="truncate">{moveDrag.ev.summary || '(sem título)'}</div>
+                  </div>
+                )}
               </div>
             );
           })}
