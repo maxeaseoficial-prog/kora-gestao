@@ -565,6 +565,7 @@ function CRM() {
           if (!open) {
             setAddingCardToColumn(null);
             setNewCard({ ...EMPTY_CARD });
+            setNewCardErrors({});
             clearOpenDialogState();
           }
         }}
