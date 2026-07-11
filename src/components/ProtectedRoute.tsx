@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
+  const userId = user?.id ?? null;
   const [checking, setChecking] = useState(true);
   const [subscribed, setSubscribed] = useState(false);
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     let cancelled = false;
     async function check() {
-      if (!user) { setChecking(false); return; }
+      if (!userId) { setChecking(false); return; }
       setChecking(true);
       // If returning from Stripe, retry a few times to avoid a race with
       // Stripe's subscription indexing (usually <2s).
@@ -42,7 +43,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
     check();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [userId]);
 
   if (isLoading || (user && checking)) {
     return (
