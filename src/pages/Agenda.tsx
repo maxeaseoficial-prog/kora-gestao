@@ -788,8 +788,10 @@ function TimeGrid({
       const relX = e.clientX - rect.left - 60; // subtract hours column width
       const colWidth = (rect.width - 60) / days.length;
       const dayIndex = Math.max(0, Math.min(days.length - 1, Math.floor(relX / colWidth)));
-      const relY = e.clientY - rect.top;
-      const startMin = yToMinutes(relY - (moveDrag.pointerStartY - (moveDrag.originStartMin / 60) * HOUR_HEIGHT));
+      // Use pointer delta (client-space) so we don't mix client and grid coords.
+      const deltaY = e.clientY - moveDrag.pointerStartY;
+      const newTopY = (moveDrag.originStartMin / 60) * HOUR_HEIGHT + deltaY;
+      const startMin = yToMinutes(newTopY);
       const moved =
         moveDrag.moved ||
         Math.abs(e.clientX - moveDrag.pointerStartX) > 3 ||
