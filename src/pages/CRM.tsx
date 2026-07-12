@@ -277,6 +277,22 @@ function CRM() {
         },
       });
     }
+
+    // Se moveu para uma coluna de "Reunião marcada", abre a Agenda para agendar
+    const isReuniao = destColumn && /reuni[aã]o/i.test(destColumn.title);
+    const wasReuniao = sourceColumn && /reuni[aã]o/i.test(sourceColumn.title);
+    if (isReuniao && !wasReuniao) {
+      const parts = [card.clientName, card.company].filter(Boolean).join(' — ');
+      navigate('/agenda', {
+        state: {
+          prefillEvent: {
+            title: `Reunião ${parts}`.trim(),
+            description: card.notes || card.description || '',
+            location: card.city || '',
+          },
+        },
+      });
+    }
   };
 
   const addColumn = () => {

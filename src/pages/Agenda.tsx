@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import {
   addDays,
   addMonths,
@@ -89,6 +89,8 @@ function buildGoogleAuthUrl(clientId: string) {
 
 export default function Agenda() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [connected, setConnected] = useState<boolean | null>(null);
   const [googleEmail, setGoogleEmail] = useState<string | null>(null);
   const [useLocal, setUseLocal] = useState<boolean>(() => {
@@ -124,6 +126,32 @@ export default function Agenda() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Prefill from external navigation (e.g. CRM "Reunião marcada")
+  useEffect(() => {
+    const pre = (location.state as any)?.prefillEvent;
+    if (!pre) return;
+    // Ensure the local agenda is active so the user can save the event
+    if (!useLocal) {
+      setUseLocal(true);
+      localStorage.setItem('agenda_use_local', '1');
+    }
+    setEditingLocalId(null);
+    setForm({
+      title: pre.title || '',
+      description: pre.description || '',
+      location: pre.location || '',
+      date: format(new Date(), 'yyyy-MM-dd'),
+      startTime: '09:00',
+      endTime: '10:00',
+      allDay: false,
+      color: 'blue',
+    });
+    setShowNewEvent(true);
+    // Clear state so it doesn't reopen on back/refresh
+    navigate(location.pathname, { replace: true, state: {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   async function checkStatus() {
     const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
