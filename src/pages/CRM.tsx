@@ -19,6 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 
 type ColorKey =
@@ -155,6 +165,7 @@ function CRM() {
     restoredDialog.current?.type === 'add' ? restoredDialog.current.draft : { ...EMPTY_CARD },
   );
   const [newCardErrors, setNewCardErrors] = useState<{ clientName?: boolean }>({});
+  const [cardPendingDelete, setCardPendingDelete] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const panState = useRef<{ active: boolean; startX: number; startY: number; scrollLeft: number; scrollTop: number; moved: boolean }>({
@@ -852,7 +863,7 @@ function CRM() {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => deleteCard(editingCard.id)}
+                  onClick={() => setCardPendingDelete(editingCard.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -861,6 +872,28 @@ function CRM() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!cardPendingDelete} onOpenChange={(open) => !open && setCardPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir card?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O card será removido permanentemente do CRM.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (cardPendingDelete) deleteCard(cardPendingDelete);
+                setCardPendingDelete(null);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
