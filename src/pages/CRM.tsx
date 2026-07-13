@@ -525,6 +525,11 @@ function CRM() {
                                   </span>
                                 )}
                               </div>
+                              {typeof card.revenue === 'number' && card.revenue > 0 && (
+                                <div className="mt-2 text-xs font-semibold text-foreground">
+                                  {card.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                </div>
+                              )}
                             </div>
                           )}
                         </Draggable>
