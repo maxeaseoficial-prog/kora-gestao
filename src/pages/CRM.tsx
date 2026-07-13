@@ -691,17 +691,7 @@ function CRM() {
                   className="mt-1"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium">Faturamento</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={newCard.revenue}
-                  onChange={(e) => setNewCard({ ...newCard, revenue: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
+              <div className="col-span-2">
                 <label className="text-sm font-medium">Cidade</label>
                 <Input
                   value={newCard.city}
@@ -714,6 +704,16 @@ function CRM() {
                 <Input
                   value={newCard.serviceType}
                   onChange={(e) => setNewCard({ ...newCard, serviceType: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium">Valor do serviço</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={newCard.revenue}
+                  onChange={(e) => setNewCard({ ...newCard, revenue: e.target.value })}
                   className="mt-1"
                 />
               </div>
@@ -814,17 +814,7 @@ function CRM() {
                     className="mt-1"
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium">Faturamento</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={editingCard.revenue ?? ''}
-                    onChange={(e) => setEditingCard({ ...editingCard, revenue: e.target.value === '' ? null : Number(e.target.value) })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
+                <div className="col-span-2">
                   <label className="text-sm font-medium">Cidade</label>
                   <Input
                     value={editingCard.city || ''}
@@ -837,6 +827,16 @@ function CRM() {
                   <Input
                     value={editingCard.serviceType}
                     onChange={(e) => setEditingCard({ ...editingCard, serviceType: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium">Valor do serviço</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={editingCard.revenue ?? ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, revenue: e.target.value === '' ? null : Number(e.target.value) })}
                     className="mt-1"
                   />
                 </div>
