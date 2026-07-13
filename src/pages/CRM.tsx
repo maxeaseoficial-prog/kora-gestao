@@ -863,7 +863,7 @@ function CRM() {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => deleteCard(editingCard.id)}
+                  onClick={() => setCardPendingDelete(editingCard.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -872,6 +872,28 @@ function CRM() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!cardPendingDelete} onOpenChange={(open) => !open && setCardPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir card?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O card será removido permanentemente do CRM.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (cardPendingDelete) deleteCard(cardPendingDelete);
+                setCardPendingDelete(null);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
