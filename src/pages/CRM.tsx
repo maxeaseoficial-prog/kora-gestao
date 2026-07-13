@@ -378,7 +378,37 @@ function CRM() {
   };
 
   return (
-    <div className="h-[calc(100vh-8rem)] overflow-hidden">
+    <div className="h-[calc(100vh-8rem)] overflow-hidden flex flex-col">
+      {(() => {
+        const pendingTotal = crmCards.reduce((sum, c) => {
+          const col = crmColumns.find((k) => k.id === c.columnId);
+          if (!col) return sum;
+          const t = col.title.trim().toLowerCase();
+          const isFinalized = t.includes('ganh') || t.includes('perd');
+          if (isFinalized) return sum;
+          return sum + Number(c.revenue || 0);
+        }, 0);
+        const pendingCount = crmCards.filter((c) => {
+          const col = crmColumns.find((k) => k.id === c.columnId);
+          if (!col) return false;
+          const t = col.title.trim().toLowerCase();
+          return !(t.includes('ganh') || t.includes('perd'));
+        }).length;
+        return (
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Valor pendente no CRM</p>
+              <p className="text-xl font-bold text-foreground">
+                {pendingTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">Leads pendentes</p>
+              <p className="text-xl font-bold text-foreground">{pendingCount}</p>
+            </div>
+          </div>
+        );
+      })()}
       <DragDropContext onDragEnd={handleDragEnd}>
         <div
           ref={scrollRef}
@@ -386,7 +416,7 @@ function CRM() {
           onMouseMove={onPanMouseMove}
           onMouseUp={endPan}
           onMouseLeave={endPan}
-          className="flex gap-4 h-full overflow-x-auto pb-4 cursor-grab"
+          className="flex gap-4 flex-1 min-h-0 overflow-x-auto pb-4 cursor-grab"
         >
           {crmColumns.sort((a, b) => a.order - b.order).map((column) => {
             const theme = getColumnTheme(column);
