@@ -165,6 +165,7 @@ function CRM() {
     restoredDialog.current?.type === 'add' ? restoredDialog.current.draft : { ...EMPTY_CARD },
   );
   const [newCardErrors, setNewCardErrors] = useState<{ clientName?: boolean }>({});
+  const [cardPendingDelete, setCardPendingDelete] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const panState = useRef<{ active: boolean; startX: number; startY: number; scrollLeft: number; scrollTop: number; moved: boolean }>({
