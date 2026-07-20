@@ -46,7 +46,7 @@ type ColumnTheme = {
   cardBorder: string;
   badgeBg: string;
   badgeText: string;
-  temperature?: 'Frio' | 'Morno' | 'Quente' | 'Parabéns!';
+  temperature?: 'Frio' | 'Morno' | 'Quente' | 'Fervendo' | 'Parabéns!';
 };
 
 // Full Tailwind class strings so JIT preserves them at build time.
@@ -99,6 +99,7 @@ function inferColorFromTitle(title: string): ColorKey {
   if (t.includes('prospect')) return 'blue';
   if (t.includes('contato')) return 'yellow';
   if (t.includes('reuni')) return 'red';
+  if (t.includes('negocia')) return 'orange';
   if (t.includes('ganh')) return 'green';
   return 'gray';
 }
@@ -110,7 +111,12 @@ function resolveColor(column: CRMColumn): ColorKey {
 }
 
 function getColumnTheme(column: CRMColumn): ColumnTheme {
-  return COLOR_THEMES[resolveColor(column)];
+  const base = COLOR_THEMES[resolveColor(column)];
+  // Title-based temperature overrides (e.g. "Em Negociação" => Fervendo)
+  if (column.title.trim().toLowerCase().includes('negocia')) {
+    return { ...base, temperature: 'Fervendo' };
+  }
+  return base;
 }
 
 const EMPTY_CARD = {
