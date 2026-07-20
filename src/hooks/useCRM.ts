@@ -8,8 +8,9 @@ const DEFAULT_COLUMNS: { title: string; order: number }[] = [
   { title: 'Prospectar', order: 0 },
   { title: 'Em Contato', order: 1 },
   { title: 'Reunião Marcada', order: 2 },
-  { title: 'Ganhou', order: 3 },
-  { title: 'Perdeu', order: 4 },
+  { title: 'Em Negociação', order: 3 },
+  { title: 'Ganhou', order: 4 },
+  { title: 'Perdeu', order: 5 },
 ];
 
 export function useCRM() {
@@ -65,7 +66,56 @@ export function useCRM() {
           order: c.column_order,
           color: (c as any).color || undefined,
         }));
-        setCrmColumnsState(mappedColumns);
+
+        // Backfill: ensure "Em Negociação" exists between "Reunião Marcada" and "Ganhou"
+        const hasNegociacao = mappedColumns.some((c) =>
+          c.title.trim().toLowerCase().includes('negocia')
+        );
+        if (!hasNegociacao) {
+          const reuniao = mappedColumns.find((c) =>
+            c.title.trim().toLowerCase().includes('reuni')
+          );
+          const insertOrder = reuniao ? reuniao.order + 1 : mappedColumns.length;
+
+          // Shift orders of columns at or after insertOrder
+          const toShift = mappedColumns.filter((c) => c.order >= insertOrder);
+          for (const col of toShift) {
+            await supabase
+              .from('crm_columns')
+              .update({ column_order: col.order + 1 })
+              .eq('id', col.id)
+              .eq('user_id', user.id);
+          }
+
+          const { data: inserted, error: insertNegErr } = await supabase
+            .from('crm_columns')
+            .insert({
+              user_id: user.id,
+              title: 'Em Negociação',
+              column_order: insertOrder,
+              color: 'orange',
+            } as any)
+            .select()
+            .single();
+
+          if (!insertNegErr && inserted) {
+            const updated = mappedColumns.map((c) =>
+              c.order >= insertOrder ? { ...c, order: c.order + 1 } : c
+            );
+            updated.push({
+              id: (inserted as any).id,
+              title: (inserted as any).title,
+              order: (inserted as any).column_order,
+              color: (inserted as any).color || 'orange',
+            });
+            updated.sort((a, b) => a.order - b.order);
+            setCrmColumnsState(updated);
+          } else {
+            setCrmColumnsState(mappedColumns);
+          }
+        } else {
+          setCrmColumnsState(mappedColumns);
+        }
       }
 
       // Fetch cards
