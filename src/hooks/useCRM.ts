@@ -116,6 +116,36 @@ export function useCRM() {
         } else {
           setCrmColumnsState(mappedColumns);
         }
+
+        // Backfill: ensure "Ganhou" is second-to-last and "Perdeu" is last
+        setCrmColumnsState((prev) => {
+          const cols = prev.length ? [...prev] : [...mappedColumns];
+          const ganhou = cols.find((c) => c.title.trim().toLowerCase() === 'ganhou');
+          const perdeu = cols.find((c) => c.title.trim().toLowerCase() === 'perdeu');
+          if (!ganhou || !perdeu) return cols;
+
+          const others = cols
+            .filter((c) => c.id !== ganhou.id && c.id !== perdeu.id)
+            .sort((a, b) => a.order - b.order);
+          const desired = [...others, ganhou, perdeu];
+          const needsUpdate = desired.some((c, i) => c.order !== i);
+          if (!needsUpdate) return cols;
+
+          const updated = desired.map((c, i) => ({ ...c, order: i }));
+          (async () => {
+            for (const c of updated) {
+              const original = cols.find((o) => o.id === c.id);
+              if (original && original.order !== c.order) {
+                await supabase
+                  .from('crm_columns')
+                  .update({ column_order: c.order })
+                  .eq('id', c.id)
+                  .eq('user_id', user.id);
+              }
+            }
+          })();
+          return updated;
+        });
       }
 
       // Fetch cards
