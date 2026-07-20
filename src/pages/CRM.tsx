@@ -98,13 +98,17 @@ function inferColorFromTitle(title: string): ColorKey {
   const t = title.trim().toLowerCase();
   if (t.includes('prospect')) return 'blue';
   if (t.includes('contato')) return 'yellow';
-  if (t.includes('reuni')) return 'red';
-  if (t.includes('negocia')) return 'orange';
+  if (t.includes('reuni')) return 'orange';
+  if (t.includes('negocia')) return 'red';
   if (t.includes('ganh')) return 'green';
   return 'gray';
 }
 
 function resolveColor(column: CRMColumn): ColorKey {
+  const t = column.title.trim().toLowerCase();
+  // Force these two titles to their canonical colors regardless of stored value
+  if (t.includes('reuni')) return 'orange';
+  if (t.includes('negocia')) return 'red';
   const c = (column.color || '').toLowerCase();
   if (c in COLOR_THEMES) return c as ColorKey;
   return inferColorFromTitle(column.title);
