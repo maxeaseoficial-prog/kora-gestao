@@ -342,7 +342,7 @@ export default function Landing() {
               <p className="text-sm text-white/50 mt-2">Ideal para quem busca flexibilidade e deseja começar sem compromisso de longo prazo.</p>
               <div className="mt-8 mb-8">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-semibold tracking-tight">R$ 69,90</span>
+                  <span className="text-5xl font-semibold tracking-tight">R$ 39,90</span>
                   <span className="text-white/50">/mês</span>
                 </div>
               </div>
@@ -369,12 +369,12 @@ export default function Landing() {
               <p className="text-sm text-white/60 mt-2">Ideal para empresas que desejam economizar e manter uma gestão organizada durante todo o ano.</p>
               <div className="mt-8 mb-8">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-semibold tracking-tight">R$ 597</span>
+                  <span className="text-5xl font-semibold tracking-tight">R$ 397</span>
                   <span className="text-white/50">/ano</span>
                 </div>
-                <div className="text-sm text-white/60 mt-2">Apenas <span className="text-white font-medium">R$ 49,75</span> por mês</div>
+                <div className="text-sm text-white/60 mt-2">Apenas <span className="text-white font-medium">R$ 33,08</span> por mês</div>
                 <div className="inline-block mt-3 text-xs bg-white/10 text-white rounded-full px-3 py-1">
-                  Economize R$ 242,80 por ano
+                  Economize R$ 81,80 por ano
                 </div>
               </div>
               <ul className="space-y-3 text-sm text-white/80 mb-10 flex-1">
