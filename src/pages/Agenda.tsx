@@ -481,28 +481,10 @@ export default function Agenda() {
   }
 
   if (!connected && !useLocal) {
+    enableLocalMode();
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-        <Card className="max-w-md w-full p-8 text-center space-y-4">
-          <div className="mx-auto w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-            <CalendarIcon className="h-7 w-7" />
-          </div>
-          <h2 className="text-xl font-semibold">Sua Agenda</h2>
-          <p className="text-sm text-muted-foreground">
-            Conecte-se ao Google Agenda para ver seus compromissos, ou use a agenda interna do Kora sem integração.
-          </p>
-          <Button onClick={handleConnect} className="w-full gap-2">
-            <Link2 className="h-4 w-4" />
-            Conectar Google Agenda
-          </Button>
-          <Button variant="outline" onClick={enableLocalMode} className="w-full gap-2">
-            <CalendarIcon className="h-4 w-4" />
-            Usar sem conectar
-          </Button>
-          <p className="text-xs text-muted-foreground pt-2">
-            Você pode conectar o Google mais tarde a qualquer momento.
-          </p>
-        </Card>
+      <div className="flex items-center justify-center h-[60vh]">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -538,7 +520,7 @@ export default function Agenda() {
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">Novo evento</span>
           </Button>
-          {connected ? (
+          {connected && (
             <>
               <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground border rounded-md px-2 py-1">
                 <LinkIcon className="h-3 w-3" />
@@ -549,11 +531,6 @@ export default function Agenda() {
                 <span className="hidden sm:inline">Desconectar</span>
               </Button>
             </>
-          ) : (
-            <Button variant="outline" size="sm" onClick={handleConnect} className="gap-1">
-              <Link2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Conectar Google</span>
-            </Button>
           )}
         </div>
       </div>
