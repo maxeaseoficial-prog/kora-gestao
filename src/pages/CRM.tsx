@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper } from 'lucide-react';
+import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper, MessageSquare, Send } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { CRMCard, CRMColumn } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -176,6 +176,7 @@ function CRM() {
   );
   const [newCardErrors, setNewCardErrors] = useState<{ clientName?: boolean }>({});
   const [cardPendingDelete, setCardPendingDelete] = useState<string | null>(null);
+  const [newComment, setNewComment] = useState('');
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const panState = useRef<{ active: boolean; startX: number; startY: number; scrollLeft: number; scrollTop: number; moved: boolean }>({
@@ -373,6 +374,20 @@ function CRM() {
     setNewCard({ ...EMPTY_CARD });
     setAddingCardToColumn(null);
     clearOpenDialogState();
+  };
+
+  const addComment = () => {
+    if (!editingCard || !newComment.trim()) return;
+    const comment = {
+      id: crypto.randomUUID(),
+      text: newComment.trim(),
+      timestamp: new Date().toISOString(),
+    };
+    setEditingCard({
+      ...editingCard,
+      comments: [...(editingCard.comments || []), comment],
+    });
+    setNewComment('');
   };
 
   const updateCard = () => {
@@ -644,9 +659,7 @@ function CRM() {
       >
         <DialogContent
           className="max-h-[90vh] overflow-y-auto"
-          onInteractOutside={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onFocusOutside={(e) => e.preventDefault()}
+          onInteractOutside={() => addCard()}
         >
           <DialogHeader>
             <DialogTitle>Novo Lead</DialogTitle>
@@ -773,9 +786,7 @@ function CRM() {
       >
         <DialogContent
           className="max-h-[90vh] overflow-y-auto"
-          onInteractOutside={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onFocusOutside={(e) => e.preventDefault()}
+          onInteractOutside={() => updateCard()}
         >
           <DialogHeader>
             <DialogTitle>Editar Lead</DialogTitle>
@@ -867,6 +878,38 @@ function CRM() {
                   />
                 </div>
               </div>
+
+              <div className="border-t pt-4 mt-4">
+                <h3 className="text-sm font-semibold flex items-center gap-2 mb-3 text-foreground">
+                  <MessageSquare className="h-4 w-4" /> Comentários
+                </h3>
+                <div className="space-y-3 mb-4">
+                  {(editingCard.comments || []).map((comment) => (
+                    <div key={comment.id} className="bg-muted p-2.5 rounded-lg text-sm">
+                      <p className="text-foreground">{comment.text}</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {new Date(comment.timestamp).toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                  ))}
+                  {(!editingCard.comments || editingCard.comments.length === 0) && (
+                    <p className="text-xs text-muted-foreground italic">Nenhum comentário ainda.</p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Escreva um comentário..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addComment()}
+                    className="flex-1"
+                  />
+                  <Button size="icon" variant="ghost" onClick={addComment} disabled={!newComment.trim()}>
+                    <Send className="h-4 w-4 text-foreground" />
+                  </Button>
+                </div>
+              </div>
+
               <div className="flex gap-2 pt-4">
                 <Button onClick={updateCard} className="flex-1">
                   Salvar
