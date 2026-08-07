@@ -545,11 +545,6 @@ function CRM() {
                               {card.company && (
                                 <p className="text-xs text-muted-foreground mt-0.5">{card.company}</p>
                               )}
-                              {card.description && (
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                  {card.description}
-                                </p>
-                              )}
                               <div className="flex items-center gap-2 mt-2">
                                 {card.email && (
                                   <Mail className="h-3 w-3 text-muted-foreground" />
@@ -782,14 +777,6 @@ function CRM() {
                 />
               </div>
               <div className="col-span-2">
-                <label className="text-sm font-medium">Descrição</label>
-                <Textarea
-                  value={newCard.description}
-                  onChange={(e) => setNewCard({ ...newCard, description: e.target.value })}
-                  className="mt-1 min-h-[60px]"
-                />
-              </div>
-              <div className="col-span-2">
                 <label className="text-sm font-medium">Observações</label>
                 <Textarea
                   value={newCard.notes}
@@ -938,14 +925,6 @@ function CRM() {
                     step="0.01"
                     value={editingCard.revenue ?? ''}
                     onChange={(e) => setEditingCard({ ...editingCard, revenue: e.target.value === '' ? null : Number(e.target.value) })}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-sm font-medium">Descrição</label>
-                  <Textarea
-                    value={editingCard.description}
-                    onChange={(e) => setEditingCard({ ...editingCard, description: e.target.value })}
                     className="mt-1"
                   />
                 </div>
