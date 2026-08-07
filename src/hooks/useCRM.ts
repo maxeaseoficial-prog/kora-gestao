@@ -171,6 +171,7 @@ export function useCRM() {
         revenue: (c as any).revenue ?? null,
         city: (c as any).city || '',
         notes: (c as any).notes || '',
+        comments: (c as any).comments || [],
       }));
 
       setCrmCardsState(mappedCards);
@@ -289,6 +290,7 @@ export function useCRM() {
           revenue: card.revenue ?? null,
           city: card.city || null,
           notes: card.notes || null,
+          comments: card.comments || [],
         });
         if (error) throw error;
       }
@@ -320,6 +322,7 @@ export function useCRM() {
               revenue: card.revenue ?? null,
               city: card.city || null,
               notes: card.notes || null,
+              comments: card.comments || [],
             })
             .eq('id', card.id)
             .eq('user_id', user.id);
