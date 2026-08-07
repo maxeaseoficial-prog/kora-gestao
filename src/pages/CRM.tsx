@@ -707,7 +707,19 @@ function CRM() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Telefone</label>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  Telefone
+                  {newCard.phone && (
+                    <button
+                      type="button"
+                      onClick={() => window.open(`https://wa.me/${newCard.phone.replace(/\D/g, '')}`, '_blank')}
+                      className="text-muted-foreground hover:text-green-500 transition-colors"
+                      title="Abrir WhatsApp"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </button>
+                  )}
+                </label>
                 <Input
                   value={newCard.phone}
                   onChange={(e) => setNewCard({ ...newCard, phone: e.target.value })}
@@ -828,7 +840,19 @@ function CRM() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Telefone</label>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Telefone
+                    {editingCard.phone && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`https://wa.me/${editingCard.phone.replace(/\D/g, '')}`, '_blank')}
+                        className="text-muted-foreground hover:text-green-500 transition-colors"
+                        title="Abrir WhatsApp"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                    )}
+                  </label>
                   <Input
                     value={editingCard.phone || ''}
                     onChange={(e) => setEditingCard({ ...editingCard, phone: e.target.value })}
