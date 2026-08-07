@@ -792,7 +792,19 @@ function Clientes() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Telefone principal</label>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Telefone principal
+                    {formData.phone && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`https://wa.me/${formData.phone.replace(/\D/g, '')}`, '_blank')}
+                        className="text-muted-foreground hover:text-green-500 transition-colors"
+                        title="Abrir WhatsApp"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                    )}
+                  </label>
                   <Input
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
