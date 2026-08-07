@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useApp } from '@/contexts/AppContext';
@@ -792,7 +792,19 @@ function Clientes() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Telefone principal</label>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Telefone principal
+                    {formData.phone && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`https://wa.me/${formData.phone.replace(/\D/g, '')}`, '_blank')}
+                        className="text-muted-foreground hover:text-green-500 transition-colors"
+                        title="Abrir WhatsApp"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                    )}
+                  </label>
                   <Input
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -800,7 +812,19 @@ function Clientes() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Telefone secundário <span className="text-muted-foreground">(opcional)</span></label>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Telefone secundário <span className="text-muted-foreground">(opcional)</span>
+                    {formData.secondaryPhone && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`https://wa.me/${formData.secondaryPhone.replace(/\D/g, '')}`, '_blank')}
+                        className="text-muted-foreground hover:text-green-500 transition-colors"
+                        title="Abrir WhatsApp"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                    )}
+                  </label>
                   <Input
                     value={formData.secondaryPhone || ''}
                     onChange={(e) => setFormData({ ...formData, secondaryPhone: e.target.value })}
