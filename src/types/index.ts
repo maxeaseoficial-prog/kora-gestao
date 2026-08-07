@@ -22,6 +22,7 @@ export interface Client {
   originType?: 'canal_vendas' | 'indicacao' | '' | null;
   originChannel?: string | null;
   referrerName?: string | null;
+  instagram?: string | null;
 }
 
 export interface CRMComment {
@@ -45,6 +46,7 @@ export interface CRMCard {
   city?: string;
   notes?: string;
   comments?: CRMComment[];
+  instagram?: string;
 }
 
 export interface CRMColumn {
