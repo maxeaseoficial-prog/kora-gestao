@@ -296,6 +296,7 @@ function CRM() {
             serviceType: card.serviceType || '',
             notes: card.notes || '',
             city: card.city || '',
+            instagram: card.instagram || '',
           },
         },
       });

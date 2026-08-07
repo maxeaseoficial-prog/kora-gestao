@@ -166,6 +166,7 @@ function Clientes() {
       serviceType: prefill.serviceType || '',
       email: prefill.email || '',
       phone: prefill.phone || '',
+      instagram: prefill.instagram || '',
     });
     setIsDialogOpen(true);
     // limpa o state para não reabrir ao navegar
