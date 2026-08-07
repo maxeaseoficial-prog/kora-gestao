@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2, MessageSquare } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2, MessageSquare, Instagram } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useApp } from '@/contexts/AppContext';
@@ -69,6 +69,7 @@ const buildInitialState = (clientType: ClientType): FormState => ({
   originType: '',
   originChannel: null,
   referrerName: null,
+  instagram: null,
 });
 
 const SALES_CHANNELS = [
@@ -251,6 +252,7 @@ function Clientes() {
       originType: client.originType || '',
       originChannel: client.originChannel || null,
       referrerName: client.referrerName || null,
+      instagram: client.instagram || null,
     });
     setIsDialogOpen(true);
   };
@@ -828,6 +830,30 @@ function Clientes() {
                   <Input
                     value={formData.secondaryPhone || ''}
                     onChange={(e) => setFormData({ ...formData, secondaryPhone: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Instagram
+                    {formData.instagram && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const handle = formData.instagram!.replace('@', '');
+                          window.open(`https://instagram.com/${handle}`, '_blank');
+                        }}
+                        className="text-muted-foreground hover:text-pink-500 transition-colors"
+                        title="Abrir Instagram"
+                      >
+                        <Instagram className="h-4 w-4" />
+                      </button>
+                    )}
+                  </label>
+                  <Input
+                    value={formData.instagram || ''}
+                    onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                    placeholder="@usuario"
                     className="mt-1"
                   />
                 </div>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper, MessageSquare, Send } from 'lucide-react';
+import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper, MessageSquare, Send, Instagram } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { CRMCard, CRMColumn } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -134,6 +134,7 @@ const EMPTY_CARD = {
   revenue: '' as string,
   city: '',
   notes: '',
+  instagram: '',
 };
 
 const CRM_OPEN_DIALOG_KEY = 'kora-crm-open-dialog';
@@ -726,6 +727,30 @@ function CRM() {
                   className="mt-1"
                 />
               </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  Instagram
+                  {newCard.instagram && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const handle = newCard.instagram!.replace('@', '');
+                        window.open(`https://instagram.com/${handle}`, '_blank');
+                      }}
+                      className="text-muted-foreground hover:text-pink-500 transition-colors"
+                      title="Abrir Instagram"
+                    >
+                      <Instagram className="h-4 w-4" />
+                    </button>
+                  )}
+                </label>
+                <Input
+                  value={newCard.instagram}
+                  onChange={(e) => setNewCard({ ...newCard, instagram: e.target.value })}
+                  placeholder="@usuario"
+                  className="mt-1"
+                />
+              </div>
               <div className="col-span-2">
                 <label className="text-sm font-medium">Cidade</label>
                 <Input
@@ -856,6 +881,30 @@ function CRM() {
                   <Input
                     value={editingCard.phone || ''}
                     onChange={(e) => setEditingCard({ ...editingCard, phone: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Instagram
+                    {editingCard.instagram && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const handle = editingCard.instagram!.replace('@', '');
+                          window.open(`https://instagram.com/${handle}`, '_blank');
+                        }}
+                        className="text-muted-foreground hover:text-pink-500 transition-colors"
+                        title="Abrir Instagram"
+                      >
+                        <Instagram className="h-4 w-4" />
+                      </button>
+                    )}
+                  </label>
+                  <Input
+                    value={editingCard.instagram || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, instagram: e.target.value })}
+                    placeholder="@usuario"
                     className="mt-1"
                   />
                 </div>
