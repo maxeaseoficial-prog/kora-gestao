@@ -841,8 +841,11 @@ function Clientes() {
                       <button
                         type="button"
                         onClick={() => {
-                          const handle = formData.instagram!.replace('@', '');
-                          window.open(`https://instagram.com/${handle}`, '_blank');
+                          let url = formData.instagram!.trim();
+                          if (!url.startsWith('http')) {
+                            url = `https://instagram.com/${url.replace('@', '')}`;
+                          }
+                          window.open(url, '_blank');
                         }}
                         className="text-muted-foreground hover:text-pink-500 transition-colors"
                         title="Abrir Instagram"
@@ -854,7 +857,7 @@ function Clientes() {
                   <Input
                     value={formData.instagram || ''}
                     onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
-                    placeholder="@usuario"
+                    placeholder="Link ou @usuario"
                     className="mt-1"
                   />
                 </div>
