@@ -290,7 +290,7 @@ export function useCRM() {
           revenue: card.revenue ?? null,
           city: card.city || null,
           notes: card.notes || null,
-          comments: card.comments || [],
+          comments: (card.comments as any) || [],
         });
         if (error) throw error;
       }
@@ -322,7 +322,7 @@ export function useCRM() {
               revenue: card.revenue ?? null,
               city: card.city || null,
               notes: card.notes || null,
-              comments: card.comments || [],
+              comments: (card.comments as any) || [],
             })
             .eq('id', card.id)
             .eq('user_id', user.id);
