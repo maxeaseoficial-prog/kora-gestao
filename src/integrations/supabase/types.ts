@@ -200,6 +200,7 @@ export type Database = {
           city: string | null
           client_name: string
           column_id: string
+          comments: Json | null
           company: string | null
           created_at: string
           description: string | null
@@ -217,6 +218,7 @@ export type Database = {
           city?: string | null
           client_name: string
           column_id: string
+          comments?: Json | null
           company?: string | null
           created_at?: string
           description?: string | null
@@ -234,6 +236,7 @@ export type Database = {
           city?: string | null
           client_name?: string
           column_id?: string
+          comments?: Json | null
           company?: string | null
           created_at?: string
           description?: string | null

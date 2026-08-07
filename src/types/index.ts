@@ -24,6 +24,12 @@ export interface Client {
   referrerName?: string | null;
 }
 
+export interface CRMComment {
+  id: string;
+  text: string;
+  timestamp: string;
+}
+
 export interface CRMCard {
   id: string;
   clientName: string;
@@ -38,6 +44,7 @@ export interface CRMCard {
   revenue?: number | null;
   city?: string;
   notes?: string;
+  comments?: CRMComment[];
 }
 
 export interface CRMColumn {
