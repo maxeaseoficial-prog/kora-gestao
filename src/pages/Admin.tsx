@@ -19,6 +19,7 @@ export default function Admin() {
   
   // Tabs data
   const [users, setUsers] = useState<any[]>([]);
+  const [selectedPlans, setSelectedPlans] = useState<Record<string, string>>({});
   const [siteConfig, setSiteConfig] = useState({ siteName: '' });
   const [newAdminPass, setNewAdminPass] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,15 +50,21 @@ export default function Admin() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    // Note: admin_user_view requires the role that queries it to have access.
-    // In Lovable Cloud, the frontend queries as 'authenticated'.
     const { data, error } = await (supabase as any).from('admin_user_view').select('*');
-    if (!error) setUsers(data || []);
-
+    if (!error && data) {
+      setUsers(data);
+      // Initialize selected plans from DB state
+      const initialPlans: Record<string, string> = {};
+      data.forEach((u: any) => {
+        initialPlans[u.id] = u.override_plan || 'none';
+      });
+      setSelectedPlans(initialPlans);
+    }
     setLoading(false);
   };
 
-  const updatePlan = async (userId: string, planType: string) => {
+  const updatePlan = async (userId: string) => {
+    const planType = selectedPlans[userId];
     try {
       if (planType === 'none') {
         await (supabase as any).from('user_plan_overrides').delete().eq('user_id', userId);
@@ -179,10 +186,10 @@ export default function Admin() {
                             {u.override_plan || 'Nenhum'}
                           </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="flex items-center gap-2">
                           <Select 
-                            onValueChange={(val) => updatePlan(u.id, val)}
-                            defaultValue={u.override_plan || 'none'}
+                            onValueChange={(val) => setSelectedPlans(prev => ({ ...prev, [u.id]: val }))}
+                            value={selectedPlans[u.id] || 'none'}
                           >
                             <SelectTrigger className="w-32 bg-white/5 border-white/10 text-white">
                               <SelectValue placeholder="Mudar plano" />
@@ -194,6 +201,14 @@ export default function Admin() {
                               <SelectItem value="monthly">Mensal</SelectItem>
                             </SelectContent>
                           </Select>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-9 px-3 border-white/10 hover:bg-white hover:text-black"
+                            onClick={() => updatePlan(u.id)}
+                          >
+                            <Save className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
