@@ -25,6 +25,8 @@ import Planos from "@/pages/Planos";
 import Termos from "@/pages/Termos";
 import Privacidade from "@/pages/Privacidade";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
+
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ const App = () => (
               <Route path="/termos" element={<Termos />} />
               <Route path="/privacidade" element={<Privacidade />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/admin" element={<Admin />} />
+
               <Route
                 path="/dashboard"
                 element={
