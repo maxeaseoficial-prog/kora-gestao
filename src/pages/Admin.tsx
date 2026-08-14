@@ -24,9 +24,10 @@ export default function Admin() {
   const [loading, setLoading] = useState(false);
 
   const checkAuth = async () => {
-    const { data } = await supabase.from('admin_settings').select('*').maybeSingle();
+    const { data } = await (supabase as any).from('admin_settings').select('*').maybeSingle();
     setAdminData(data);
   };
+
 
   useEffect(() => {
     checkAuth();
@@ -50,22 +51,24 @@ export default function Admin() {
     setLoading(true);
     // Note: admin_user_view requires the role that queries it to have access.
     // In Lovable Cloud, the frontend queries as 'authenticated'.
-    const { data, error } = await supabase.from('admin_user_view').select('*');
+    const { data, error } = await (supabase as any).from('admin_user_view').select('*');
     if (!error) setUsers(data || []);
+
     setLoading(false);
   };
 
   const updatePlan = async (userId: string, planType: string) => {
     try {
       if (planType === 'none') {
-        await supabase.from('user_plan_overrides').delete().eq('user_id', userId);
+        await (supabase as any).from('user_plan_overrides').delete().eq('user_id', userId);
       } else {
-        await supabase.from('user_plan_overrides').upsert({
+        await (supabase as any).from('user_plan_overrides').upsert({
           user_id: userId,
           plan_type: planType,
           expires_at: planType === 'lifetime' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
         });
       }
+
       toast.success('Plano atualizado com sucesso');
       fetchUsers();
     } catch (err) {
@@ -78,10 +81,11 @@ export default function Admin() {
       const updates: any = { site_name: siteConfig.siteName };
       if (newAdminPass) updates.admin_password_hash = newAdminPass;
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('admin_settings')
         .update(updates)
         .eq('id', adminData.id);
+
         
       if (error) throw error;
       toast.success('Configurações salvas');
