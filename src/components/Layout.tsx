@@ -15,8 +15,10 @@ import {
   Box,
   ChevronLeft,
   ChevronRight,
-  Settings
+  Settings,
+  ShieldCheck
 } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,7 +39,9 @@ const navigation = [
   { name: 'Planejamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Agenda', href: '/agenda', icon: CalendarDays },
   { name: 'Configuração', href: '/configuracao', icon: Settings },
+  { name: 'Admin', href: '/admin', icon: ShieldCheck },
 ];
+
 
 const STORAGE_KEY_COLLAPSED = 'maxease-sidebar-collapsed';
 
