@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          admin_password_hash: string
+          admin_username: string
+          id: string
+          site_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_password_hash: string
+          admin_username?: string
+          id?: string
+          site_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_password_hash?: string
+          admin_username?: string
+          id?: string
+          site_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       agenda_local_events: {
         Row: {
           all_day: boolean
@@ -54,7 +78,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agenda_local_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_user_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       annual_goals: {
         Row: {
@@ -644,7 +676,15 @@ export type Database = {
           used?: boolean
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "password_reset_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_user_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       planning_history: {
         Row: {
@@ -1084,9 +1124,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_plan_overrides: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          plan_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          plan_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          plan_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_plan_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_user_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      admin_user_view: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string | null
+          last_sign_in_at: string | null
+          override_expires: string | null
+          override_plan: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
