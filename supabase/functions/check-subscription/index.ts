@@ -36,9 +36,31 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
     }
 
+    // Check for manual overrides in DB
+    const { data: override } = await supabase
+      .from("user_plan_overrides")
+      .select("plan_type, expires_at")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+
+    if (override) {
+      const now = new Date();
+      const expires = override.expires_at ? new Date(override.expires_at) : null;
+      if (!expires || expires > now) {
+        return new Response(JSON.stringify({
+          subscribed: true,
+          lifetime: override.plan_type === "lifetime",
+          plan_name: override.plan_type === "lifetime" ? "Plano Vitalício" : 
+                     override.plan_type === "annual" ? "Plano Anual" : "Plano Mensal",
+          subscription_end: override.expires_at,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+      }
+    }
+
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY not set");
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+
 
     const customers = await stripe.customers.list({ email, limit: 1 });
     if (customers.data.length === 0) {
