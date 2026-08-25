@@ -248,7 +248,66 @@ function CRM() {
     panState.current.active = false;
   };
 
+  // --- Auto-scroll horizontal enquanto arrasta um card ---
+  const autoScroll = useRef<{ raf: number | null; pointerX: number | null }>({ raf: null, pointerX: null });
+
+  const stopAutoScroll = () => {
+    if (autoScroll.current.raf !== null) {
+      cancelAnimationFrame(autoScroll.current.raf);
+      autoScroll.current.raf = null;
+    }
+    autoScroll.current.pointerX = null;
+    window.removeEventListener('pointermove', trackPointer);
+    window.removeEventListener('dragover', trackPointerDrag);
+  };
+
+  function trackPointer(e: PointerEvent) {
+    autoScroll.current.pointerX = e.clientX;
+  }
+  function trackPointerDrag(e: DragEvent) {
+    autoScroll.current.pointerX = e.clientX;
+  }
+
+  const startAutoScroll = () => {
+    window.addEventListener('pointermove', trackPointer);
+    window.addEventListener('dragover', trackPointerDrag);
+
+    const EDGE = 90;
+    const MAX_SPEED = 22;
+
+    const step = () => {
+      const el = scrollRef.current;
+      const x = autoScroll.current.pointerX;
+      if (el && x !== null) {
+        const rect = el.getBoundingClientRect();
+        let delta = 0;
+        if (x < rect.left + EDGE) {
+          const intensity = Math.min(1, (rect.left + EDGE - x) / EDGE);
+          delta = -MAX_SPEED * intensity;
+        } else if (x > rect.right - EDGE) {
+          const intensity = Math.min(1, (x - (rect.right - EDGE)) / EDGE);
+          delta = MAX_SPEED * intensity;
+        }
+        if (delta !== 0) {
+          const max = el.scrollWidth - el.clientWidth;
+          const next = Math.max(0, Math.min(max, el.scrollLeft + delta));
+          if (next !== el.scrollLeft) el.scrollLeft = next;
+        }
+      }
+      autoScroll.current.raf = requestAnimationFrame(step);
+    };
+    autoScroll.current.raf = requestAnimationFrame(step);
+  };
+
+  useEffect(() => () => stopAutoScroll(), []);
+
+  const handleDragStart = () => {
+    endPan();
+    startAutoScroll();
+  };
+
   const handleDragEnd = (result: DropResult) => {
+    stopAutoScroll();
     const { destination, source, draggableId } = result;
 
     if (!destination) return;
@@ -447,7 +506,7 @@ function CRM() {
           </div>
         );
       })()}
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div
           ref={scrollRef}
           onMouseDown={onPanMouseDown}
