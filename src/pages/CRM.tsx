@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from '@hello-pangea/dnd';
 import { Plus, MoreVertical, Mail, Phone, Trash2, Edit2, X, PartyPopper, MessageSquare, Send, Instagram } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { CRMCard, CRMColumn } from '@/types';
@@ -70,6 +75,28 @@ const COLOR_THEMES: Record<ColorKey, ColumnTheme> = {
   indigo:   { dot: 'bg-indigo-500',   headerBg: 'bg-indigo-500/10',   headerText: 'text-indigo-600 dark:text-indigo-400',   columnBg: 'bg-indigo-500/5',   border: 'border-indigo-500/30',   cardBg: 'bg-indigo-500/10',   cardBorder: 'border-indigo-500/40',   badgeBg: 'bg-indigo-500/20',   badgeText: 'text-indigo-700 dark:text-indigo-300',   temperature: 'Frio' },
   slate:    { dot: 'bg-slate-500',    headerBg: 'bg-slate-500/10',    headerText: 'text-slate-600 dark:text-slate-300',     columnBg: 'bg-slate-500/5',    border: 'border-slate-500/30',    cardBg: 'bg-slate-500/10',    cardBorder: 'border-slate-500/40',    badgeBg: 'bg-slate-500/20',    badgeText: 'text-slate-700 dark:text-slate-300' },
   gray:     { dot: 'bg-muted-foreground', headerBg: 'bg-secondary', headerText: 'text-foreground', columnBg: 'bg-secondary/50', border: 'border-border', cardBg: 'bg-card', cardBorder: 'border-border', badgeBg: 'bg-secondary', badgeText: 'text-muted-foreground' },
+};
+
+const DROP_TARGET_RINGS: Record<ColorKey, string> = {
+  blue: 'ring-blue-500/60',
+  sky: 'ring-sky-500/60',
+  cyan: 'ring-cyan-500/60',
+  teal: 'ring-teal-500/60',
+  emerald: 'ring-emerald-500/60',
+  green: 'ring-green-500/60',
+  lime: 'ring-lime-500/60',
+  yellow: 'ring-yellow-500/60',
+  amber: 'ring-amber-500/60',
+  orange: 'ring-orange-500/60',
+  red: 'ring-red-500/60',
+  rose: 'ring-rose-500/60',
+  pink: 'ring-pink-500/60',
+  fuchsia: 'ring-fuchsia-500/60',
+  purple: 'ring-purple-500/60',
+  violet: 'ring-violet-500/60',
+  indigo: 'ring-indigo-500/60',
+  slate: 'ring-slate-500/60',
+  gray: 'ring-muted-foreground/50',
 };
 
 const COLOR_OPTIONS: { key: ColorKey; label: string; swatch: string }[] = [
@@ -308,7 +335,12 @@ function CRM() {
 
   const handleDragEnd = (result: DropResult) => {
     stopAutoScroll();
-    const { destination, source, draggableId } = result;
+    const { destination: reportedDestination, source, draggableId, reason } = result;
+    const destination = reason === 'DROP' &&
+      reportedDestination &&
+      crmColumns.some((column) => column.id === reportedDestination.droppableId)
+      ? reportedDestination
+      : null;
 
     if (!destination) return;
 
@@ -506,7 +538,10 @@ function CRM() {
           </div>
         );
       })()}
-      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DragDropContext
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
         <div
           ref={scrollRef}
           onMouseDown={onPanMouseDown}
@@ -518,14 +553,21 @@ function CRM() {
           {crmColumns.sort((a, b) => a.order - b.order).map((column) => {
             const theme = getColumnTheme(column);
             return (
-            <div
-              key={column.id}
-              className={cn(
-                "flex-shrink-0 w-72 rounded-xl flex flex-col animate-fade-in border",
-                theme.columnBg,
-                theme.border
-              )}
-            >
+              <Droppable key={column.id} droppableId={column.id}>
+                {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  data-drop-target={snapshot.isDraggingOver ? 'active' : undefined}
+                  className={cn(
+                    "flex-shrink-0 w-72 rounded-xl flex flex-col animate-fade-in border transition-[background-color,box-shadow,border-color] duration-150",
+                    theme.columnBg,
+                    theme.border,
+                    snapshot.isDraggingOver && theme.headerBg,
+                    snapshot.isDraggingOver && "ring-2 ring-inset",
+                    snapshot.isDraggingOver && DROP_TARGET_RINGS[resolveColor(column)]
+                  )}
+                >
               {/* Column Header */}
               <div className={cn("p-3 border-b flex items-center justify-between rounded-t-xl", theme.headerBg, theme.border)}>
                 <div className="flex items-center gap-2">
@@ -560,16 +602,7 @@ function CRM() {
               </div>
 
               {/* Cards */}
-              <Droppable droppableId={column.id}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={cn(
-                      "flex-1 p-2 space-y-2 overflow-y-auto min-h-[100px]",
-                      snapshot.isDraggingOver && "bg-accent/50"
-                    )}
-                  >
+                  <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[100px]">
                     {crmCards
                       .filter(c => c.columnId === column.id)
                       .sort((a, b) => a.order - b.order)
@@ -628,8 +661,6 @@ function CRM() {
                       ))}
                     {provided.placeholder}
                   </div>
-                )}
-              </Droppable>
 
               {/* Add Card Button */}
               <button
@@ -642,7 +673,9 @@ function CRM() {
                 <Plus className="h-4 w-4" />
                 Adicionar cartão
               </button>
-            </div>
+                </div>
+                )}
+              </Droppable>
             );
           })}
 
