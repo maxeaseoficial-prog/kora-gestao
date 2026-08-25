@@ -506,7 +506,7 @@ function CRM() {
           </div>
         );
       })()}
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div
           ref={scrollRef}
           onMouseDown={onPanMouseDown}
