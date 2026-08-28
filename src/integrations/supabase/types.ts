@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -35,21 +35,6 @@ export type Database = {
           id?: string
           site_name?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      admin_users: {
-        Row: {
-          created_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -1186,39 +1171,7 @@ export type Database = {
       }
     }
     Functions: {
-      admin_get_site_name: {
-        Args: never
-        Returns: string
-      }
-      admin_get_users: {
-        Args: never
-        Returns: {
-          created_at: string
-          email: string
-          id: string
-          last_sign_in_at: string | null
-          override_expires: string | null
-          override_plan: string | null
-        }[]
-      }
-      admin_set_user_plan: {
-        Args: {
-          p_expires_at: string | null
-          p_plan_type: string | null
-          p_user_id: string
-        }
-        Returns: undefined
-      }
-      admin_update_site_name: {
-        Args: {
-          p_site_name: string
-        }
-        Returns: undefined
-      }
-      is_admin: {
-        Args: never
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
