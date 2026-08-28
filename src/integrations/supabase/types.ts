@@ -38,6 +38,29 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_users: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_user_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agenda_local_events: {
         Row: {
           all_day: boolean
@@ -1171,7 +1194,27 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      admin_get_site_name: { Args: never; Returns: string }
+      admin_get_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          last_sign_in_at: string
+          override_expires: string
+          override_plan: string
+        }[]
+      }
+      admin_set_user_plan: {
+        Args: { p_expires_at?: string; p_plan_type: string; p_user_id: string }
+        Returns: undefined
+      }
+      admin_update_site_name: {
+        Args: { p_site_name: string }
+        Returns: undefined
+      }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
