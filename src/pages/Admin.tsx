@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,138 +11,90 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Users, Settings, LogOut, ShieldCheck, CreditCard, Save } from 'lucide-react';
+import { Users, Settings, LogOut, ShieldCheck, Save } from 'lucide-react';
+
+type AdminUser = Database['public']['Functions']['admin_get_users']['Returns'][number];
+type PlanSelection = 'none' | 'lifetime' | 'annual' | 'monthly';
 
 export default function Admin() {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [loginUsername, setLoginUsername] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [adminData, setAdminData] = useState<any>(null);
-  
-  // Tabs data
-  const [users, setUsers] = useState<any[]>([]);
-  const [selectedPlans, setSelectedPlans] = useState<Record<string, string>>({});
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [selectedPlans, setSelectedPlans] = useState<Record<string, PlanSelection>>({});
   const [siteConfig, setSiteConfig] = useState({ siteName: '' });
-  const [newAdminPass, setNewAdminPass] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const checkAuth = async () => {
-    const { data } = await (supabase as any).from('admin_settings').select('*').maybeSingle();
-    setAdminData(data);
-  };
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase.rpc('admin_get_users');
 
+    if (error) {
+      toast.error('Erro ao carregar usuários');
+      setLoading(false);
+      return;
+    }
 
-  useEffect(() => {
-    checkAuth();
+    const nextUsers = data ?? [];
+    setUsers(nextUsers);
+    setSelectedPlans(
+      Object.fromEntries(
+        nextUsers.map((user) => [
+          user.id,
+          (user.override_plan as PlanSelection | null) ?? 'none',
+        ]),
+      ),
+    );
+    setLoading(false);
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adminData) return;
-    
-    if (loginUsername === adminData.admin_username && loginPassword === adminData.admin_password_hash) {
-      setIsAdminAuthenticated(true);
-      fetchUsers();
-      setSiteConfig({ siteName: adminData.site_name });
-      toast.success('Acesso administrativo concedido');
-    } else {
-      toast.error('Credenciais inválidas');
-    }
-  };
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    const { data, error } = await (supabase as any).from('admin_user_view').select('*');
-    if (!error && data) {
-      setUsers(data);
-      // Initialize selected plans from DB state
-      const initialPlans: Record<string, string> = {};
-      data.forEach((u: any) => {
-        initialPlans[u.id] = u.override_plan || 'none';
-      });
-      setSelectedPlans(initialPlans);
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    void fetchUsers();
+    void supabase.rpc('admin_get_site_name').then(({ data, error }) => {
+      if (error) {
+        toast.error('Erro ao carregar configurações');
+        return;
+      }
+      setSiteConfig({ siteName: data ?? '' });
+    });
+  }, [fetchUsers]);
 
   const updatePlan = async (userId: string) => {
     const planType = selectedPlans[userId];
     try {
-      if (planType === 'none') {
-        await (supabase as any).from('user_plan_overrides').delete().eq('user_id', userId);
-      } else {
-        await (supabase as any).from('user_plan_overrides').upsert({
-          user_id: userId,
-          plan_type: planType,
-          expires_at: planType === 'lifetime' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-        });
-      }
+      const expiresAt = planType === 'none' || planType === 'lifetime'
+        ? null
+        : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      const { error } = await supabase.rpc('admin_set_user_plan', {
+        p_user_id: userId,
+        p_plan_type: planType === 'none' ? null : planType,
+        p_expires_at: expiresAt,
+      });
+
+      if (error) throw error;
 
       toast.success('Plano atualizado com sucesso');
-      fetchUsers();
-    } catch (err) {
+      await fetchUsers();
+    } catch {
       toast.error('Erro ao atualizar plano');
     }
   };
 
   const saveSettings = async () => {
     try {
-      const updates: any = { site_name: siteConfig.siteName };
-      if (newAdminPass) updates.admin_password_hash = newAdminPass;
-      
-      const { error } = await (supabase as any)
-        .from('admin_settings')
-        .update(updates)
-        .eq('id', adminData.id);
-
-        
+      const { error } = await supabase.rpc('admin_update_site_name', {
+        p_site_name: siteConfig.siteName,
+      });
       if (error) throw error;
       toast.success('Configurações salvas');
-      setNewAdminPass('');
-      checkAuth();
-    } catch (err) {
+    } catch {
       toast.error('Erro ao salvar configurações');
     }
   };
 
-  if (!isAdminAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4">
-        <Card className="w-full max-w-md bg-[#141414] border-white/5">
-          <CardHeader className="text-center">
-            <div className="mx-auto bg-white/5 p-3 rounded-full w-fit mb-4">
-              <ShieldCheck className="h-8 w-8 text-white" />
-            </div>
-            <CardTitle className="text-2xl text-white">Acesso Administrativo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-white/60">Usuário</Label>
-                <Input 
-                  value={loginUsername} 
-                  onChange={e => setLoginUsername(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white" 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-white/60">Senha</Label>
-                <Input 
-                  type="password"
-                  value={loginPassword}
-                  onChange={e => setLoginPassword(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white" 
-                />
-              </div>
-              <Button type="submit" className="w-full bg-white text-black hover:bg-white/90">
-                Entrar
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth', { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
@@ -150,7 +104,7 @@ export default function Admin() {
             <ShieldCheck className="h-8 w-8" />
             <h1 className="text-3xl font-bold">Painel Admin</h1>
           </div>
-          <Button variant="ghost" onClick={() => setIsAdminAuthenticated(false)} className="text-white/60">
+          <Button variant="ghost" onClick={handleSignOut} className="text-white/60">
             <LogOut className="h-4 w-4 mr-2" /> Sair
           </Button>
         </div>
@@ -177,6 +131,13 @@ export default function Admin() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    {loading && (
+                      <TableRow className="border-white/5">
+                        <TableCell colSpan={4} className="text-center text-white/60">
+                          Carregando usuários...
+                        </TableCell>
+                      </TableRow>
+                    )}
                     {users.map((u) => (
                       <TableRow key={u.id} className="border-white/5">
                         <TableCell className="text-white">{u.email}</TableCell>
@@ -188,7 +149,10 @@ export default function Admin() {
                         </TableCell>
                         <TableCell className="flex items-center gap-2">
                           <Select 
-                            onValueChange={(val) => setSelectedPlans(prev => ({ ...prev, [u.id]: val }))}
+                            onValueChange={(value) => setSelectedPlans((previous) => ({
+                              ...previous,
+                              [u.id]: value as PlanSelection,
+                            }))}
                             value={selectedPlans[u.id] || 'none'}
                           >
                             <SelectTrigger className="w-32 bg-white/5 border-white/10 text-white">
@@ -248,19 +212,10 @@ export default function Admin() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-white/60">Nova Senha Admin</Label>
-                    <Input 
-                      type="password"
-                      value={newAdminPass} 
-                      onChange={e => setNewAdminPass(e.target.value)}
-                      className="bg-white/5 border-white/10 text-white" 
-                      placeholder="Deixe em branco para não mudar"
-                    />
-                  </div>
-                  <Button onClick={saveSettings} className="bg-white text-black hover:bg-white/90">
-                    <Save className="h-4 w-4 mr-2" /> Atualizar Senha
-                  </Button>
+                  <p className="text-sm text-white/60">
+                    O acesso usa a conta autenticada no Supabase e uma permissão administrativa
+                    gerenciada exclusivamente no banco de dados.
+                  </p>
                 </CardContent>
               </Card>
             </div>

@@ -6,6 +6,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isAdmin: boolean;
+  isAdminLoading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -17,6 +19,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [adminAuthorization, setAdminAuthorization] = useState({
+    userId: null as string | null,
+    isAdmin: false,
+  });
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -37,6 +43,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const userId = user?.id ?? null;
+
+  useEffect(() => {
+    if (!userId) {
+      setAdminAuthorization({ userId: null, isAdmin: false });
+      return;
+    }
+
+    let cancelled = false;
+
+    void supabase.rpc('is_admin').then(({ data, error }) => {
+      if (!cancelled) {
+        setAdminAuthorization({
+          userId,
+          isAdmin: !error && data === true,
+        });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const isAdmin = Boolean(
+    userId && adminAuthorization.userId === userId && adminAuthorization.isAdmin,
+  );
+  const isAdminLoading = Boolean(
+    isLoading || (userId && adminAuthorization.userId !== userId),
+  );
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -69,6 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         isLoading,
+        isAdmin,
+        isAdminLoading,
         signUp,
         signIn,
         signOut,

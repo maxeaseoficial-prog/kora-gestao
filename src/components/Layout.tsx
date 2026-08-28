@@ -39,9 +39,9 @@ const navigation = [
   { name: 'Planejamento e Metas', href: '/faturamento', icon: Target },
   { name: 'Agenda', href: '/agenda', icon: CalendarDays },
   { name: 'Configuração', href: '/configuracao', icon: Settings },
-  { name: 'Admin', href: '/admin', icon: ShieldCheck },
 ];
 
+const adminNavigationItem = { name: 'Admin', href: '/admin', icon: ShieldCheck };
 
 const STORAGE_KEY_COLLAPSED = 'maxease-sidebar-collapsed';
 
@@ -55,7 +55,8 @@ export function Layout({ children }: LayoutProps) {
     }
   });
   const location = useLocation();
-  const { signOut, user } = useAuth();
+  const { signOut, user, isAdmin } = useAuth();
+  const visibleNavigation = isAdmin ? [...navigation, adminNavigationItem] : navigation;
 
   const greetingName = (() => {
     try {
@@ -67,7 +68,9 @@ export function Layout({ children }: LayoutProps) {
           if (n) return n.split(/\s+/)[0];
         }
       }
-    } catch {}
+    } catch {
+      // A profile stored locally is optional presentation data.
+    }
     const email = user?.email || '';
     const localPart = email.split('@')[0] || '';
     if (!localPart) return '';
@@ -78,7 +81,9 @@ export function Layout({ children }: LayoutProps) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_COLLAPSED, collapsed ? '1' : '0');
-    } catch {}
+    } catch {
+      // Sidebar persistence is best-effort only.
+    }
   }, [collapsed]);
 
   return (
@@ -132,7 +137,7 @@ export function Layout({ children }: LayoutProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1">
-            {navigation.map((item) => {
+            {visibleNavigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <NavLink
@@ -197,7 +202,7 @@ export function Layout({ children }: LayoutProps) {
               </h1>
             ) : (
               <h1 className="text-lg font-semibold ml-2 lg:ml-0">
-                {navigation.find(n => n.href === location.pathname)?.name ||
+                {visibleNavigation.find(n => n.href === location.pathname)?.name ||
                  (location.pathname.startsWith('/projetos') ? 'Projetos' : 'Dashboard')}
               </h1>
             )}
