@@ -1147,6 +1147,24 @@ export type Database = {
         }
         Relationships: []
       }
+      trial_settings: {
+        Row: {
+          created_at: string
+          eligible_after: string
+          id: boolean
+        }
+        Insert: {
+          created_at?: string
+          eligible_after?: string
+          id?: boolean
+        }
+        Update: {
+          created_at?: string
+          eligible_after?: string
+          id?: boolean
+        }
+        Relationships: []
+      }
       user_plan_overrides: {
         Row: {
           created_at: string | null
@@ -1178,6 +1196,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_trials: {
+        Row: {
+          created_at: string
+          trial_ends_at: string
+          trial_started_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          trial_ends_at?: string
+          trial_started_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          trial_ends_at?: string
+          trial_started_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
