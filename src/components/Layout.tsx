@@ -19,6 +19,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,6 +57,29 @@ export function Layout({ children }: LayoutProps) {
   });
   const location = useLocation();
   const { signOut, user, isAdmin } = useAuth();
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!user?.id) { setTrialEndsAt(null); return; }
+    // Read-only: trial dates come from the database, never from local storage.
+    void supabase
+      .from('user_trials')
+      .select('trial_ends_at')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setTrialEndsAt((data?.trial_ends_at as string) ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  const trialDaysRemaining = (() => {
+    if (!trialEndsAt) return null;
+    const ms = new Date(trialEndsAt).getTime() - Date.now();
+    if (ms <= 0) return null;
+    return Math.max(1, Math.ceil(ms / 86400000));
+  })();
   const visibleNavigation = isAdmin ? [...navigation, adminNavigationItem] : navigation;
 
   const greetingName = (() => {
@@ -207,6 +231,19 @@ export function Layout({ children }: LayoutProps) {
               </h1>
             )}
           </div>
+          {trialDaysRemaining !== null && (
+            <span
+              className={cn(
+                'hidden sm:inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium',
+                trialDaysRemaining <= 2
+                  ? 'border-foreground/40 bg-foreground/10 text-foreground'
+                  : 'border-border text-muted-foreground'
+              )}
+              title={`Teste grátis até ${new Date(trialEndsAt as string).toLocaleDateString('pt-BR')}`}
+            >
+              Teste grátis — {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'}
+            </span>
+          )}
         </header>
 
         {/* Page content */}

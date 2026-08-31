@@ -134,8 +134,21 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-black text-white antialiased selection:bg-white selection:text-black">
+      {/* Promo bar */}
+      <div className="fixed top-0 inset-x-0 z-[60] border-b border-white/10 bg-white text-black">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 px-4 h-10 text-xs sm:text-sm">
+          <span className="font-medium tracking-tight text-center">Teste o KORA grátis por 7 dias</span>
+          <button
+            onClick={() => navigate('/comecar')}
+            className="shrink-0 underline underline-offset-4 hover:opacity-70 transition-opacity"
+          >
+            Começar grátis
+          </button>
+        </div>
+      </div>
+
       {/* Header */}
-      <header className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-black/70 backdrop-blur-xl">
+      <header className="fixed top-10 inset-x-0 z-50 border-b border-white/5 bg-black/70 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between h-24 md:h-28 px-6">
           <Link to="/" className="flex items-center gap-2">
             <img src={logoFull.url} alt="KORA" className="h-20 md:h-24 w-auto" />
@@ -153,7 +166,7 @@ export default function Landing() {
               onClick={() => navigate('/comecar')}
               className="bg-white text-black hover:bg-white/90 rounded-full h-10 px-5"
             >
-              Começar Agora
+              Começar grátis
             </Button>
           </div>
           <button className="md:hidden text-white" onClick={() => setMobileOpen(v => !v)} aria-label="Menu">
@@ -167,14 +180,14 @@ export default function Landing() {
             <a href="#faq" onClick={() => setMobileOpen(false)} className="text-white/80 py-2">FAQ</a>
             <Link to="/auth" className="text-white/80 py-2">Fazer Login</Link>
             <Button onClick={() => navigate('/comecar')} className="bg-white text-black hover:bg-white/90 rounded-full">
-              Começar Agora
+              Começar grátis
             </Button>
           </div>
         )}
       </header>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-24 px-6 overflow-hidden bg-black text-white">
+      <section className="relative pt-44 md:pt-48 pb-24 px-6 overflow-hidden bg-black text-white">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full bg-white/[0.04] blur-3xl" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.08),transparent_60%)]" />
@@ -196,7 +209,7 @@ export default function Landing() {
                 onClick={() => navigate('/comecar')}
                 className="bg-white text-black hover:bg-white/90 rounded-full h-12 px-7 text-base"
               >
-                Começar Agora <ArrowRight className="h-4 w-4 ml-1" />
+                Começar grátis <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
               <Button
                 asChild
@@ -356,7 +369,7 @@ export default function Landing() {
                 variant="outline"
                 className="w-full rounded-full h-12 bg-transparent border-white/20 text-white hover:bg-white/5 hover:text-white"
               >
-                Começar Agora
+                Começar grátis
               </Button>
             </div>
 
@@ -386,7 +399,7 @@ export default function Landing() {
                 onClick={() => navigate('/comecar')}
                 className="w-full rounded-full h-12 bg-white text-black hover:bg-white/90"
               >
-                Começar Agora
+                Começar grátis
               </Button>
             </div>
           </div>
