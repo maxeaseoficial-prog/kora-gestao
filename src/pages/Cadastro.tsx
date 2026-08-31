@@ -90,10 +90,15 @@ export default function Cadastro() {
         });
         return;
       }
-      // Keep the session so the user returns logged in after Stripe checkout.
-      // ProtectedRoute already blocks the system until an active subscription exists.
-      toast({ title: 'Conta criada!', description: 'Escolha seu plano para começar.' });
-      navigate('/planos', { state: { email, name } });
+      // New accounts start a 7-day free trial. The trial itself is created and
+      // validated server-side by the check-subscription function.
+      toast({ title: 'Conta criada!', description: 'Seus 7 dias grátis começaram.' });
+      if (data.session) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        // Email confirmation is required: keep the existing confirmation flow.
+        navigate('/auth', { state: { email, name, awaitingConfirmation: true } });
+      }
     } finally {
       setSubmitting(false);
     }
