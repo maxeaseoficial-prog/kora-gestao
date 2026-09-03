@@ -1,0 +1,1 @@
+ALTER TABLE public.crm_cards ADD COLUMN IF NOT EXISTS instagram text;

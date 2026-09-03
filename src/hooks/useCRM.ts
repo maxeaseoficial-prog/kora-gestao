@@ -172,6 +172,7 @@ export function useCRM() {
         city: (c as any).city || '',
         notes: (c as any).notes || '',
         comments: (c as any).comments || [],
+        instagram: (c as any).instagram || '',
       }));
 
       setCrmCardsState(mappedCards);
@@ -291,6 +292,7 @@ export function useCRM() {
           city: card.city || null,
           notes: card.notes || null,
           comments: (card.comments as any) || [],
+          instagram: card.instagram || null,
         });
         if (error) throw error;
       }
@@ -323,6 +325,7 @@ export function useCRM() {
               city: card.city || null,
               notes: card.notes || null,
               comments: (card.comments as any) || [],
+              instagram: card.instagram || null,
             })
             .eq('id', card.id)
             .eq('user_id', user.id);
