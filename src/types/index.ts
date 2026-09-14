@@ -37,6 +37,7 @@ export interface CRMCard {
   description: string;
   email?: string;
   phone?: string;
+  secondaryPhone?: string;
   serviceType: string;
   columnId: string;
   order: number;
