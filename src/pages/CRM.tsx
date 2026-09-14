@@ -155,6 +155,7 @@ const EMPTY_CARD = {
   description: '',
   email: '',
   phone: '',
+  secondaryPhone: '',
   serviceType: '',
   role: '',
   company: '',
@@ -384,6 +385,7 @@ function CRM() {
             company: card.company || '',
             email: card.email || '',
             phone: card.phone || '',
+            secondaryPhone: card.secondaryPhone || '',
             serviceType: card.serviceType || '',
             notes: card.notes || '',
             city: card.city || '',
@@ -453,12 +455,14 @@ function CRM() {
       description: newCard.description,
       email: newCard.email,
       phone: newCard.phone,
+      secondaryPhone: newCard.secondaryPhone || '',
       serviceType: newCard.serviceType,
       role: newCard.role,
       company: newCard.company,
       revenue: Number.isFinite(revenueNum as number) ? (revenueNum as number) : null,
       city: newCard.city,
       notes: newCard.notes,
+      instagram: newCard.instagram,
       columnId: addingCardToColumn,
       order: crmCards.filter(c => c.columnId === addingCardToColumn).length,
     };
@@ -641,7 +645,7 @@ function CRM() {
                                 {card.email && (
                                   <Mail className="h-3 w-3 text-muted-foreground" />
                                 )}
-                                {card.phone && (
+                                {(card.phone || card.secondaryPhone) && (
                                   <Phone className="h-3 w-3 text-muted-foreground" />
                                 )}
                                 {card.serviceType && (
@@ -797,13 +801,13 @@ function CRM() {
               </div>
               <div>
                 <label className="text-sm font-medium flex items-center gap-2">
-                  Telefone
+                  Telefone 1
                   {newCard.phone && (
                     <button
                       type="button"
                       onClick={() => window.open(`https://wa.me/${newCard.phone.replace(/\D/g, '')}`, '_blank')}
                       className="text-muted-foreground hover:text-green-500 transition-colors"
-                      title="Abrir WhatsApp"
+                      title="Abrir WhatsApp do Telefone 1"
                     >
                       <MessageSquare className="h-4 w-4" />
                     </button>
@@ -812,6 +816,26 @@ function CRM() {
                 <Input
                   value={newCard.phone}
                   onChange={(e) => setNewCard({ ...newCard, phone: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  Telefone 2
+                  {newCard.secondaryPhone && (
+                    <button
+                      type="button"
+                      onClick={() => window.open(`https://wa.me/${newCard.secondaryPhone.replace(/\D/g, '')}`, '_blank')}
+                      className="text-muted-foreground hover:text-green-500 transition-colors"
+                      title="Abrir WhatsApp do Telefone 2"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </button>
+                  )}
+                </label>
+                <Input
+                  value={newCard.secondaryPhone || ''}
+                  onChange={(e) => setNewCard({ ...newCard, secondaryPhone: e.target.value })}
                   className="mt-1"
                 />
               </div>
@@ -949,13 +973,13 @@ function CRM() {
                 </div>
                 <div>
                   <label className="text-sm font-medium flex items-center gap-2">
-                    Telefone
+                    Telefone 1
                     {editingCard.phone && (
                       <button
                         type="button"
                         onClick={() => window.open(`https://wa.me/${editingCard.phone.replace(/\D/g, '')}`, '_blank')}
                         className="text-muted-foreground hover:text-green-500 transition-colors"
-                        title="Abrir WhatsApp"
+                        title="Abrir WhatsApp do Telefone 1"
                       >
                         <MessageSquare className="h-4 w-4" />
                       </button>
@@ -964,6 +988,26 @@ function CRM() {
                   <Input
                     value={editingCard.phone || ''}
                     onChange={(e) => setEditingCard({ ...editingCard, phone: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Telefone 2
+                    {editingCard.secondaryPhone && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`https://wa.me/${editingCard.secondaryPhone!.replace(/\D/g, '')}`, '_blank')}
+                        className="text-muted-foreground hover:text-green-500 transition-colors"
+                        title="Abrir WhatsApp do Telefone 2"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                    )}
+                  </label>
+                  <Input
+                    value={editingCard.secondaryPhone || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, secondaryPhone: e.target.value })}
                     className="mt-1"
                   />
                 </div>
