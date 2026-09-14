@@ -133,7 +133,6 @@ function inferColorFromTitle(title: string): ColorKey {
 
 function resolveColor(column: CRMColumn): ColorKey {
   const t = column.title.trim().toLowerCase();
-  // Force these two titles to their canonical colors regardless of stored value
   if (t.includes('reuni')) return 'orange';
   if (t.includes('negocia')) return 'red';
   const c = (column.color || '').toLowerCase();
@@ -143,7 +142,6 @@ function resolveColor(column: CRMColumn): ColorKey {
 
 function getColumnTheme(column: CRMColumn): ColumnTheme {
   const base = COLOR_THEMES[resolveColor(column)];
-  // Title-based temperature overrides (e.g. "Em Negociação" => Fervendo)
   if (column.title.trim().toLowerCase().includes('negocia')) {
     return { ...base, temperature: 'Fervendo' };
   }
@@ -237,7 +235,6 @@ function CRM() {
   const onPanMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
-    // Don't start panning if the click is on a draggable card or interactive control
     if (target.closest('[data-rfd-draggable-id], [data-rbd-draggable-id], [data-rfd-drag-handle-draggable-id]') || target.closest('button, a, input, textarea, [role="menuitem"]')) {
       return;
     }
@@ -276,7 +273,6 @@ function CRM() {
     panState.current.active = false;
   };
 
-  // --- Auto-scroll horizontal enquanto arrasta um card ---
   const autoScroll = useRef<{ raf: number | null; pointerX: number | null }>({ raf: null, pointerX: null });
 
   const stopAutoScroll = () => {
@@ -356,22 +352,15 @@ function CRM() {
     if (!card) return;
 
     const newCards = crmCards.filter(c => c.id !== draggableId);
-    
     const destCards = newCards
       .filter(c => c.columnId === destination.droppableId)
       .sort((a, b) => a.order - b.order);
-
     const updatedCard = { ...card, columnId: destination.droppableId, order: destination.index };
-    
     destCards.splice(destination.index, 0, updatedCard);
-    
     const reorderedDestCards = destCards.map((c, idx) => ({ ...c, order: idx }));
-    
     const otherCards = newCards.filter(c => c.columnId !== destination.droppableId);
-    
     setCrmCards([...otherCards, ...reorderedDestCards]);
 
-    // Se moveu para uma coluna "Ganhou", abre o cadastro de cliente com dados pré-preenchidos
     const destColumn = crmColumns.find(c => c.id === destination.droppableId);
     const sourceColumn = crmColumns.find(c => c.id === source.droppableId);
     const isGanhou = destColumn && destColumn.title.trim().toLowerCase().includes('ganh');
@@ -395,7 +384,6 @@ function CRM() {
       });
     }
 
-    // Se moveu para uma coluna de "Reunião marcada", abre a Agenda para agendar
     const isReuniao = destColumn && /reuni[aã]o/i.test(destColumn.title);
     const wasReuniao = sourceColumn && /reuni[aã]o/i.test(sourceColumn.title);
     if (isReuniao && !wasReuniao) {
@@ -414,14 +402,12 @@ function CRM() {
 
   const addColumn = () => {
     if (!newColumnTitle.trim()) return;
-    
     const newColumn: CRMColumn = {
       id: crypto.randomUUID(),
       title: newColumnTitle,
       order: crmColumns.length,
       color: newColumnColor,
     };
-    
     setCrmColumns([...crmColumns, newColumn]);
     setNewColumnTitle('');
     setNewColumnColor('gray');
@@ -489,7 +475,6 @@ function CRM() {
 
   const updateCard = () => {
     if (!editingCard) return;
-    
     setCrmCards(crmCards.map(c => 
       c.id === editingCard.id ? editingCard : c
     ));
@@ -572,7 +557,6 @@ function CRM() {
                     snapshot.isDraggingOver && DROP_TARGET_RINGS[resolveColor(column)]
                   )}
                 >
-              {/* Column Header */}
               <div className={cn("p-3 border-b flex items-center justify-between rounded-t-xl", theme.headerBg, theme.border)}>
                 <div className="flex items-center gap-2">
                   <span className={cn("h-2.5 w-2.5 rounded-full", theme.dot)} />
@@ -605,7 +589,6 @@ function CRM() {
                 </DropdownMenu>
               </div>
 
-              {/* Cards */}
                   <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[100px]">
                     {crmCards
                       .filter(c => c.columnId === column.id)
@@ -666,7 +649,6 @@ function CRM() {
                     {provided.placeholder}
                   </div>
 
-              {/* Add Card Button */}
               <button
                 onClick={() => {
                   setNewCard({ ...EMPTY_CARD });
@@ -683,7 +665,6 @@ function CRM() {
             );
           })}
 
-          {/* Add Column */}
           {isAddingColumn ? (
             <div className="flex-shrink-0 w-72 bg-secondary/50 rounded-xl p-3 space-y-3 animate-fade-in">
               <Input
@@ -738,7 +719,6 @@ function CRM() {
         </div>
       </DragDropContext>
 
-      {/* Add Card Dialog */}
       <Dialog
         open={addingCardToColumn !== null}
         onOpenChange={(open) => {
@@ -821,26 +801,6 @@ function CRM() {
               </div>
               <div>
                 <label className="text-sm font-medium flex items-center gap-2">
-                  Telefone 2
-                  {newCard.secondaryPhone && (
-                    <button
-                      type="button"
-                      onClick={() => window.open(`https://wa.me/${newCard.secondaryPhone.replace(/\D/g, '')}`, '_blank')}
-                      className="text-muted-foreground hover:text-green-500 transition-colors"
-                      title="Abrir WhatsApp do Telefone 2"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                    </button>
-                  )}
-                </label>
-                <Input
-                  value={newCard.secondaryPhone || ''}
-                  onChange={(e) => setNewCard({ ...newCard, secondaryPhone: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium flex items-center gap-2">
                   Instagram
                   {newCard.instagram && (
                     <button
@@ -863,6 +823,26 @@ function CRM() {
                   value={newCard.instagram}
                   onChange={(e) => setNewCard({ ...newCard, instagram: e.target.value })}
                   placeholder="Link ou @usuario"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  Telefone 2
+                  {newCard.secondaryPhone && (
+                    <button
+                      type="button"
+                      onClick={() => window.open(`https://wa.me/${newCard.secondaryPhone.replace(/\D/g, '')}`, '_blank')}
+                      className="text-muted-foreground hover:text-green-500 transition-colors"
+                      title="Abrir WhatsApp do Telefone 2"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </button>
+                  )}
+                </label>
+                <Input
+                  value={newCard.secondaryPhone || ''}
+                  onChange={(e) => setNewCard({ ...newCard, secondaryPhone: e.target.value })}
                   className="mt-1"
                 />
               </div>
@@ -917,7 +897,6 @@ function CRM() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Card Dialog */}
       <Dialog
         open={isCardDialogOpen}
         onOpenChange={(open) => {
@@ -993,26 +972,6 @@ function CRM() {
                 </div>
                 <div>
                   <label className="text-sm font-medium flex items-center gap-2">
-                    Telefone 2
-                    {editingCard.secondaryPhone && (
-                      <button
-                        type="button"
-                        onClick={() => window.open(`https://wa.me/${editingCard.secondaryPhone!.replace(/\D/g, '')}`, '_blank')}
-                        className="text-muted-foreground hover:text-green-500 transition-colors"
-                        title="Abrir WhatsApp do Telefone 2"
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                      </button>
-                    )}
-                  </label>
-                  <Input
-                    value={editingCard.secondaryPhone || ''}
-                    onChange={(e) => setEditingCard({ ...editingCard, secondaryPhone: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium flex items-center gap-2">
                     Instagram
                     {editingCard.instagram && (
                       <button
@@ -1035,6 +994,26 @@ function CRM() {
                     value={editingCard.instagram || ''}
                     onChange={(e) => setEditingCard({ ...editingCard, instagram: e.target.value })}
                     placeholder="Link ou @usuario"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Telefone 2
+                    {editingCard.secondaryPhone && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`https://wa.me/${editingCard.secondaryPhone!.replace(/\D/g, '')}`, '_blank')}
+                        className="text-muted-foreground hover:text-green-500 transition-colors"
+                        title="Abrir WhatsApp do Telefone 2"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                    )}
+                  </label>
+                  <Input
+                    value={editingCard.secondaryPhone || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, secondaryPhone: e.target.value })}
                     className="mt-1"
                   />
                 </div>
