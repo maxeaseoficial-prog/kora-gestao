@@ -292,7 +292,7 @@ export function useCRM() {
           city: card.city || null,
           notes: card.notes || null,
           comments: (card.comments as any) || [],
-          instagram: card.instagram || null,
+          instagram: card.instagram?.trim() || null,
         });
         if (error) throw error;
       }
@@ -309,7 +309,7 @@ export function useCRM() {
       for (const card of existingCards) {
         const original = crmCards.find((c) => c.id === card.id);
         if (original && JSON.stringify(original) !== JSON.stringify(card)) {
-          const { error } = await supabase
+          const { data, error } = await supabase
             .from('crm_cards')
             .update({
               client_name: card.clientName,
@@ -325,11 +325,21 @@ export function useCRM() {
               city: card.city || null,
               notes: card.notes || null,
               comments: (card.comments as any) || [],
-              instagram: card.instagram || null,
+              instagram: card.instagram?.trim() || null,
             })
             .eq('id', card.id)
-            .eq('user_id', user.id);
+            .eq('user_id', user.id)
+            .select('id, instagram')
+            .single();
           if (error) throw error;
+
+          setCrmCardsState((prev) =>
+            prev.map((current) =>
+              current.id === card.id
+                ? { ...current, instagram: data.instagram || '' }
+                : current
+            )
+          );
         }
       }
     } catch (error) {
