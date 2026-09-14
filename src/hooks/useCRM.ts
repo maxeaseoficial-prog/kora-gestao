@@ -163,6 +163,7 @@ export function useCRM() {
         description: c.description || '',
         email: c.email || '',
         phone: c.phone || '',
+        secondaryPhone: (c as any).secondary_phone || '',
         serviceType: c.service_type || '',
         columnId: c.column_id,
         order: c.card_order,
@@ -283,6 +284,7 @@ export function useCRM() {
           description: card.description,
           email: card.email,
           phone: card.phone,
+          secondary_phone: card.secondaryPhone?.trim() || null,
           service_type: card.serviceType,
           column_id: card.columnId,
           card_order: card.order,
@@ -293,7 +295,7 @@ export function useCRM() {
           notes: card.notes || null,
           comments: (card.comments as any) || [],
           instagram: card.instagram?.trim() || null,
-        });
+        } as any);
         if (error) throw error;
       }
 
@@ -316,6 +318,7 @@ export function useCRM() {
               description: card.description,
               email: card.email,
               phone: card.phone,
+              secondary_phone: card.secondaryPhone?.trim() || null,
               service_type: card.serviceType,
               column_id: card.columnId,
               card_order: card.order,
@@ -326,17 +329,21 @@ export function useCRM() {
               notes: card.notes || null,
               comments: (card.comments as any) || [],
               instagram: card.instagram?.trim() || null,
-            })
+            } as any)
             .eq('id', card.id)
             .eq('user_id', user.id)
-            .select('id, instagram')
+            .select('id, instagram, secondary_phone')
             .single();
           if (error) throw error;
 
           setCrmCardsState((prev) =>
             prev.map((current) =>
               current.id === card.id
-                ? { ...current, instagram: data.instagram || '' }
+                ? {
+                    ...current,
+                    instagram: (data as any).instagram || '',
+                    secondaryPhone: (data as any).secondary_phone || '',
+                  }
                 : current
             )
           );
