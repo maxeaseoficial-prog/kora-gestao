@@ -266,6 +266,7 @@ export type Database = {
           phone: string | null
           revenue: number | null
           role: string | null
+          secondary_phone: string | null
           service_type: string | null
           user_id: string
         }
@@ -285,6 +286,7 @@ export type Database = {
           phone?: string | null
           revenue?: number | null
           role?: string | null
+          secondary_phone?: string | null
           service_type?: string | null
           user_id: string
         }
@@ -304,6 +306,7 @@ export type Database = {
           phone?: string | null
           revenue?: number | null
           role?: string | null
+          secondary_phone?: string | null
           service_type?: string | null
           user_id?: string
         }
