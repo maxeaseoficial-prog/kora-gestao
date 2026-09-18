@@ -13,6 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -191,6 +198,13 @@ function CRM() {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [newColumnColor, setNewColumnColor] = useState<ColorKey>('gray');
+  const [newColumnPosition, setNewColumnPosition] = useState(0);
+  const [editingColumn, setEditingColumn] = useState<{
+    id: string;
+    title: string;
+    color: ColorKey;
+    position: number;
+  } | null>(null);
   const [editingCard, setEditingCard] = useState<CRMCard | null>(
     restoredDialog.current?.type === 'edit' ? restoredDialog.current.card : null,
   );
@@ -402,27 +416,59 @@ function CRM() {
 
   const addColumn = () => {
     if (!newColumnTitle.trim()) return;
+    const orderedColumns = [...crmColumns].sort((a, b) => a.order - b.order);
+    const position = Math.min(Math.max(newColumnPosition, 0), orderedColumns.length);
     const newColumn: CRMColumn = {
       id: crypto.randomUUID(),
-      title: newColumnTitle,
-      order: crmColumns.length,
+      title: newColumnTitle.trim(),
+      order: position,
       color: newColumnColor,
     };
-    setCrmColumns([...crmColumns, newColumn]);
+    orderedColumns.splice(position, 0, newColumn);
+    setCrmColumns(orderedColumns.map((column, index) => ({ ...column, order: index })));
     setNewColumnTitle('');
     setNewColumnColor('gray');
+    setNewColumnPosition(0);
     setIsAddingColumn(false);
   };
 
   const deleteColumn = (columnId: string) => {
-    setCrmColumns(crmColumns.filter(c => c.id !== columnId));
+    const remainingColumns = crmColumns
+      .filter(c => c.id !== columnId)
+      .sort((a, b) => a.order - b.order)
+      .map((column, index) => ({ ...column, order: index }));
+    setCrmColumns(remainingColumns);
     setCrmCards(crmCards.filter(c => c.columnId !== columnId));
   };
 
-  const renameColumn = (columnId: string, newTitle: string) => {
-    setCrmColumns(crmColumns.map(c => 
-      c.id === columnId ? { ...c, title: newTitle } : c
-    ));
+  const openColumnEditor = (column: CRMColumn) => {
+    const orderedColumns = [...crmColumns].sort((a, b) => a.order - b.order);
+    const position = orderedColumns.findIndex((item) => item.id === column.id);
+    setEditingColumn({
+      id: column.id,
+      title: column.title,
+      color: resolveColor(column),
+      position: position >= 0 ? position : 0,
+    });
+  };
+
+  const updateColumn = () => {
+    if (!editingColumn || !editingColumn.title.trim()) return;
+
+    const reorderedColumns = [...crmColumns]
+      .sort((a, b) => a.order - b.order)
+      .filter((column) => column.id !== editingColumn.id);
+    const position = Math.min(Math.max(editingColumn.position, 0), reorderedColumns.length);
+    const currentColumn = crmColumns.find((column) => column.id === editingColumn.id);
+    if (!currentColumn) return;
+
+    reorderedColumns.splice(position, 0, {
+      ...currentColumn,
+      title: editingColumn.title.trim(),
+      color: editingColumn.color,
+    });
+    setCrmColumns(reorderedColumns.map((column, index) => ({ ...column, order: index })));
+    setEditingColumn(null);
   };
 
   const addCard = () => {
@@ -539,7 +585,7 @@ function CRM() {
           onMouseLeave={endPan}
           className="flex gap-4 flex-1 min-h-0 overflow-x-auto pb-4 cursor-grab"
         >
-          {crmColumns.sort((a, b) => a.order - b.order).map((column) => {
+          {[...crmColumns].sort((a, b) => a.order - b.order).map((column) => {
             const theme = getColumnTheme(column);
             return (
               <Droppable key={column.id} droppableId={column.id}>
@@ -570,13 +616,10 @@ function CRM() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() => {
-                        const newTitle = prompt('Novo nome da coluna:', column.title);
-                        if (newTitle) renameColumn(column.id, newTitle);
-                      }}
+                      onClick={() => openColumnEditor(column)}
                     >
                       <Edit2 className="h-4 w-4 mr-2" />
-                      Renomear
+                      Editar coluna
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive"
@@ -694,6 +737,24 @@ function CRM() {
                   ))}
                 </div>
               </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block">Posição</label>
+                <Select
+                  value={String(newColumnPosition)}
+                  onValueChange={(value) => setNewColumnPosition(Number(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: crmColumns.length + 1 }, (_, index) => (
+                      <SelectItem key={index} value={String(index)}>
+                        {index + 1}ª posição{index === crmColumns.length ? ' (final)' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={addColumn} className="flex-1">
                   Adicionar
@@ -701,7 +762,11 @@ function CRM() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => { setIsAddingColumn(false); setNewColumnColor('gray'); }}
+                  onClick={() => {
+                    setIsAddingColumn(false);
+                    setNewColumnColor('gray');
+                    setNewColumnPosition(0);
+                  }}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -709,7 +774,10 @@ function CRM() {
             </div>
           ) : (
             <button
-              onClick={() => setIsAddingColumn(true)}
+              onClick={() => {
+                setNewColumnPosition(crmColumns.length);
+                setIsAddingColumn(true);
+              }}
               className="flex-shrink-0 w-72 h-12 bg-secondary/30 rounded-xl text-sm text-muted-foreground hover:bg-secondary/50 transition-colors flex items-center justify-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -718,6 +786,74 @@ function CRM() {
           )}
         </div>
       </DragDropContext>
+
+      <Dialog open={editingColumn !== null} onOpenChange={(open) => !open && setEditingColumn(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar coluna</DialogTitle>
+          </DialogHeader>
+          {editingColumn && (
+            <div className="space-y-4 pt-2">
+              <div>
+                <label className="text-sm font-medium">Nome da coluna</label>
+                <Input
+                  value={editingColumn.title}
+                  onChange={(event) => setEditingColumn({ ...editingColumn, title: event.target.value })}
+                  className="mt-1"
+                  autoFocus
+                  onKeyDown={(event) => event.key === 'Enter' && updateColumn()}
+                />
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-2">Cor da coluna</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {COLOR_OPTIONS.map((option) => (
+                    <button
+                      key={option.key}
+                      type="button"
+                      onClick={() => setEditingColumn({ ...editingColumn, color: option.key })}
+                      title={option.label}
+                      className={cn(
+                        'h-7 w-7 rounded-full border-2 transition-transform',
+                        option.swatch,
+                        editingColumn.color === option.key
+                          ? 'border-foreground scale-110'
+                          : 'border-transparent hover:scale-105',
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Posição da coluna</label>
+                <Select
+                  value={String(editingColumn.position)}
+                  onValueChange={(value) => setEditingColumn({ ...editingColumn, position: Number(value) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {crmColumns.map((_, index) => (
+                      <SelectItem key={index} value={String(index)}>
+                        {index + 1}ª posição
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button onClick={updateColumn} disabled={!editingColumn.title.trim()} className="flex-1">
+                  Salvar alterações
+                </Button>
+                <Button variant="ghost" onClick={() => setEditingColumn(null)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={addingCardToColumn !== null}
