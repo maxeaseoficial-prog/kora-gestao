@@ -101,6 +101,7 @@ function Clientes() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isTypePickerOpen, setIsTypePickerOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState<FormState>(buildInitialState('empresa'));
   const [formErrors, setFormErrors] = useState<{ name?: boolean; company?: boolean }>({});
@@ -364,20 +365,24 @@ function Clientes() {
   const handleDelete = (clientId: string) => {
     if (confirm('Tem certeza que deseja excluir este cliente?')) {
       setClients(clients.filter(c => c.id !== clientId));
+      return true;
     }
+    return false;
   };
 
   const handleToggleActive = (client: Client) => {
     if (client.status === 'ativo') {
-      if (!confirm(`Desativar cliente "${client.name}"? Ele não contará no próximo mês.`)) return;
+      if (!confirm(`Desativar cliente "${client.name}"? Ele não contará no próximo mês.`)) return false;
       setClients(clients.map(c =>
         c.id === client.id ? { ...c, status: 'inativo', deactivatedAt: new Date() } : c
       ));
-    } else {
-      setClients(clients.map(c =>
-        c.id === client.id ? { ...c, status: 'ativo', deactivatedAt: null } : c
-      ));
+      return true;
     }
+
+    setClients(clients.map(c =>
+      c.id === client.id ? { ...c, status: 'ativo', deactivatedAt: null } : c
+    ));
+    return true;
   };
 
   const getStatusBadge = (status: Client['status']) => {
@@ -547,140 +552,40 @@ function Clientes() {
 
       {/* Client portfolio */}
       {filteredClients.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3">
           {filteredClients.map((client) => {
             const isInactive = client.status === 'inativo';
-            const isRecurring = client.recurrence === 'mensal';
-            const instagram = client.instagram?.trim();
+            const statusDotClass =
+              client.status === 'ativo'
+                ? 'bg-foreground'
+                : client.status === 'pendente'
+                  ? 'bg-muted-foreground'
+                  : 'bg-border';
 
             return (
-              <div
+              <button
                 key={client.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => openEditClientDialog(client)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    openEditClientDialog(client);
-                  }
-                }}
+                type="button"
+                onClick={() => setSelectedClient(client)}
                 className={cn(
-                  'group bg-card border border-border rounded-lg p-5 flex flex-col min-h-[340px] cursor-pointer animate-fade-in transition-[border-color,box-shadow,opacity] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:border-foreground/30 hover:shadow-sm',
-                  isInactive && 'bg-muted/30 opacity-65 hover:opacity-80'
+                  'relative h-[96px] rounded-lg border border-border bg-card px-3 py-3 text-left flex items-center gap-3 overflow-hidden transition-[border-color,box-shadow,transform,opacity] duration-200 hover:border-foreground/30 hover:shadow-sm hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  isInactive && 'bg-muted/30 opacity-60 hover:opacity-80'
                 )}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Avatar className="h-12 w-12 border border-border shrink-0">
-                      {client.avatarUrl && <AvatarImage src={client.avatarUrl} alt={client.name} />}
-                      <AvatarFallback className="text-sm font-semibold bg-secondary">
-                        {initials(client.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="font-semibold truncate">{client.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {client.company || (client.clientType === 'pessoa' ? 'Pessoa física' : 'Sem empresa informada')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="shrink-0">{getStatusBadge(client.status)}</div>
-                </div>
-
-                <div className="mt-5 py-4 border-y border-border">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Serviço contratado</p>
-                  <p className="font-medium mt-1 line-clamp-2 min-h-12">{client.serviceType || 'Serviço não informado'}</p>
-                  <span className="inline-flex mt-3 px-2 py-1 rounded-md border border-border bg-secondary text-secondary-foreground text-xs font-medium">
-                    {isRecurring ? 'Mensal' : 'Pontual'}
-                  </span>
-                </div>
-
-                <div className="py-4 flex-1">
-                  <p className="text-xs text-muted-foreground">{isRecurring ? 'Mensalidade' : 'Valor do projeto'}</p>
-                  <p className="text-2xl font-semibold mt-1">{formatCurrency(client.monthlyValue)}</p>
-                  {isRecurring && (
-                    <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5">
-                      <CalendarIcon className="h-3.5 w-3.5" />
-                      Vencimento dia {client.contractDay}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-3">
-                    Entrada em {format(new Date(client.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
-                  </p>
-                </div>
-
-                <div
-                  className="pt-3 border-t border-border flex items-center justify-between gap-2"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <div className="flex items-center gap-1">
-                    {client.phone && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        title="Abrir WhatsApp"
-                        onClick={() => window.open(`https://wa.me/${client.phone?.replace(/\D/g, '')}`, '_blank')}
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {instagram && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        title="Abrir Instagram"
-                        onClick={() => {
-                          const url = instagram.startsWith('http')
-                            ? instagram
-                            : `https://instagram.com/${instagram.replace('@', '')}`;
-                          window.open(url, '_blank');
-                        }}
-                      >
-                        <Instagram className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {client.email && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8" title="Enviar e-mail" asChild>
-                        <a href={`mailto:${client.email}`}>
-                          <Mail className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      title={client.status === 'ativo' ? 'Desativar cliente' : 'Reativar cliente'}
-                      onClick={() => handleToggleActive(client)}
-                    >
-                      {client.status === 'ativo' ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      title="Editar cliente"
-                      onClick={() => openEditClientDialog(client)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive"
-                      title="Excluir cliente"
-                      onClick={() => handleDelete(client.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                <Avatar className="h-11 w-11 border border-border shrink-0">
+                  {client.avatarUrl && <AvatarImage src={client.avatarUrl} alt={client.name} />}
+                  <AvatarFallback className="text-xs font-semibold bg-secondary">
+                    {initials(client.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="min-w-0 flex-1 text-sm font-medium leading-snug line-clamp-2">
+                  {client.name}
+                </span>
+                <span
+                  className={cn('absolute top-2.5 right-2.5 h-2 w-2 rounded-full', statusDotClass)}
+                  title={client.status === 'ativo' ? 'Ativo' : client.status === 'inativo' ? 'Inativo' : 'Pendente'}
+                />
+              </button>
             );
           })}
         </div>
@@ -695,6 +600,191 @@ function Clientes() {
           <ControleClientes clients={clients} />
         </TabsContent>
       </Tabs>
+
+      {/* Client details dialog */}
+      <Dialog
+        open={!!selectedClient}
+        onOpenChange={(open) => {
+          if (!open) setSelectedClient(null);
+        }}
+      >
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          {selectedClient && (() => {
+            const instagram = selectedClient.instagram?.trim();
+            const isRecurring = selectedClient.recurrence === 'mensal';
+            const originLabel =
+              selectedClient.originType === 'indicacao'
+                ? `Indicação${selectedClient.referrerName ? ` · ${selectedClient.referrerName}` : ''}`
+                : selectedClient.originType === 'canal_vendas'
+                  ? `Canal de vendas${selectedClient.originChannel ? ` · ${selectedClient.originChannel}` : ''}`
+                  : 'Não informada';
+
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-start gap-4 pr-8">
+                    <Avatar className="h-14 w-14 border border-border shrink-0">
+                      {selectedClient.avatarUrl && (
+                        <AvatarImage src={selectedClient.avatarUrl} alt={selectedClient.name} />
+                      )}
+                      <AvatarFallback className="text-sm font-semibold bg-secondary">
+                        {initials(selectedClient.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <DialogTitle className="text-xl">{selectedClient.name}</DialogTitle>
+                      <DialogDescription className="mt-1">
+                        {selectedClient.company || (selectedClient.clientType === 'pessoa' ? 'Pessoa física' : 'Sem empresa informada')}
+                      </DialogDescription>
+                    </div>
+                    <div className="shrink-0">{getStatusBadge(selectedClient.status)}</div>
+                  </div>
+                </DialogHeader>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Serviço</p>
+                    <p className="font-medium mt-1">{selectedClient.serviceType || 'Não informado'}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Recorrência</p>
+                    <p className="font-medium mt-1">{isRecurring ? 'Mensal' : 'Pontual'}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      {isRecurring ? 'Mensalidade' : 'Valor do projeto'}
+                    </p>
+                    <p className="font-semibold mt-1">{formatCurrency(selectedClient.monthlyValue)}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      {isRecurring ? 'Vencimento' : 'Entrada'}
+                    </p>
+                    <p className="font-medium mt-1">
+                      {isRecurring
+                        ? `Dia ${selectedClient.contractDay}`
+                        : format(new Date(selectedClient.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border divide-y divide-border">
+                  <div className="px-4 py-3 flex items-center justify-between gap-4">
+                    <span className="text-sm text-muted-foreground">Data de entrada</span>
+                    <span className="text-sm font-medium">
+                      {format(new Date(selectedClient.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 flex items-center justify-between gap-4">
+                    <span className="text-sm text-muted-foreground">E-mail</span>
+                    <span className="text-sm font-medium text-right break-all">
+                      {selectedClient.email || 'Não informado'}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 flex items-center justify-between gap-4">
+                    <span className="text-sm text-muted-foreground">Telefone 1</span>
+                    <span className="text-sm font-medium text-right">
+                      {selectedClient.phone || 'Não informado'}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 flex items-center justify-between gap-4">
+                    <span className="text-sm text-muted-foreground">Telefone 2</span>
+                    <span className="text-sm font-medium text-right">
+                      {selectedClient.secondaryPhone || 'Não informado'}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 flex items-center justify-between gap-4">
+                    <span className="text-sm text-muted-foreground">Instagram</span>
+                    <span className="text-sm font-medium text-right break-all">
+                      {selectedClient.instagram || 'Não informado'}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 flex items-center justify-between gap-4">
+                    <span className="text-sm text-muted-foreground">Origem</span>
+                    <span className="text-sm font-medium text-right">{originLabel}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <div className="flex items-center gap-1">
+                    {selectedClient.phone && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(`https://wa.me/${selectedClient.phone?.replace(/\D/g, '')}`, '_blank')}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        WhatsApp
+                      </Button>
+                    )}
+                    {instagram && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const url = instagram.startsWith('http')
+                            ? instagram
+                            : `https://instagram.com/${instagram.replace('@', '')}`;
+                          window.open(url, '_blank');
+                        }}
+                      >
+                        <Instagram className="h-4 w-4 mr-2" />
+                        Instagram
+                      </Button>
+                    )}
+                    {selectedClient.email && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={`mailto:${selectedClient.email}`}>
+                          <Mail className="h-4 w-4 mr-2" />
+                          E-mail
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const client = selectedClient;
+                        setSelectedClient(null);
+                        openEditClientDialog(client);
+                      }}
+                    >
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={selectedClient.status === 'ativo' ? 'Desativar cliente' : 'Reativar cliente'}
+                      onClick={() => {
+                        if (handleToggleActive(selectedClient)) setSelectedClient(null);
+                      }}
+                    >
+                      {selectedClient.status === 'ativo'
+                        ? <PowerOff className="h-4 w-4" />
+                        : <Power className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive"
+                      title="Excluir cliente"
+                      onClick={() => {
+                        if (handleDelete(selectedClient.id)) setSelectedClient(null);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {/* Type picker dialog */}
       <Dialog open={isTypePickerOpen} onOpenChange={setIsTypePickerOpen}>
