@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2, MessageSquare, Instagram } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Power, PowerOff, CalendarIcon, Building2, User as UserIcon, Filter as FilterIcon, X, Upload, Loader2, MessageSquare, Instagram, Mail, UsersRound, RefreshCw, BriefcaseBusiness } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useApp } from '@/contexts/AppContext';
@@ -194,10 +194,17 @@ function Clientes() {
   });
 
   const stats = useMemo(() => {
-    const total = clients.length;
-    const masculino = clients.filter((c) => c.gender === 'masculino').length;
-    const feminino = clients.filter((c) => c.gender === 'feminino').length;
-    return { total, masculino, feminino };
+    const activeClients = clients.filter((client) => client.status === 'ativo');
+    const recurringRevenue = activeClients
+      .filter((client) => client.recurrence === 'mensal')
+      .reduce((total, client) => total + Number(client.monthlyValue || 0), 0);
+    const oneTimeProjects = activeClients.filter((client) => client.recurrence === 'pontual').length;
+
+    return {
+      activeClients: activeClients.length,
+      recurringRevenue,
+      oneTimeProjects,
+    };
   }, [clients]);
 
   const activeFilterCount =
@@ -401,19 +408,34 @@ function Clientes() {
         <TabsContent value="lista" className="space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Total de clientes</p>
-          <p className="text-2xl font-semibold mt-1">{stats.total}</p>
+          <div className="bg-card border border-border rounded-lg p-5 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Clientes ativos</p>
+              <p className="text-3xl font-semibold mt-2">{stats.activeClients}</p>
+            </div>
+            <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+              <UsersRound className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Receita recorrente</p>
+              <p className="text-2xl font-semibold mt-2 break-words">{formatCurrency(stats.recurringRevenue)}</p>
+            </div>
+            <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+              <RefreshCw className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-5 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Projetos pontuais</p>
+              <p className="text-3xl font-semibold mt-2">{stats.oneTimeProjects}</p>
+            </div>
+            <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+              <BriefcaseBusiness className="h-5 w-5" />
+            </div>
+          </div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Masculino</p>
-          <p className="text-2xl font-semibold mt-1">{stats.masculino}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Feminino</p>
-          <p className="text-2xl font-semibold mt-1">{stats.feminino}</p>
-        </div>
-      </div>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -523,109 +545,150 @@ function Clientes() {
         </Button>
       </div>
 
-      {/* Client List */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-secondary/50">
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Cliente</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Empresa</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Serviço</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Recorrência</th>
-                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Valor</th>
-                <th className="text-center p-4 text-sm font-medium text-muted-foreground">Status</th>
-                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredClients.map((client) => {
-                const type = client.clientType || 'empresa';
-                return (
-                  <tr
-                    key={client.id}
-                    onClick={() => openEditClientDialog(client)}
-                    className={cn(
-                      'border-b border-border last:border-0 transition-colors animate-fade-in cursor-pointer',
-                      client.status === 'inativo'
-                        ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive'
-                        : 'hover:bg-secondary/30'
+      {/* Client portfolio */}
+      {filteredClients.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredClients.map((client) => {
+            const isInactive = client.status === 'inativo';
+            const isRecurring = client.recurrence === 'mensal';
+            const instagram = client.instagram?.trim();
+
+            return (
+              <div
+                key={client.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => openEditClientDialog(client)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openEditClientDialog(client);
+                  }
+                }}
+                className={cn(
+                  'group bg-card border border-border rounded-lg p-5 flex flex-col min-h-[340px] cursor-pointer animate-fade-in transition-[border-color,box-shadow,opacity] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:border-foreground/30 hover:shadow-sm',
+                  isInactive && 'bg-muted/30 opacity-65 hover:opacity-80'
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="h-12 w-12 border border-border shrink-0">
+                      {client.avatarUrl && <AvatarImage src={client.avatarUrl} alt={client.name} />}
+                      <AvatarFallback className="text-sm font-semibold bg-secondary">
+                        {initials(client.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">{client.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {client.company || (client.clientType === 'pessoa' ? 'Pessoa física' : 'Sem empresa informada')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shrink-0">{getStatusBadge(client.status)}</div>
+                </div>
+
+                <div className="mt-5 py-4 border-y border-border">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Serviço contratado</p>
+                  <p className="font-medium mt-1 line-clamp-2 min-h-12">{client.serviceType || 'Serviço não informado'}</p>
+                  <span className="inline-flex mt-3 px-2 py-1 rounded-md border border-border bg-secondary text-secondary-foreground text-xs font-medium">
+                    {isRecurring ? 'Mensal' : 'Pontual'}
+                  </span>
+                </div>
+
+                <div className="py-4 flex-1">
+                  <p className="text-xs text-muted-foreground">{isRecurring ? 'Mensalidade' : 'Valor do projeto'}</p>
+                  <p className="text-2xl font-semibold mt-1">{formatCurrency(client.monthlyValue)}</p>
+                  {isRecurring && (
+                    <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5">
+                      <CalendarIcon className="h-3.5 w-3.5" />
+                      Vencimento dia {client.contractDay}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Entrada em {format(new Date(client.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
+                  </p>
+                </div>
+
+                <div
+                  className="pt-3 border-t border-border flex items-center justify-between gap-2"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="flex items-center gap-1">
+                    {client.phone && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title="Abrir WhatsApp"
+                        onClick={() => window.open(`https://wa.me/${client.phone?.replace(/\D/g, '')}`, '_blank')}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
                     )}
-                  >
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border border-border">
-                          {client.avatarUrl && <AvatarImage src={client.avatarUrl} alt={client.name} />}
-                          <AvatarFallback className="text-xs font-medium bg-secondary">
-                            {initials(client.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium">{client.name}</p>
-                            <span className={cn(
-                              'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border',
-                              type === 'empresa' ? 'bg-secondary text-secondary-foreground border-border' : 'bg-muted text-muted-foreground border-border'
-                            )}>
-                              {type === 'empresa' ? <Building2 className="h-3 w-3" /> : <UserIcon className="h-3 w-3" />}
-                              {type === 'empresa' ? 'Empresa' : 'Pessoa'}
-                            </span>
-                          </div>
-                          {client.email && (
-                          <p className={cn('text-sm', client.status === 'inativo' ? 'text-destructive/80' : 'text-muted-foreground')}>{client.email}</p>
-                          )}
-                          <p className={cn('text-xs mt-0.5', client.status === 'inativo' ? 'text-destructive/80' : 'text-muted-foreground')}>
-                          Entrada: {format(new Date(client.entryDate), 'dd/MM/yyyy', { locale: ptBR })}
-                          {client.endDate && (
-                            <> · Encerrado em {format(new Date(client.endDate), 'dd/MM/yyyy', { locale: ptBR })}</>
-                          )}
-                          {client.status === 'inativo' && client.deactivatedAt && (
-                            <> · Desativado: {format(new Date(client.deactivatedAt), 'dd/MM/yyyy', { locale: ptBR })}</>
-                          )}
-                        </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className={cn('p-4', client.status === 'inativo' ? '' : 'text-muted-foreground')}>
-                      {client.company || '—'}
-                    </td>
-                    <td className={cn('p-4', client.status === 'inativo' ? '' : 'text-muted-foreground')}>{client.serviceType}</td>
-                    <td className={cn('p-4 capitalize', client.status === 'inativo' ? '' : 'text-muted-foreground')}>{client.recurrence}</td>
-                    <td className="p-4 text-right font-semibold">{formatCurrency(client.monthlyValue)}</td>
-                    <td className="p-4 text-center">{getStatusBadge(client.status)}</td>
-                    <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          title={client.status === 'ativo' ? 'Desativar cliente' : 'Reativar cliente'}
-                          onClick={() => handleToggleActive(client)}
-                        >
-                          {client.status === 'ativo' ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditClientDialog(client)}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(client.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filteredClients.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                    Nenhum cliente encontrado
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    {instagram && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title="Abrir Instagram"
+                        onClick={() => {
+                          const url = instagram.startsWith('http')
+                            ? instagram
+                            : `https://instagram.com/${instagram.replace('@', '')}`;
+                          window.open(url, '_blank');
+                        }}
+                      >
+                        <Instagram className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {client.email && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8" title="Enviar e-mail" asChild>
+                        <a href={`mailto:${client.email}`}>
+                          <Mail className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      title={client.status === 'ativo' ? 'Desativar cliente' : 'Reativar cliente'}
+                      onClick={() => handleToggleActive(client)}
+                    >
+                      {client.status === 'ativo' ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      title="Editar cliente"
+                      onClick={() => openEditClientDialog(client)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      title="Excluir cliente"
+                      onClick={() => handleDelete(client.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      ) : (
+        <div className="bg-card rounded-lg border border-border p-10 text-center text-muted-foreground">
+          Nenhum cliente encontrado
+        </div>
+      )}
         </TabsContent>
 
         <TabsContent value="controle" className="space-y-6">
